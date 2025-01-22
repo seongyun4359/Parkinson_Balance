@@ -1,0 +1,5 @@
+# JavaScript와 TypeScript를 강조하고, 네이티브 코드를 무시
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+android/** linguist-vendored
+ios/** linguist-vendored

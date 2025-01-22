@@ -1,0 +1,1 @@
+/Users/lucha/Desktop/develop/react-native/android/app/build/intermediates/cxx/Debug/1u1v164o/obj/x86
