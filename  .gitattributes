@@ -1,7 +1,15 @@
-# JavaScript와 TypeScript를 강조하고, 네이티브 코드를 무시
-*.js linguist-language=JavaScript
-*.ts linguist-language=TypeScript
+
 android/** linguist-vendored
 ios/** linguist-vendored
 *.apk filter=lfs diff=lfs merge=lfs -text
 *.so filter=lfs diff=lfs merge=lfs -text
+android/* linguist-vendored
+ios/* linguist-vendored
+*.h linguist-vendored
+*.m linguist-vendored
+*.cpp linguist-vendored
+*.mm linguist-vendored
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript

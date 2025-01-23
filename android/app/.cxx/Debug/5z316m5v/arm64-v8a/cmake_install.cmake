@@ -48,6 +48,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/rnreanimated_autolinked_build/cmake_install.cmake")
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/safeareacontext_autolinked_build/cmake_install.cmake")
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/rnscreens_autolinked_build/cmake_install.cmake")
+  include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/rnsvg_autolinked_build/cmake_install.cmake")
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/RNVectorIconsSpec_autolinked_build/cmake_install.cmake")
 
 endif()
