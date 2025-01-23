@@ -1,7 +1,7 @@
 import React from "react"
 
 function LostAcountScreen() {
-	return <div>LostAcountScreen</div>
+	return <view>LostAcountScreen</view>
 }
 
 export default LostAcountScreen
