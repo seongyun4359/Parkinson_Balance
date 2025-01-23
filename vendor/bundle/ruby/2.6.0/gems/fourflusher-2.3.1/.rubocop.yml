@@ -12,19 +12,19 @@ Metrics/MethodLength:
 
 Style/AsciiComments:
   Exclude:
-    - 'lib/fourflusher/executable.rb'
+    - "lib/fourflusher/executable.rb"
 
 Style/ClassVars:
   Exclude:
-    - 'lib/fourflusher/find.rb'
+    - "lib/fourflusher/find.rb"
 
 Style/Documentation:
   Exclude:
-    - 'spec/**/*'
-    - 'test/**/*'
-    - 'lib/fourflusher/version.rb'
-    - 'lib/fourflusher/compat.rb'
+    - "spec/**/*"
+    - "test/**/*"
+    - "lib/fourflusher/version.rb"
+    - "lib/fourflusher/compat.rb"
 
 Lint/Void:
   Exclude:
-    - 'spec/unit_spec.rb'
+    - "spec/unit_spec.rb"

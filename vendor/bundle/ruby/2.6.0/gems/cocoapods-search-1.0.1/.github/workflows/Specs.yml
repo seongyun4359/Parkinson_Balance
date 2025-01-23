@@ -39,4 +39,3 @@ on:
     branches:
       - master
       - "*-stable"
-

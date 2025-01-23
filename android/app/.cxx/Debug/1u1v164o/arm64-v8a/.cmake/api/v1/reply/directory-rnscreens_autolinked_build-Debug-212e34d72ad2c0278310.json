@@ -1,14 +1,12 @@
 {
-	"backtraceGraph" : 
-	{
-		"commands" : [],
-		"files" : [],
-		"nodes" : []
+	"backtraceGraph": {
+		"commands": [],
+		"files": [],
+		"nodes": []
 	},
-	"installers" : [],
-	"paths" : 
-	{
-		"build" : "rnscreens_autolinked_build",
-		"source" : "/Users/lucha/Desktop/develop/react-native/node_modules/react-native-screens/android/src/main/jni"
+	"installers": [],
+	"paths": {
+		"build": "rnscreens_autolinked_build",
+		"source": "/Users/lucha/Desktop/develop/react-native/node_modules/react-native-screens/android/src/main/jni"
 	}
 }

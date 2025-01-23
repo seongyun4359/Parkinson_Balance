@@ -10,13 +10,13 @@
 # Cop supports --auto-correct.
 Layout/EmptyLineAfterMagicComment:
   Exclude:
-    - 'cocoapods-try.gemspec'
+    - "cocoapods-try.gemspec"
 
 # Offense count: 2
 # Configuration parameters: ContextCreatingMethods, MethodCreatingMethods.
 Lint/UselessAccessModifier:
   Exclude:
-    - 'lib/pod/command/try.rb'
+    - "lib/pod/command/try.rb"
 
 # Offense count: 37
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
@@ -29,9 +29,9 @@ Metrics/LineLength:
 # AllowedAcronyms: CLI, DSL, ACL, API, ASCII, CPU, CSS, DNS, EOF, GUID, HTML, HTTP, HTTPS, ID, IP, JSON, LHS, QPS, RAM, RHS, RPC, SLA, SMTP, SQL, SSH, TCP, TLS, TTL, UDP, UI, UID, UUID, URI, URL, UTF8, VM, XML, XMPP, XSRF, XSS
 Naming/FileName:
   Exclude:
-    - 'Gemfile'
-    - 'Rakefile'
-    - 'cocoapods-try.gemspec'
+    - "Gemfile"
+    - "Rakefile"
+    - "cocoapods-try.gemspec"
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -39,15 +39,15 @@ Naming/FileName:
 # SupportedStyles: predicate, comparison
 Style/NumericPredicate:
   Exclude:
-    - 'spec/**/*'
-    - 'lib/pod/command/try.rb'
+    - "spec/**/*"
+    - "lib/pod/command/try.rb"
 
 # Offense count: 1
 # Cop supports --auto-correct.
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
-    - 'cocoapods-try.gemspec'
+    - "cocoapods-try.gemspec"
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -55,7 +55,7 @@ Style/PercentLiteralDelimiters:
 # SupportedStyles: use_perl_names, use_english_names
 Style/SpecialGlobalVars:
   Exclude:
-    - 'cocoapods-try.gemspec'
+    - "cocoapods-try.gemspec"
 
 # Offense count: 8
 # Cop supports --auto-correct.
@@ -63,10 +63,10 @@ Style/SpecialGlobalVars:
 # SupportedStyles: single_quotes, double_quotes
 Style/StringLiterals:
   Exclude:
-    - 'cocoapods-try.gemspec'
+    - "cocoapods-try.gemspec"
 
 # Offense count: 1
 # Cop supports --auto-correct.
 Style/UnneededPercentQ:
   Exclude:
-    - 'cocoapods-try.gemspec'
+    - "cocoapods-try.gemspec"

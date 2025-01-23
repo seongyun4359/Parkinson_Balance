@@ -1,14 +1,12 @@
 {
-	"backtraceGraph" : 
-	{
-		"commands" : [],
-		"files" : [],
-		"nodes" : []
+	"backtraceGraph": {
+		"commands": [],
+		"files": [],
+		"nodes": []
 	},
-	"installers" : [],
-	"paths" : 
-	{
-		"build" : ".",
-		"source" : "."
+	"installers": [],
+	"paths": {
+		"build": ".",
+		"source": "."
 	}
 }

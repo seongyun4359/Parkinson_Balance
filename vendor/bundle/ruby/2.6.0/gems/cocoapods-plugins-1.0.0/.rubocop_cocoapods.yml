@@ -113,4 +113,3 @@ ClassAndModuleChildren:
 UselessComparison:
   Exclude:
     - spec/**/*
-

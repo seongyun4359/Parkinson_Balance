@@ -3,8 +3,8 @@
 #
 language: objective-c
 addons:
- code_climate:
-   repo_token: 2926ae7ea0b2a6ced8b0d67efa235769ab85de1d9c9f6702f40d80bacec3c9c4
+  code_climate:
+    repo_token: 2926ae7ea0b2a6ced8b0d67efa235769ab85de1d9c9f6702f40d80bacec3c9c4
 
 env:
   - RVM_RUBY_VERSION=system

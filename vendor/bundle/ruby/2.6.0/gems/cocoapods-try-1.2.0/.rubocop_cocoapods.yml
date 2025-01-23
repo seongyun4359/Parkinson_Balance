@@ -48,8 +48,8 @@ Layout/MultilineOperationIndentation:
 
 Style/PercentLiteralDelimiters:
   PreferredDelimiters:
-    default: '()'
-    '%w': '()'
+    default: "()"
+    "%w": "()"
 
 # Clashes with CLAide Command#validate!
 Style/GuardClause:
@@ -126,4 +126,3 @@ Lint/UselessComparison:
 Metrics/BlockLength:
   Exclude:
     - spec/**/*
-

@@ -1,8 +1,8 @@
 ## Top 3 reasons you should use FuzzyMatch
 
-1. *intelligent defaults*: it uses a combination of Pair Distance (2-gram) and Levenshtein Edit Distance to effectively match many examples with no configuration
-2. *all-vs-all*: it takes care of finding the optimal match by comparing everything against everything else (when that's necessary)
-3. *refinable*: you might get to 90% with no configuration, but if you need to go beyond you can use regexps, grouping, and stop words
+1. _intelligent defaults_: it uses a combination of Pair Distance (2-gram) and Levenshtein Edit Distance to effectively match many examples with no configuration
+2. _all-vs-all_: it takes care of finding the optimal match by comparing everything against everything else (when that's necessary)
+3. _refinable_: you might get to 90% with no configuration, but if you need to go beyond you can use regexps, grouping, and stop words
 
 It solves many mid-range matching problems &mdash; if your haystack is ~10k records &mdash; if you can winnow down the initial possibilities at the database level and only bring good contenders into app memory &mdash; why not give it a shot?
 
@@ -60,11 +60,11 @@ Hopefully they are rather intuitive once you start using them.
 
 That will...
 
-* separate "Orient Express Hotel" and "Ramada Conference Center Mandarin" from real Mandarin Oriental hotels
-* keep "Trump Hotel Collection" away from "Luxury Collection" (another real hotel brand) without messing with the word "Luxury"
-* make sure that "Ramada Plaza" are always grouped with other RPs&mdash;and not with plain old Ramadas&mdash;and vice versa
-* splits out Hyatts into their different brands
-* and more
+- separate "Orient Express Hotel" and "Ramada Conference Center Mandarin" from real Mandarin Oriental hotels
+- keep "Trump Hotel Collection" away from "Luxury Collection" (another real hotel brand) without messing with the word "Luxury"
+- make sure that "Ramada Plaza" are always grouped with other RPs&mdash;and not with plain old Ramadas&mdash;and vice versa
+- splits out Hyatts into their different brands
+- and more
 
 You specify chained groupings as arrays of regexps:
 
@@ -98,10 +98,10 @@ Stop words are NOT removed when checking `:must_match_at_least_one_word` and whe
 
 ## Find options
 
-* `read`: how to interpret each record in the 'haystack', either a Proc or a symbol
-* `must_match_grouping`: don't return a match unless the needle fits into one of the groupings you specified
-* `must_match_at_least_one_word`: don't return a match unless the needle shares at least one word with the match. Note that "Foo's" is treated like one word (so that it won't match "'s") and "Bolivia," is treated as just "bolivia"
-* `gather_last_result`: enable `last_result`
+- `read`: how to interpret each record in the 'haystack', either a Proc or a symbol
+- `must_match_grouping`: don't return a match unless the needle fits into one of the groupings you specified
+- `must_match_at_least_one_word`: don't return a match unless the needle shares at least one word with the match. Note that "Foo's" is treated like one word (so that it won't match "'s") and "Bolivia," is treated as just "bolivia"
+- `gather_last_result`: enable `last_result`
 
 ## Case sensitivity
 
@@ -134,17 +134,17 @@ Here's a great explanation copied from [the wikipedia entry](http://en.wikipedia
 In edge cases where Dice's finds that two strings are equally similar to a third string, then Levenshtein distance is used. For example, pair distance considers "RATZ" and "CATZ" to be equally similar to "RITZ" so we invoke Levenshtein.
 
     >> 'RITZ'.pair_distance_similar 'RATZ'
-    => 0.3333333333333333 
+    => 0.3333333333333333
     >> 'RITZ'.pair_distance_similar 'CATZ'
     => 0.3333333333333333                   # pair distance can't tell the difference, so we fall back to levenshtein...
     >> 'RITZ'.levenshtein_similar 'RATZ'
-    => 0.75 
+    => 0.75
     >> 'RITZ'.levenshtein_similar 'CATZ'
     => 0.5                                  # which properly shows that RATZ should win
 
 ## Cached results
 
-Make sure you add active\_record\_inline\_schema to your gemfile.
+Make sure you add active_record_inline_schema to your gemfile.
 
 TODO write documentation. For now, please see how [we manually cache matches between aircraft and flight segments](https://github.com/brighterplanet/earth/blob/master/lib/earth/air/aircraft.rb).
 
@@ -152,8 +152,8 @@ TODO write documentation. For now, please see how [we manually cache matches bet
 
 The admittedly imperfect metaphor is "look for a needle in a haystack"
 
-* needle: the search term
-* haystack: the records you are searching (<b>your result will be an object from here</b>)
+- needle: the search term
+- haystack: the records you are searching (<b>your result will be an object from here</b>)
 
 ## Using amatch to make it faster
 
@@ -171,8 +171,8 @@ Otherwise, pure ruby versions of the string similarity algorithms derived from t
 
 We use `fuzzy_match` for [data science at Brighter Planet](http://brighterplanet.com/research) and in production at
 
-* [Brighter Planet's impact estimate web service](http://impact.brighterplanet.com)
-* [Brighter Planet's reference data web service](http://data.brighterplanet.com)
+- [Brighter Planet's impact estimate web service](http://impact.brighterplanet.com)
+- [Brighter Planet's reference data web service](http://data.brighterplanet.com)
 
 We often combine it with [`remote_table`](https://github.com/seamusabshere/remote_table) and [`errata`](https://github.com/seamusabshere/errata):
 
@@ -182,9 +182,9 @@ We often combine it with [`remote_table`](https://github.com/seamusabshere/remot
 
 ## Authors
 
-* Seamus Abshere <seamus@abshere.net>
-* Ian Hough <ijhough@gmail.com>
-* Andy Rossmeissl <andy@rossmeissl.net>
+- Seamus Abshere <seamus@abshere.net>
+- Ian Hough <ijhough@gmail.com>
+- Andy Rossmeissl <andy@rossmeissl.net>
 
 ## Copyright
 

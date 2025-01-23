@@ -12,24 +12,24 @@
 # SupportedStyles: auto_detection, squiggly, active_support, powerpack, unindent
 Layout/IndentHeredoc:
   Exclude:
-    - 'Rakefile'
-    - 'lib/nanaimo/writer/xml.rb'
-    - 'spec/nanaimo/reader_spec.rb'
-    - 'spec/nanaimo/writer/xml_spec.rb'
+    - "Rakefile"
+    - "lib/nanaimo/writer/xml.rb"
+    - "spec/nanaimo/reader_spec.rb"
+    - "spec/nanaimo/writer/xml_spec.rb"
 
 # Offense count: 2
 # Configuration parameters: Blacklist.
 # Blacklist: END, (?-mix:EO[A-Z]{1})
 Naming/HeredocDelimiterNaming:
   Exclude:
-    - 'lib/nanaimo/writer/xml.rb'
+    - "lib/nanaimo/writer/xml.rb"
 
 # Offense count: 3
 # Cop supports --auto-correct.
 Performance/RegexpMatch:
   Exclude:
-    - 'lib/nanaimo/unicode.rb'
-    - 'lib/nanaimo/writer.rb'
+    - "lib/nanaimo/unicode.rb"
+    - "lib/nanaimo/writer.rb"
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -37,13 +37,13 @@ Performance/RegexpMatch:
 # SupportedStyles: compact, expanded
 Style/EmptyMethod:
   Exclude:
-    - 'lib/nanaimo/writer/xml.rb'
+    - "lib/nanaimo/writer/xml.rb"
 
 # Offense count: 1
 # Cop supports --auto-correct.
 Style/Encoding:
   Exclude:
-    - 'nanaimo.gemspec'
+    - "nanaimo.gemspec"
 
 # Offense count: 2
 # Configuration parameters: .
@@ -54,14 +54,14 @@ Style/FormatStringToken:
 # Offense count: 2
 Style/IdenticalConditionalBranches:
   Exclude:
-    - 'lib/nanaimo/unicode.rb'
+    - "lib/nanaimo/unicode.rb"
 
 # Offense count: 4
 # Cop supports --auto-correct.
 Style/IfUnlessModifier:
   Exclude:
-    - 'lib/nanaimo/reader.rb'
-    - 'lib/nanaimo/unicode.rb'
+    - "lib/nanaimo/reader.rb"
+    - "lib/nanaimo/unicode.rb"
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -69,26 +69,26 @@ Style/IfUnlessModifier:
 # SupportedStyles: predicate, comparison
 Style/NumericPredicate:
   Exclude:
-    - 'spec/**/*'
-    - 'lib/nanaimo/writer.rb'
+    - "spec/**/*"
+    - "lib/nanaimo/writer.rb"
 
 # Offense count: 8
 # Cop supports --auto-correct.
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
-    - 'lib/nanaimo/reader.rb'
-    - 'lib/nanaimo/unicode.rb'
-    - 'spec/nanaimo/reader_spec.rb'
-    - 'spec/nanaimo/unicode_spec.rb'
-    - 'spec/nanaimo/writer/xml_spec.rb'
-    - 'spec/nanaimo/writer_spec.rb'
+    - "lib/nanaimo/reader.rb"
+    - "lib/nanaimo/unicode.rb"
+    - "spec/nanaimo/reader_spec.rb"
+    - "spec/nanaimo/unicode_spec.rb"
+    - "spec/nanaimo/writer/xml_spec.rb"
+    - "spec/nanaimo/writer_spec.rb"
 
 # Offense count: 1
 # Cop supports --auto-correct.
 Style/RedundantFreeze:
   Exclude:
-    - 'lib/nanaimo/reader.rb'
+    - "lib/nanaimo/reader.rb"
 
 # Offense count: 1
 # Cop supports --auto-correct.

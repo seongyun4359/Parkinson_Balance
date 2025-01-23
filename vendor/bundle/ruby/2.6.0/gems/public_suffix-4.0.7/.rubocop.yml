@@ -4,15 +4,15 @@ inherit_from:
 AllCops:
   Exclude:
     # Exclude .gemspec files because they are generally auto-generated
-    - '*.gemspec'
+    - "*.gemspec"
     # Exclude vendored folders
-    - 'tmp/**/*'
-    - 'vendor/**/*'
+    - "tmp/**/*"
+    - "vendor/**/*"
     # Exclude artifacts
-    - 'pkg/**/*'
+    - "pkg/**/*"
     # Other
-    - 'test/benchmarks/**/*'
-    - 'test/profilers/**/*'
+    - "test/benchmarks/**/*"
+    - "test/profilers/**/*"
 
 # I often use @_variable to avoid clashing.
 Naming/MemoizedInstanceVariableName:
@@ -20,8 +20,8 @@ Naming/MemoizedInstanceVariableName:
 
 Style/ClassAndModuleChildren:
   Exclude:
-    - 'spec/**/*_spec.rb'
-    - 'test/**/*_test.rb'
+    - "spec/**/*_spec.rb"
+    - "test/**/*_test.rb"
 
 # Dear Rubocop, I don't want to use String#strip_heredoc
 Layout/HeredocIndentation:

@@ -11,7 +11,7 @@
 # Include: **/*.gemspec
 Gemspec/RequiredRubyVersion:
   Exclude:
-    - 'atomos.gemspec'
+    - "atomos.gemspec"
 
 # Offense count: 1
 # Configuration parameters: CountComments.
@@ -21,9 +21,9 @@ Metrics/MethodLength:
 # Offense count: 1
 Style/Documentation:
   Exclude:
-    - 'spec/**/*'
-    - 'test/**/*'
-    - 'lib/atomos.rb'
+    - "spec/**/*"
+    - "test/**/*"
+    - "lib/atomos.rb"
 
 # Offense count: 7
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
