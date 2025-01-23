@@ -12,8 +12,7 @@
 						2,
 						3,
 						4,
-						5,
-						6
+						5
 					],
 					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
 					"minimumCMakeVersion" : 
@@ -69,7 +68,7 @@
 					"source" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-safe-area-context/android/src/main/jni",
 					"targetIndexes" : 
 					[
-						6
+						5
 					]
 				},
 				{
@@ -85,21 +84,6 @@
 					"targetIndexes" : 
 					[
 						4
-					]
-				},
-				{
-					"build" : "rnsvg_autolinked_build",
-					"jsonFile" : "directory-rnsvg_autolinked_build-Debug-2dc0a741eb05073fcf11.json",
-					"minimumCMakeVersion" : 
-					{
-						"string" : "3.13"
-					},
-					"parentIndex" : 0,
-					"projectIndex" : 0,
-					"source" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni",
-					"targetIndexes" : 
-					[
-						5
 					]
 				},
 				{
@@ -129,8 +113,7 @@
 						2,
 						3,
 						4,
-						5,
-						6
+						5
 					],
 					"name" : "appmodules",
 					"targetIndexes" : 
@@ -140,8 +123,7 @@
 						2,
 						3,
 						4,
-						5,
-						6
+						5
 					]
 				}
 			],
@@ -150,12 +132,12 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "appmodules::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-appmodules-Debug-d8479e897684faed4266.json",
+					"jsonFile" : "target-appmodules-Debug-d5792d3ac4da3bf69d04.json",
 					"name" : "appmodules",
 					"projectIndex" : 0
 				},
 				{
-					"directoryIndex" : 6,
+					"directoryIndex" : 5,
 					"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d",
 					"jsonFile" : "target-react_codegen_RNVectorIconsSpec-Debug-5156796fd9fa06d09e8c.json",
 					"name" : "react_codegen_RNVectorIconsSpec",
@@ -180,13 +162,6 @@
 					"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad",
 					"jsonFile" : "target-react_codegen_rnscreens-Debug-2c8a4a23c7a21cd94fd7.json",
 					"name" : "react_codegen_rnscreens",
-					"projectIndex" : 0
-				},
-				{
-					"directoryIndex" : 5,
-					"id" : "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65",
-					"jsonFile" : "target-react_codegen_rnsvg-Debug-47842bfbe982d41a5252.json",
-					"name" : "react_codegen_rnsvg",
 					"projectIndex" : 0
 				},
 				{

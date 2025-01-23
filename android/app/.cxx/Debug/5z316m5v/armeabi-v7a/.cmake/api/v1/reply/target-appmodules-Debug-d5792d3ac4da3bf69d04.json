@@ -21,8 +21,7 @@
 			"/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake",
 			"CMakeLists.txt",
 			"/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
-			"/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
-			"/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt"
+			"/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt"
 		],
 		"nodes" : 
 		[
@@ -86,15 +85,6 @@
 				"file" : 3,
 				"line" : 80,
 				"parent" : 10
-			},
-			{
-				"file" : 4
-			},
-			{
-				"command" : 4,
-				"file" : 4,
-				"line" : 88,
-				"parent" : 12
 			}
 		]
 	},
@@ -192,10 +182,6 @@
 					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-screens/android/src/main/jni"
 				},
 				{
-					"backtrace" : 13,
-					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni"
-				},
-				{
 					"backtrace" : 4,
 					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/."
 				},
@@ -242,22 +228,6 @@
 				{
 					"backtrace" : 4,
 					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-screens/android/src/main/jni/../../../build/generated/source/codegen/jni/react/renderer/components/rnscreens"
-				},
-				{
-					"backtrace" : 4,
-					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/."
-				},
-				{
-					"backtrace" : 4,
-					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/../../../../common/cpp"
-				},
-				{
-					"backtrace" : 4,
-					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/../../../build/generated/source/codegen/jni"
-				},
-				{
-					"backtrace" : 4,
-					"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/../../../build/generated/source/codegen/jni/react/renderer/components/rnsvg"
 				},
 				{
 					"backtrace" : 4,
@@ -315,10 +285,6 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65"
-		},
-		{
-			"backtrace" : 4,
 			"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d"
 		}
 	],
@@ -339,11 +305,6 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/armeabi-v7a/libreact_codegen_rnscreens.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/armeabi-v7a/libreact_codegen_rnsvg.so",
 				"role" : "libraries"
 			},
 			{

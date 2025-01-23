@@ -12,8 +12,7 @@
 						2,
 						3,
 						4,
-						5,
-						6
+						5
 					],
 					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
 					"minimumCMakeVersion" : 
@@ -69,7 +68,7 @@
 					"source" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-safe-area-context/android/src/main/jni",
 					"targetIndexes" : 
 					[
-						6
+						5
 					]
 				},
 				{
@@ -85,21 +84,6 @@
 					"targetIndexes" : 
 					[
 						4
-					]
-				},
-				{
-					"build" : "rnsvg_autolinked_build",
-					"jsonFile" : "directory-rnsvg_autolinked_build-Debug-2dc0a741eb05073fcf11.json",
-					"minimumCMakeVersion" : 
-					{
-						"string" : "3.13"
-					},
-					"parentIndex" : 0,
-					"projectIndex" : 0,
-					"source" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni",
-					"targetIndexes" : 
-					[
-						5
 					]
 				},
 				{
@@ -129,8 +113,7 @@
 						2,
 						3,
 						4,
-						5,
-						6
+						5
 					],
 					"name" : "appmodules",
 					"targetIndexes" : 
@@ -140,8 +123,7 @@
 						2,
 						3,
 						4,
-						5,
-						6
+						5
 					]
 				}
 			],
@@ -150,12 +132,12 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "appmodules::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-appmodules-Debug-1348784a49f31173af00.json",
+					"jsonFile" : "target-appmodules-Debug-90a79b1824a454a72381.json",
 					"name" : "appmodules",
 					"projectIndex" : 0
 				},
 				{
-					"directoryIndex" : 6,
+					"directoryIndex" : 5,
 					"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d",
 					"jsonFile" : "target-react_codegen_RNVectorIconsSpec-Debug-2de2a5d2fb6d1821ea07.json",
 					"name" : "react_codegen_RNVectorIconsSpec",
@@ -178,21 +160,14 @@
 				{
 					"directoryIndex" : 4,
 					"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad",
-					"jsonFile" : "target-react_codegen_rnscreens-Debug-b6a016a4278353fb23a5.json",
+					"jsonFile" : "target-react_codegen_rnscreens-Debug-fb76c9da36106dc455c1.json",
 					"name" : "react_codegen_rnscreens",
-					"projectIndex" : 0
-				},
-				{
-					"directoryIndex" : 5,
-					"id" : "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65",
-					"jsonFile" : "target-react_codegen_rnsvg-Debug-44518a018439a35e9c95.json",
-					"name" : "react_codegen_rnsvg",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 3,
 					"id" : "react_codegen_safeareacontext::@7984cd80db47aa7b952a",
-					"jsonFile" : "target-react_codegen_safeareacontext-Debug-1880fa2c0bcec5acc664.json",
+					"jsonFile" : "target-react_codegen_safeareacontext-Debug-6bc5c9d57414af6402f5.json",
 					"name" : "react_codegen_safeareacontext",
 					"projectIndex" : 0
 				}
@@ -202,7 +177,7 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/x86_64",
+		"build" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a",
 		"source" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup"
 	},
 	"version" : 

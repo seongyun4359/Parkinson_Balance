@@ -903,7 +903,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "7"
+			"value" : "6"
 		},
 		{
 			"name" : "CMAKE_OBJCOPY",
@@ -1279,10 +1279,10 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "The CMake toolchain file"
+					"value" : "No help, variable specified on the command line."
 				}
 			],
-			"type" : "FILEPATH",
+			"type" : "UNINITIALIZED",
 			"value" : "/Users/lucha/Library/Android/sdk/ndk/26.1.10909125/build/cmake/android.toolchain.cmake"
 		},
 		{
