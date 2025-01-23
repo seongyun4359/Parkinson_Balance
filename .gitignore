@@ -201,3 +201,19 @@ Desktop.ini
 *.tmp
 *.temp
 .temp/
+# Android 빌드 아티팩트
+/android/app/build/
+*.apk
+*.so
+*.aab
+
+# C++ 중간 파일
+/android/app/build/intermediates/
+/android/app/build/cxx/
+
+# Node.js 의존성
+/node_modules/
+
+# IDE 설정
+.idea/
+.vscode/
