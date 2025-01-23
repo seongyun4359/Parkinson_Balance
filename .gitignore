@@ -131,3 +131,73 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+/package-lock.json
+/yarn.lock
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+.editorconfig
+*.sublime-workspace
+*.sublime-project
+
+# React Native
+/ios/Pods/
+/ios/build/
+/android/.cxx/
+/android/cxx/
+/android/.gradle/
+/android/app/build/
+/android/app/build/intermediates/
+/android/app/build/outputs/
+/android/app/build/generated/
+*.keystore
+/android/local.properties
+
+# Fastlane
+/ios/fastlane/report.xml
+/ios/fastlane/Preview.html
+/ios/fastlane/screenshots/
+/fastlane/report.xml
+/fastlane/Preview.html
+/fastlane/screenshots/
+
+# Bundle and debugging
+*.apk
+*.aab
+*.ipa
+*.so
+*.map
+*.jsbundle
+/android/app/src/main/assets/index.android.bundle
+/ios/main.jsbundle
+.expo/
+
+# Lint
+.eslintcache
+.stylelintcache
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
