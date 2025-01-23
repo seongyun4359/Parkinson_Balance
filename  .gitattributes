@@ -3,3 +3,5 @@
 *.ts linguist-language=TypeScript
 android/** linguist-vendored
 ios/** linguist-vendored
+*.apk filter=lfs diff=lfs merge=lfs -text
+*.so filter=lfs diff=lfs merge=lfs -text
