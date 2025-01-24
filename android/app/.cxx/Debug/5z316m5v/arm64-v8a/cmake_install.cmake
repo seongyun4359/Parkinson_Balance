@@ -44,6 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
+  include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/rnpicker_autolinked_build/cmake_install.cmake")
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/rngesturehandler_codegen_autolinked_build/cmake_install.cmake")
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/rnreanimated_autolinked_build/cmake_install.cmake")
   include("/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/arm64-v8a/safeareacontext_autolinked_build/cmake_install.cmake")

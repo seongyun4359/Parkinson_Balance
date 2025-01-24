@@ -1,5 +1,6 @@
 {
   "buildFiles": [
+    "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt",
     "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
@@ -28,6 +29,7 @@
       "artifactName": "appmodules",
       "output": "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/x86/libappmodules.so",
       "runtimeFiles": [
+        "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/x86/libreact_codegen_rnpicker.so",
         "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/x86/libreact_codegen_safeareacontext.so",
         "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/x86/libreact_codegen_rnscreens.so",
         "/Users/lucha/.gradle/caches/8.10.2/transforms/712459f74e1b69cabe04723869743a98/transformed/fbjni-0.6.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so",
@@ -44,6 +46,17 @@
       "toolchain": "toolchain",
       "abi": "x86",
       "artifactName": "react_codegen_rngesturehandler_codegen"
+    },
+    "react_codegen_rnpicker::@e8bb2e9e833f47d0d516": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "react_codegen_rnpicker",
+      "output": "/Users/lucha/Desktop/develop/PD_balance/android/app/build/intermediates/cxx/Debug/5z316m5v/obj/x86/libreact_codegen_rnpicker.so",
+      "runtimeFiles": [
+        "/Users/lucha/.gradle/caches/8.10.2/transforms/ffea390e40bce9ede11ecb704e97298f/transformed/react-android-0.76.6-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so",
+        "/Users/lucha/.gradle/caches/8.10.2/transforms/ffea390e40bce9ede11ecb704e97298f/transformed/react-android-0.76.6-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/Users/lucha/.gradle/caches/8.10.2/transforms/712459f74e1b69cabe04723869743a98/transformed/fbjni-0.6.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so"
+      ]
     },
     "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a": {
       "toolchain": "toolchain",
