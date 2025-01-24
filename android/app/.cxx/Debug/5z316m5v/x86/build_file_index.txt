@@ -1,3 +1,4 @@
+/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
 /Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/CMakeLists.txt
 /Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt
 /Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt

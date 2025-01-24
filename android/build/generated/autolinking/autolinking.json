@@ -3,6 +3,34 @@
   "reactNativePath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native",
   "reactNativeVersion": "0.76",
   "dependencies": {
+    "@react-native-picker/picker": {
+      "root": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker",
+      "name": "@react-native-picker/picker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker/RNCPicker.podspec",
+          "version": "2.11.0",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker/android",
+          "packageImportPath": "import com.reactnativecommunity.picker.RNCPickerPackage;",
+          "packageInstance": "new RNCPickerPackage()",
+          "buildTypes": [],
+          "libraryName": "rnpicker",
+          "componentDescriptors": [
+            "RNCAndroidDialogPickerComponentDescriptor",
+            "RNCAndroidDropdownPickerComponentDescriptor"
+          ],
+          "cmakeListsPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "react-native-gesture-handler": {
       "root": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-gesture-handler",
       "name": "react-native-gesture-handler",
