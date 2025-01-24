@@ -13,7 +13,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		<View style={styles.container}>
 			{/* App Logo */}
 			<Image
-				source={require("../../assets/logo/app-logo.png")} // PNG 파일 경로
+				source={require("../../assets/logo/app-logo.png")}
 				style={styles.logo}
 			/>
 
@@ -33,10 +33,18 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			{/* Buttons */}
 			<TouchableOpacity
 				style={styles.button}
-				onPress={() => navigation.navigate("Home")}
+				onPress={() => navigation.navigate("MedicalStaffHome")}
 			>
-				<Text style={styles.buttonText}>로그인</Text>
+				<Text style={styles.buttonText}>관리자 로그인</Text>
 			</TouchableOpacity>
+
+			<TouchableOpacity
+				style={styles.button}
+				onPress={() => navigation.navigate("PatientHome")}
+			>
+				<Text style={styles.buttonText}>환자 로그인</Text>
+			</TouchableOpacity>
+
 			<TouchableOpacity
 				style={styles.signupButton}
 				onPress={() => navigation.navigate("SignUp")}

@@ -1,30 +1,44 @@
 import React from "react"
-import { createStackNavigator } from "@react-navigation/stack"
 import { NavigationContainer } from "@react-navigation/native"
-import SplashScreen from "../screens/SplashScreen"
+import { createNativeStackNavigator } from "@react-navigation/native-stack"
+
 import LoginScreen from "../screens/auth/LoginScreen"
+import MedicalStaffHome from "../screens/medicalStaff/HomeScreen"
+import PatientHome from "../screens/patient/HomeScreen"
 import SignUpScreen from "../screens/auth/SignUpScreen"
 import LostAccountScreen from "../screens/auth/LostAcountScreen"
-import HomeScreen from "../screens/patient/HomeScreen"
-import type { RootStackParamList } from "./Root"
 
-const Stack = createStackNavigator<RootStackParamList>()
+const Stack = createNativeStackNavigator()
 
-const AppNavigator: React.FC = () => {
+const AppNavigator = () => {
 	return (
 		<NavigationContainer>
-			<Stack.Navigator initialRouteName="Splash">
+			<Stack.Navigator initialRouteName="Login">
 				<Stack.Screen
-					name="Splash"
-					component={SplashScreen}
+					name="Login"
+					component={LoginScreen}
 					options={{ headerShown: false }}
 				/>
-				{/* Authentication Screens */}
-				<Stack.Screen name="Login" component={LoginScreen} />
-				<Stack.Screen name="SignUp" component={SignUpScreen} />
-				<Stack.Screen name="LostAccount" component={LostAccountScreen} />
-				{/* Main Screens */}
-				<Stack.Screen name="Home" component={HomeScreen} />
+				<Stack.Screen
+					name="MedicalStaffHome"
+					component={MedicalStaffHome}
+					options={{ title: "관리자 홈" }}
+				/>
+				<Stack.Screen
+					name="PatientHome"
+					component={PatientHome}
+					options={{ title: "환자 홈" }}
+				/>
+				<Stack.Screen
+					name="SignUp"
+					component={SignUpScreen}
+					options={{ title: "회원가입" }}
+				/>
+				<Stack.Screen
+					name="LostAccount"
+					component={LostAccountScreen}
+					options={{ title: "계정 찾기" }}
+				/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	)
