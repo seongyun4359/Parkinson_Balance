@@ -12,8 +12,8 @@ import EditInfoScreen from "../screens/medicalStaff/personal/EditInfoScreen"
 import PrescriptionScreen from "../screens/medicalStaff/personal/PrescriptionScreen"
 import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
 
-import DetailTableScreen from "../screens/medicalStaff/ViewT/DetailTableScreen"
-import InfoTableScreen from "../screens/medicalStaff/ViewT/InfoTableScreen"
+import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
+import InfoTableScreen from "../screens/medicalStaff/LookUp/InfoTableScreen"
 
 const Stack = createNativeStackNavigator()
 
@@ -47,8 +47,6 @@ const AppNavigator = () => {
 					component={LostAccountScreen}
 					options={{ title: "계정 찾기" }}
 				/>
-
-				{/* 추가된 스크린 */}
 				<Stack.Screen
 					name="EditInfo"
 					component={EditInfoScreen}

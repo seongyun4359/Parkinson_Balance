@@ -16,7 +16,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			</View>
 			<TouchableOpacity
 				style={styles.button}
-				onPress={() => navigation.navigate("PersonalInfo")}
+				onPress={() => navigation.navigate("SearchInfo")}
 			>
 				<Icon
 					name="person"
@@ -29,7 +29,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 			<TouchableOpacity
 				style={styles.button}
-				onPress={() => navigation.navigate("RecordsAndNotifications")}
+				onPress={() => navigation.navigate("InfoTable")}
 			>
 				<Icon
 					name="history"
