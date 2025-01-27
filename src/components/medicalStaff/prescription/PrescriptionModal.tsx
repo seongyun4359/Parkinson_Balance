@@ -1,7 +1,7 @@
 import React from "react"
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
-import { Prescription } from "../../types/prescription"
+import { Prescription } from "../../../types/prescription"
 
 interface PrescriptionModalProps {
 	prescription: Prescription | null

@@ -13,7 +13,7 @@ import PrescriptionScreen from "../screens/medicalStaff/personal/PrescriptionScr
 import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
 
 import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
-import InfoTableScreen from "../screens/medicalStaff/LookUp/InfoTableScreen"
+import InfoTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
 
 const Stack = createNativeStackNavigator()
 
@@ -67,11 +67,7 @@ const AppNavigator = () => {
 					component={DetailTableScreen}
 					options={{ title: "상세 테이블" }}
 				/>
-				<Stack.Screen
-					name="InfoTable"
-					component={InfoTableScreen}
-					options={{ title: "정보 테이블" }}
-				/>
+				<Stack.Screen name="InfoTable" component={DetailTableScreen} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)
