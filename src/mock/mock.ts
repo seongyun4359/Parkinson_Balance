@@ -43,10 +43,8 @@ const mockPatients: Patient[] = [
 	},
 ]
 
-// 환자 데이터를 검색하는 함수
 export const searchPatientByName = (name: string): Patient | undefined => {
 	return mockPatients.find((patient) => patient.name === name)
 }
 
-// 목 데이터를 기본으로 내보냄
 export default mockPatients
