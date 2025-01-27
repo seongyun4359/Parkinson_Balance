@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		paddingHorizontal: 20,
 		marginBottom: 20,
-		elevation: 2, // 그림자 효과
+		elevation: 2,
 	},
 	buttonIcon: {
 		marginRight: 10,
