@@ -11,13 +11,11 @@ import {
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	return (
 		<View style={styles.container}>
-			{/* App Logo */}
 			<Image
 				source={require("../../assets/logo/app-logo.png")}
 				style={styles.logo}
 			/>
 
-			{/* Input Fields */}
 			<TextInput
 				style={styles.input}
 				placeholder="아이디"
@@ -29,8 +27,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				placeholderTextColor="#fff"
 				secureTextEntry
 			/>
-
-			{/* Buttons */}
 			<TouchableOpacity
 				style={styles.button}
 				onPress={() => navigation.navigate("MedicalStaffHome")}

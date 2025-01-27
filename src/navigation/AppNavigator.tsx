@@ -8,12 +8,20 @@ import PatientHome from "../screens/patient/HomeScreen"
 import SignUpScreen from "../screens/auth/SignUpScreen"
 import LostAccountScreen from "../screens/auth/LostAcountScreen"
 
+import EditInfoScreen from "../screens/medicalStaff/personal/EditInfoScreen"
+import PrescriptionScreen from "../screens/medicalStaff/personal/PrescriptionScreen"
+import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
+
+import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
+import InfoTableScreen from "../screens/medicalStaff/LookUp/InfoTableScreen"
+
 const Stack = createNativeStackNavigator()
 
 const AppNavigator = () => {
 	return (
 		<NavigationContainer>
 			<Stack.Navigator initialRouteName="Login">
+				{/* 기본 스크린 */}
 				<Stack.Screen
 					name="Login"
 					component={LoginScreen}
@@ -38,6 +46,31 @@ const AppNavigator = () => {
 					name="LostAccount"
 					component={LostAccountScreen}
 					options={{ title: "계정 찾기" }}
+				/>
+				<Stack.Screen
+					name="EditInfo"
+					component={EditInfoScreen}
+					options={{ title: "정보 수정" }}
+				/>
+				<Stack.Screen
+					name="Prescription"
+					component={PrescriptionScreen}
+					options={{ title: "처방 관리" }}
+				/>
+				<Stack.Screen
+					name="SearchInfo"
+					component={SearchInfoScreen}
+					options={{ title: "정보 검색" }}
+				/>
+				<Stack.Screen
+					name="DetailTable"
+					component={DetailTableScreen}
+					options={{ title: "상세 테이블" }}
+				/>
+				<Stack.Screen
+					name="InfoTable"
+					component={InfoTableScreen}
+					options={{ title: "정보 테이블" }}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>
