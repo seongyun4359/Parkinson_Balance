@@ -1,5 +1,5 @@
 import { View } from "react-native"
 
-export default function SearchInfoScreen() {
+export default function InfoTableScreen() {
 	return <View>Screen</View>
 }

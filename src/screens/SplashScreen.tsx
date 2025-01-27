@@ -4,21 +4,18 @@ import { View, Text, StyleSheet, Image } from "react-native"
 const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	useEffect(() => {
 		const timer = setTimeout(() => {
-			navigation.replace("Login") // 3초 후 Login 화면으로 이동
+			navigation.replace("Login")
 		}, 3000)
-		return () => clearTimeout(timer) // 타이머 정리
+		return () => clearTimeout(timer)
 	}, [navigation])
 
 	return (
 		<View style={styles.container}>
-			{/* 로고 이미지 */}
 			<Image
-				source={require("../assets/logo/app-logo.png")} // 로고 경로 설정
+				source={require("../assets/logo/app-logo.png")}
 				style={styles.logo}
 			/>
-			{/* 어플리케이션 이름 */}
 			<Text style={styles.appName}>파킨슨 밸런스</Text>
-			{/* 간단한 설명 */}
 			<Text style={styles.subtitle}>건강한 움직임을 위한 동반자</Text>
 		</View>
 	)
@@ -29,7 +26,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		backgroundColor: "#76DABF", // 상쾌한 녹색 배경
+		backgroundColor: "#76DABF", // 로고 기본 색상
 	},
 	logo: {
 		width: 120,
