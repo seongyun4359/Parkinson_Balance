@@ -7,7 +7,7 @@ import {
 	StyleSheet,
 	ScrollView,
 } from "react-native"
-import { Picker } from "@react-native-picker/picker" // Picker 가져오기
+import { Picker } from "@react-native-picker/picker"
 
 const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [name, setName] = useState("")
@@ -19,8 +19,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>회원가입</Text>
-
-			{/* 이름 입력 */}
 			<TextInput
 				style={styles.input}
 				placeholder="이름"
@@ -28,8 +26,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				value={name}
 				onChangeText={setName}
 			/>
-
-			{/* 성별 선택 */}
 			<View style={styles.pickerContainer}>
 				<Picker
 					selectedValue={gender}
@@ -40,8 +36,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					<Picker.Item label="여성" value="여성" />
 				</Picker>
 			</View>
-
-			{/* 휴대폰번호 입력 */}
 			<TextInput
 				style={styles.input}
 				placeholder="휴대폰번호"
@@ -50,8 +44,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				value={phone}
 				onChangeText={setPhone}
 			/>
-
-			{/* 비밀번호 입력 */}
 			<TextInput
 				style={styles.input}
 				placeholder="비밀번호"
@@ -60,8 +52,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				value={password}
 				onChangeText={setPassword}
 			/>
-
-			{/* 비밀번호 확인 */}
 			<TextInput
 				style={styles.input}
 				placeholder="비밀번호 확인"
@@ -70,8 +60,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				value={confirmPassword}
 				onChangeText={setConfirmPassword}
 			/>
-
-			{/* 회원가입 버튼 */}
 			<TouchableOpacity
 				style={styles.button}
 				onPress={() => {
@@ -80,8 +68,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			>
 				<Text style={styles.buttonText}>회원가입</Text>
 			</TouchableOpacity>
-
-			{/* 뒤로가기 버튼 */}
 			<TouchableOpacity onPress={() => navigation.goBack()}>
 				<Text style={styles.backText}>뒤로가기</Text>
 			</TouchableOpacity>
