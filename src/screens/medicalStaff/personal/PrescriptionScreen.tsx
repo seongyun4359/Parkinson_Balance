@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
 import { getPrescriptions } from "../../../mock/prescriptionMock"
 import { Prescription } from "../../../types/prescription"
-import PrescriptionList from "../../../components/medicalStaff/PrescriptionList"
-import PrescriptionModal from "../../../components/medicalStaff/PrescriptionModal"
+import PrescriptionList from "../../../components/medicalStaff/prescription/PrescriptionList"
+import PrescriptionModal from "../../../components/medicalStaff/prescription/PrescriptionModal"
 
 const PrescriptionScreen = () => {
 	const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc")
