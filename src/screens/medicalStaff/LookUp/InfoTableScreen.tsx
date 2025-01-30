@@ -121,7 +121,7 @@ export const InfoTableScreen = () => {
 				/>
 				<SearchFilterBar
 					onFiltersChange={setFilterConfigs}
-					currentFilters={filterConfigs}
+					filters={filterConfigs}
 				/>
 			</View>
 

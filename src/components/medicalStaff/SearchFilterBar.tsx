@@ -2,6 +2,7 @@ import React from "react"
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
 import { FilterConfig } from "../../types/patient"
+import { GestureResponderEvent } from "react-native"
 
 interface SearchFilterBarProps {
 	filters: FilterConfig[]
@@ -9,10 +10,27 @@ interface SearchFilterBarProps {
 }
 
 const SearchFilterBar = ({
-	searchQuery,
-	onSearchChange,
-	onFilterPress,
+	filters,
+	onFiltersChange,
 }: SearchFilterBarProps) => {
+	const [searchQuery, setSearchQuery] = React.useState("")
+
+	const handleSearchChange = (text: string) => {
+		setSearchQuery(text)
+	}
+
+	const handleFilterPress = () => {
+		// TODO: 필터 모달 구현
+	}
+
+	function onSearchChange(text: string): void {
+		throw new Error("Function not implemented.")
+	}
+
+	function onFilterPress(event: GestureResponderEvent): void {
+		throw new Error("Function not implemented.")
+	}
+
 	return (
 		<View style={styles.container}>
 			<View style={styles.searchContainer}>

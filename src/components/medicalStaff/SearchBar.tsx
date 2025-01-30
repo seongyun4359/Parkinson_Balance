@@ -1,41 +1,30 @@
 import React from "react"
-import {
-	View,
-	TextInput,
-	TouchableOpacity,
-	Text,
-	StyleSheet,
-} from "react-native"
+import { View, TextInput, StyleSheet } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
-import Icon from "react-native-vector-icons/MaterialIcons"
 
 interface SearchBarProps {
 	value: string
 	onChangeText: (text: string) => void
 	onSearch: () => void
-	placeholder?: string
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
 	value,
 	onChangeText,
 	onSearch,
-	placeholder,
 }) => {
 	return (
 		<View style={styles.container}>
-			<Icon name="search" size={24} color="#666" />
+			<Ionicons name="search" size={24} color="#888" style={styles.icon} />
 			<TextInput
 				style={styles.input}
+				placeholder="검색어를 입력하세요"
 				value={value}
 				onChangeText={onChangeText}
-				placeholder={placeholder}
+				placeholderTextColor="#aaa"
+				returnKeyType="search"
+				onSubmitEditing={onSearch} // 엔터 키 입력 시 검색
 			/>
-			{value.length > 0 && (
-				<TouchableOpacity onPress={() => onChangeText("")}>
-					<Icon name="close" size={24} color="#666" />
-				</TouchableOpacity>
-			)}
 		</View>
 	)
 }
@@ -44,15 +33,18 @@ const styles = StyleSheet.create({
 	container: {
 		flexDirection: "row",
 		alignItems: "center",
-		backgroundColor: "#f5f5f5",
-		borderRadius: 8,
-		padding: 8,
-		marginBottom: 16,
+		backgroundColor: "#f0f0f0",
+		borderRadius: 10,
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+	},
+	icon: {
+		marginRight: 8,
 	},
 	input: {
 		flex: 1,
-		marginLeft: 8,
 		fontSize: 16,
+		color: "#333",
 	},
 })
 

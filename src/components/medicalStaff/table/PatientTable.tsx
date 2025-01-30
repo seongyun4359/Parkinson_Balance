@@ -6,10 +6,9 @@ import {
 	FlatList,
 	TouchableOpacity,
 } from "react-native"
-import { Patient } from "../../../types/patient.ts"
+import { Patient, SortConfig } from "../../../types/patient.ts"
 import PatientTableRow from "./PatientTableRow"
 import PatientTableHeader from "./PatientTableHeader"
-import { SortConfig } from "../../../types/sortConfig.ts"
 
 interface PatientTableProps {
 	data: Patient[]
