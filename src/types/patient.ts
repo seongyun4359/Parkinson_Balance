@@ -3,6 +3,7 @@ export interface PatientInfoType {
 	gender: string
 	phoneNumber: string
 	prescriptionImage?: string
+	password: string
 }
 
 export interface PatientInfoProps {
@@ -26,6 +27,7 @@ export interface PatientTableProps {
 }
 
 export interface Patient {
+	exerciseScore: any
 	id: string
 	name: string
 	lastVisit: string
@@ -34,7 +36,7 @@ export interface Patient {
 	birthDate: string
 	gender: "male" | "female"
 	phoneNumber: string
-	address: string
+	lastLogin: string
 }
 
 export interface SortConfig {
