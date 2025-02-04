@@ -3,7 +3,6 @@ import { View, StyleSheet, TouchableOpacity, Text } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RootStackParamList } from "../../../types/navigation"
-import SearchBar from "../../../components/medicalStaff/SearchBar"
 import PatientTable from "../../../components/medicalStaff/table/PatientTable"
 import SearchFilterBar from "../../../components/medicalStaff/SearchFilterBar"
 import Pagination from "../../../components/medicalStaff/Pagination"
@@ -34,41 +33,29 @@ export const InfoTableScreen = () => {
 	const getFilteredData = () => {
 		let filtered = [...patients]
 
-		// 검색 적용
-		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase()
-			filtered = filtered.filter(
-				(patient) =>
-					patient.name.toLowerCase().includes(query) ||
-					patient.id.toLowerCase().includes(query)
+		// 최근 로그인 필터 적용
+		const loginFilter = filterConfigs.find((f) => f.key === "lastLogin")
+		if (loginFilter) {
+			const daysAgo = parseInt(loginFilter.value.replace("일 이내", ""), 10)
+			const cutoffDate = new Date()
+			cutoffDate.setDate(cutoffDate.getDate() - daysAgo)
+			filtered = filtered.filter((p) => new Date(p.lastLogin) >= cutoffDate)
+		}
+
+		// 운동 수행 점수 필터 적용
+		const scoreFilter = filterConfigs.find((f) => f.key === "exerciseScore")
+		if (scoreFilter) {
+			filtered.sort((a, b) =>
+				scoreFilter.value === "높은 점수 순"
+					? b.exerciseScore - a.exerciseScore
+					: a.exerciseScore - b.exerciseScore
 			)
 		}
 
-		// 필터 적용
-		filtered = filtered.filter((patient) => {
-			return filterConfigs.every(
-				(filter) => patient[filter.key] === filter.value
-			)
-		})
-
-		// 정렬 적용
-		if (sortConfigs.length > 0) {
-			filtered.sort((a, b) => {
-				for (const sort of sortConfigs) {
-					const aValue = a[sort.key]
-					const bValue = b[sort.key]
-					if (aValue !== bValue) {
-						return sort.direction === "asc"
-							? aValue > bValue
-								? 1
-								: -1
-							: aValue < bValue
-							? 1
-							: -1
-					}
-				}
-				return 0
-			})
+		// 즐겨찾기 필터 적용
+		const favoriteFilter = filterConfigs.find((f) => f.key === "favorite")
+		if (favoriteFilter) {
+			filtered = filtered.filter((p) => p.isFavorite)
 		}
 
 		return filtered
@@ -113,12 +100,6 @@ export const InfoTableScreen = () => {
 	return (
 		<View style={styles.container}>
 			<View style={styles.searchSection}>
-				<SearchBar
-					value={searchQuery}
-					onChangeText={setSearchQuery}
-					onSearch={() => {}}
-					placeholder="환자 이름 또는 ID로 검색..."
-				/>
 				<SearchFilterBar
 					onFiltersChange={setFilterConfigs}
 					filters={filterConfigs}
@@ -172,7 +153,7 @@ export const InfoTableScreen = () => {
 					disabled={selectedPatients.size === 0}
 				>
 					<Text style={styles.buttonText}>
-						{`${selectedPatients.size}명의 환자 정보 조회`}
+						{`${selectedPatients.size}명 조회`}
 					</Text>
 				</TouchableOpacity>
 			</View>
