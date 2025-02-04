@@ -1,7 +1,7 @@
 import React from "react"
 import { View, Text, StyleSheet, Dimensions } from "react-native"
 import { LineChart } from "react-native-chart-kit"
-import { exerciseScores, exerciseHistory } from "../../../mocks/exerciseData"
+import { exerciseScores, exerciseHistory } from "../../../mock/exerciseData"
 
 export default function DetailTableScreen() {
 	const chartData = {
