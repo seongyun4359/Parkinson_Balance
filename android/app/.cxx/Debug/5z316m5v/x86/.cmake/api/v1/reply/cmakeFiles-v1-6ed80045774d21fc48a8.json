@@ -6,7 +6,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/armeabi-v7a/CMakeFiles/3.22.1-g37088a8/CMakeSystem.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/x86/CMakeFiles/3.22.1-g37088a8/CMakeSystem.cmake"
 		},
 		{
 			"isExternal" : true,
@@ -36,11 +36,11 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/armeabi-v7a/CMakeFiles/3.22.1-g37088a8/CMakeCCompiler.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/x86/CMakeFiles/3.22.1-g37088a8/CMakeCCompiler.cmake"
 		},
 		{
 			"isGenerated" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/armeabi-v7a/CMakeFiles/3.22.1-g37088a8/CMakeCXXCompiler.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/x86/CMakeFiles/3.22.1-g37088a8/CMakeCXXCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -179,19 +179,19 @@
 		},
 		{
 			"isExternal" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/armeabi-v7a/prefab/lib/arm-linux-androideabi/cmake/ReactAndroid/ReactAndroidConfigVersion.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86/prefab/lib/i686-linux-android/cmake/ReactAndroid/ReactAndroidConfigVersion.cmake"
 		},
 		{
 			"isExternal" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/armeabi-v7a/prefab/lib/arm-linux-androideabi/cmake/ReactAndroid/ReactAndroidConfig.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86/prefab/lib/i686-linux-android/cmake/ReactAndroid/ReactAndroidConfig.cmake"
 		},
 		{
 			"isExternal" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/armeabi-v7a/prefab/lib/arm-linux-androideabi/cmake/fbjni/fbjniConfigVersion.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86/prefab/lib/i686-linux-android/cmake/fbjni/fbjniConfigVersion.cmake"
 		},
 		{
 			"isExternal" : true,
-			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/armeabi-v7a/prefab/lib/arm-linux-androideabi/cmake/fbjni/fbjniConfig.cmake"
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86/prefab/lib/i686-linux-android/cmake/fbjni/fbjniConfig.cmake"
 		},
 		{
 			"isExternal" : true,
@@ -219,13 +219,25 @@
 		},
 		{
 			"isExternal" : true,
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86/prefab/lib/i686-linux-android/cmake/ReactAndroid/ReactAndroidConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86/prefab/lib/i686-linux-android/cmake/ReactAndroid/ReactAndroidConfig.cmake"
+		},
+		{
+			"isExternal" : true,
 			"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/CMakeLists.txt"
 		}
 	],
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/armeabi-v7a",
+		"build" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/x86",
 		"source" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup"
 	},
 	"version" : 

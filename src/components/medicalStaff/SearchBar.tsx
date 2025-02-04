@@ -1,11 +1,5 @@
 import React from "react"
-import {
-	View,
-	TextInput,
-	TouchableOpacity,
-	Text,
-	StyleSheet,
-} from "react-native"
+import { View, TextInput, StyleSheet } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
 
 interface SearchBarProps {
@@ -20,72 +14,37 @@ const SearchBar: React.FC<SearchBarProps> = ({
 	onSearch,
 }) => {
 	return (
-		<View style={styles.searchContainer}>
-			<View style={styles.inputWrapper}>
-				<Ionicons
-					name="search"
-					size={20}
-					color="#666"
-					style={styles.searchIcon}
-				/>
-				<TextInput
-					style={styles.searchInput}
-					placeholder="환자 이름 검색"
-					value={value}
-					onChangeText={onChangeText}
-					placeholderTextColor="#aaa"
-				/>
-			</View>
-			<TouchableOpacity style={styles.searchButton} onPress={onSearch}>
-				<Text style={styles.searchButtonText}>검색</Text>
-			</TouchableOpacity>
+		<View style={styles.container}>
+			<Ionicons name="search" size={24} color="#888" style={styles.icon} />
+			<TextInput
+				style={styles.input}
+				placeholder="검색어를 입력하세요"
+				value={value}
+				onChangeText={onChangeText}
+				placeholderTextColor="#aaa"
+				returnKeyType="search"
+				onSubmitEditing={onSearch} // 엔터 키 입력 시 검색
+			/>
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
-	searchContainer: {
-		flexDirection: "row",
-		marginBottom: 20,
-		gap: 10,
-	},
-	inputWrapper: {
-		flex: 1,
+	container: {
 		flexDirection: "row",
 		alignItems: "center",
-		borderWidth: 1,
-		borderColor: "#ddd",
-		borderRadius: 12,
-		backgroundColor: "#f8f8f8",
+		backgroundColor: "#f0f0f0",
+		borderRadius: 10,
+		paddingHorizontal: 12,
+		paddingVertical: 8,
 	},
-	searchIcon: {
-		paddingLeft: 12,
+	icon: {
+		marginRight: 8,
 	},
-	searchInput: {
+	input: {
 		flex: 1,
-		height: 50,
-		paddingHorizontal: 10,
 		fontSize: 16,
-	},
-	searchButton: {
-		backgroundColor: "#76DABF",
-		paddingHorizontal: 24,
-		justifyContent: "center",
-		alignItems: "center",
-		borderRadius: 12,
-		shadowColor: "#000",
-		shadowOffset: {
-			width: 0,
-			height: 2,
-		},
-		shadowOpacity: 0.1,
-		shadowRadius: 3,
-		elevation: 3,
-	},
-	searchButtonText: {
-		color: "#fff",
-		fontSize: 16,
-		fontWeight: "bold",
+		color: "#333",
 	},
 })
 

@@ -3,6 +3,30 @@
   "reactNativePath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native",
   "reactNativeVersion": "0.76",
   "dependencies": {
+    "@react-native-community/checkbox": {
+      "root": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-community/checkbox",
+      "name": "@react-native-community/checkbox",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-community/checkbox/RNCCheckbox.podspec",
+          "version": "0.5.17",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-community/checkbox/android",
+          "packageImportPath": "import com.reactnativecommunity.checkbox.ReactCheckBoxPackage;",
+          "packageInstance": "new ReactCheckBoxPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "cmakeListsPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-community/checkbox/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "@react-native-picker/picker": {
       "root": "/Users/lucha/Desktop/develop/PD_balance/node_modules/@react-native-picker/picker",
       "name": "@react-native-picker/picker",
@@ -142,6 +166,61 @@
             "RNSModalScreenComponentDescriptor"
           ],
           "cmakeListsPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
+    "react-native-svg": {
+      "root": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg",
+      "name": "react-native-svg",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/RNSVG.podspec",
+          "version": "15.11.1",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android",
+          "packageImportPath": "import com.horcrux.svg.SvgPackage;",
+          "packageInstance": "new SvgPackage()",
+          "buildTypes": [],
+          "libraryName": "rnsvg",
+          "componentDescriptors": [
+            "RNSVGCircleComponentDescriptor",
+            "RNSVGClipPathComponentDescriptor",
+            "RNSVGDefsComponentDescriptor",
+            "RNSVGFeBlendComponentDescriptor",
+            "RNSVGFeColorMatrixComponentDescriptor",
+            "RNSVGFeCompositeComponentDescriptor",
+            "RNSVGFeFloodComponentDescriptor",
+            "RNSVGFeGaussianBlurComponentDescriptor",
+            "RNSVGFeMergeComponentDescriptor",
+            "RNSVGFeOffsetComponentDescriptor",
+            "RNSVGFilterComponentDescriptor",
+            "RNSVGEllipseComponentDescriptor",
+            "RNSVGForeignObjectComponentDescriptor",
+            "RNSVGGroupComponentDescriptor",
+            "RNSVGImageComponentDescriptor",
+            "RNSVGLinearGradientComponentDescriptor",
+            "RNSVGLineComponentDescriptor",
+            "RNSVGMarkerComponentDescriptor",
+            "RNSVGMaskComponentDescriptor",
+            "RNSVGPathComponentDescriptor",
+            "RNSVGPatternComponentDescriptor",
+            "RNSVGRadialGradientComponentDescriptor",
+            "RNSVGRectComponentDescriptor",
+            "RNSVGSvgViewAndroidComponentDescriptor",
+            "RNSVGSymbolComponentDescriptor",
+            "RNSVGTextComponentDescriptor",
+            "RNSVGTextPathComponentDescriptor",
+            "RNSVGTSpanComponentDescriptor",
+            "RNSVGUseComponentDescriptor"
+          ],
+          "cmakeListsPath": "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,

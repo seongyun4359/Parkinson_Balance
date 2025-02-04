@@ -219,6 +219,18 @@
 		},
 		{
 			"isExternal" : true,
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86_64/prefab/lib/x86_64-linux-android/cmake/ReactAndroid/ReactAndroidConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/lucha/Desktop/develop/PD_balance/android/app/.cxx/Debug/5z316m5v/prefab/x86_64/prefab/lib/x86_64-linux-android/cmake/ReactAndroid/ReactAndroidConfig.cmake"
+		},
+		{
+			"isExternal" : true,
 			"path" : "/Users/lucha/Desktop/develop/PD_balance/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/CMakeLists.txt"
 		}
 	],

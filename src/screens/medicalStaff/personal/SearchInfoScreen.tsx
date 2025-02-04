@@ -18,8 +18,12 @@ const SearchInfoScreen: React.FC = () => {
 	const [patientInfo, setPatientInfo] = useState<PatientInfoType | null>(null)
 
 	const handleSearch = () => {
+		console.log(`Searching for: ${searchQuery}`) // 검색어 확인
+
 		const result = searchPatientByName(searchQuery)
+
 		if (result) {
+			console.log("Found Patient:", result) // 검색 결과 확인
 			setPatientInfo(result)
 		} else {
 			Alert.alert("검색 실패", "해당 환자를 찾을 수 없습니다.")

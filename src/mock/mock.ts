@@ -12,39 +12,46 @@ export interface Patient {
 	phoneNumber: string
 	prescriptions: Prescription[]
 }
+// mock.ts
+export type PatientInfoType = {
+	id: string
+	name: string
+	gender: string
+	phoneNumber: string
+	prescription: string
+}
 
-const mockPatients: Patient[] = [
+const mockPatients: PatientInfoType[] = [
 	{
-		id: 1,
+		id: "1",
 		name: "홍길동",
 		gender: "남자",
 		phoneNumber: "010-1234-5678",
-		prescriptions: [
-			{ id: 101, name: "혈압약", dateIssued: "2025-01-01" },
-			{ id: 102, name: "당뇨약", dateIssued: "2025-01-15" },
-		],
+		prescription: "감기약, 비타민D",
 	},
 	{
-		id: 2,
-		name: "김영희",
-		gender: "여자",
-		phoneNumber: "010-8765-4321",
-		prescriptions: [{ id: 103, name: "소화제", dateIssued: "2025-01-10" }],
-	},
-	{
-		id: 3,
-		name: "박철수",
+		id: "2",
+		name: "김철수",
 		gender: "남자",
-		phoneNumber: "010-5555-6666",
-		prescriptions: [
-			{ id: 104, name: "진통제", dateIssued: "2025-01-20" },
-			{ id: 105, name: "비타민 D", dateIssued: "2025-01-22" },
-		],
+		phoneNumber: "010-9876-5432",
+		prescription: "혈압약",
+	},
+	{
+		id: "3",
+		name: "이영희",
+		gender: "여자",
+		phoneNumber: "010-4567-8910",
+		prescription: "소염제",
 	},
 ]
 
-export const searchPatientByName = (name: string): Patient | undefined => {
-	return mockPatients.find((patient) => patient.name === name)
+// 이름으로 환자 검색
+export const searchPatientByName = (name: string): PatientInfoType | null => {
+	return (
+		mockPatients.find(
+			(patient) => patient.name.toLowerCase() === name.toLowerCase()
+		) || null
+	)
 }
 
 export default mockPatients
