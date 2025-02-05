@@ -36,7 +36,10 @@ export const InfoTableScreen = () => {
 		// 최근 로그인 필터 적용
 		const loginFilter = filterConfigs.find((f) => f.key === "lastLogin")
 		if (loginFilter) {
-			const daysAgo = parseInt(loginFilter.value.replace("일 이내", ""), 10)
+			const daysAgo = parseInt(
+				String(loginFilter.value).replace("일 이내", ""),
+				10
+			)
 			const cutoffDate = new Date()
 			cutoffDate.setDate(cutoffDate.getDate() - daysAgo)
 			filtered = filtered.filter((p) => new Date(p.lastLogin) >= cutoffDate)
@@ -53,7 +56,7 @@ export const InfoTableScreen = () => {
 		}
 
 		// 즐겨찾기 필터 적용
-		const favoriteFilter = filterConfigs.find((f) => f.key === "favorite")
+		const favoriteFilter = filterConfigs.find((f) => f.key === "isFavorite")
 		if (favoriteFilter) {
 			filtered = filtered.filter((p) => p.isFavorite)
 		}
