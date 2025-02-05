@@ -14,7 +14,7 @@ const mockPatient: PatientInfoType = {
 	name: "홍길동",
 	gender: "남자",
 	phoneNumber: "010-1234-1234",
-	password: "1234",
+	password: "",
 }
 
 const EditInfoScreen: React.FC = () => {
@@ -27,7 +27,7 @@ const EditInfoScreen: React.FC = () => {
 
 	const handleSave = () => {
 		setIsEditing(false)
-		// 저장 로직 추가 가능
+		// TODO: 저장 로직 추가 가능 (백엔드 연동)
 	}
 
 	return (
@@ -44,7 +44,7 @@ const EditInfoScreen: React.FC = () => {
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>이름</Text>
 				<TextInput
-					style={styles.input}
+					style={[styles.input, isEditing && styles.inputActive]}
 					value={patient.name}
 					onChangeText={(text) =>
 						setPatient((prev) => ({ ...prev, name: text }))
@@ -56,7 +56,7 @@ const EditInfoScreen: React.FC = () => {
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>성별</Text>
 				<TextInput
-					style={styles.input}
+					style={[styles.input, isEditing && styles.inputActive]}
 					value={patient.gender}
 					onChangeText={(text) =>
 						setPatient((prev) => ({ ...prev, gender: text }))
@@ -68,19 +68,20 @@ const EditInfoScreen: React.FC = () => {
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>휴대폰 번호</Text>
 				<TextInput
-					style={styles.input}
+					style={[styles.input, isEditing && styles.inputActive]}
 					value={patient.phoneNumber}
 					onChangeText={(text) =>
 						setPatient((prev) => ({ ...prev, phoneNumber: text }))
 					}
 					editable={isEditing}
+					keyboardType="phone-pad"
 				/>
 			</View>
 
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>비밀번호</Text>
 				<TextInput
-					style={styles.input}
+					style={[styles.input, isEditing && styles.inputActive]}
 					value={patient.password}
 					onChangeText={(text) =>
 						setPatient((prev) => ({ ...prev, password: text }))
@@ -92,9 +93,9 @@ const EditInfoScreen: React.FC = () => {
 
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>비밀번호 확인</Text>
-				<View style={styles.passwordBox}>
+				<View style={[styles.passwordBox, isEditing && styles.inputActive]}>
 					<TextInput
-						style={styles.input}
+						style={styles.inputFlex}
 						value={passwordConfirm}
 						onChangeText={setPasswordConfirm}
 						secureTextEntry
@@ -148,6 +149,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: "bold",
 		marginBottom: 4,
+		color: "#333",
 	},
 	input: {
 		backgroundColor: "#f9f9f9",
@@ -158,6 +160,9 @@ const styles = StyleSheet.create({
 		borderColor: "#ddd",
 		fontSize: 16,
 	},
+	inputActive: {
+		borderColor: "#333",
+	},
 	passwordBox: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -167,6 +172,10 @@ const styles = StyleSheet.create({
 		height: 50,
 		borderWidth: 1,
 		borderColor: "#ddd",
+	},
+	inputFlex: {
+		flex: 1,
+		fontSize: 16,
 	},
 	editButton: {
 		backgroundColor: "#333",
