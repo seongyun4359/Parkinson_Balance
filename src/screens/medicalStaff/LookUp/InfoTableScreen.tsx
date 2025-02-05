@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native"
+import { View, StyleSheet, TouchableOpacity, Text, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RootStackParamList } from "../../../types/navigation"
@@ -14,7 +14,6 @@ const ITEMS_PER_PAGE = 10
 export const InfoTableScreen = () => {
 	const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 	const [patients, setPatients] = useState<Patient[]>(patientMockData)
-	const [searchQuery, setSearchQuery] = useState("")
 	const [selectedPatients, setSelectedPatients] = useState<Set<string>>(
 		new Set()
 	)
@@ -24,11 +23,10 @@ export const InfoTableScreen = () => {
 	const [totalPages, setTotalPages] = useState(1)
 
 	useEffect(() => {
-		// 검색이나 필터가 변경될 때 첫 페이지로 이동
 		setCurrentPage(1)
 		const filteredData = getFilteredData()
 		setTotalPages(Math.ceil(filteredData.length / ITEMS_PER_PAGE))
-	}, [searchQuery, filterConfigs])
+	}, [filterConfigs])
 
 	const getFilteredData = () => {
 		let filtered = [...patients]
@@ -75,11 +73,9 @@ export const InfoTableScreen = () => {
 		if (!existingSort) {
 			setSortConfigs([{ key, direction: "asc" }])
 		} else {
-			if (existingSort.direction === "asc") {
-				setSortConfigs([{ key, direction: "desc" }])
-			} else {
-				setSortConfigs([])
-			}
+			setSortConfigs(
+				existingSort.direction === "asc" ? [{ key, direction: "desc" }] : []
+			)
 		}
 	}
 
@@ -93,10 +89,18 @@ export const InfoTableScreen = () => {
 		)
 	}
 
+	// ✅ 안정성 강화 - Navigation 오류 방지
 	const handleViewDetails = () => {
-		if (selectedPatients.size > 0) {
+		try {
+			if (selectedPatients.size === 0) {
+				Alert.alert("알림", "조회할 환자를 선택하세요.")
+				return
+			}
 			const selectedPatientIds = Array.from(selectedPatients)
 			navigation.navigate("DetailTable", { patientIds: selectedPatientIds })
+		} catch (error) {
+			console.error("Navigation Error:", error)
+			Alert.alert("오류", "환자 정보를 조회하는 중 문제가 발생했습니다.")
 		}
 	}
 
@@ -114,21 +118,23 @@ export const InfoTableScreen = () => {
 				selectedPatients={selectedPatients}
 				sortConfigs={sortConfigs}
 				onToggleSelect={(id) => {
-					const newSelected = new Set(selectedPatients)
-					if (newSelected.has(id)) {
-						newSelected.delete(id)
-					} else {
-						newSelected.add(id)
-					}
-					setSelectedPatients(newSelected)
+					setSelectedPatients((prev) => {
+						const newSelected = new Set(prev)
+						if (newSelected.has(id)) {
+							newSelected.delete(id)
+						} else {
+							newSelected.add(id)
+						}
+						return newSelected // ✅ 새로운 상태로 업데이트
+					})
 				}}
 				onToggleSelectAll={() => {
 					const currentData = getCurrentPageData()
-					if (selectedPatients.size === currentData.length) {
-						setSelectedPatients(new Set())
-					} else {
-						setSelectedPatients(new Set(currentData.map((p) => p.id)))
-					}
+					setSelectedPatients((prev) =>
+						prev.size === currentData.length
+							? new Set()
+							: new Set(currentData.map((p) => p.id))
+					)
 				}}
 				onToggleFavorite={handleToggleFavorite}
 				onToggleSort={handleToggleSort}
@@ -147,6 +153,7 @@ export const InfoTableScreen = () => {
 						throw new Error("Function not implemented.")
 					}}
 				/>
+
 				<TouchableOpacity
 					style={[
 						styles.button,
@@ -154,10 +161,11 @@ export const InfoTableScreen = () => {
 					]}
 					onPress={handleViewDetails}
 					disabled={selectedPatients.size === 0}
+					activeOpacity={0.7}
 				>
-					<Text style={styles.buttonText}>
-						{`${selectedPatients.size}명 조회`}
-					</Text>
+					<Text
+						style={styles.buttonText}
+					>{`${selectedPatients.size}명 조회`}</Text>
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -168,28 +176,45 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		padding: 16,
-		backgroundColor: "#fff",
+		backgroundColor: "#f9f9f9",
 	},
 	searchSection: {
 		marginBottom: 16,
+		padding: 10,
+		borderRadius: 12,
+		backgroundColor: "#fff",
+		elevation: 2,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.2,
+		shadowRadius: 2,
 	},
 	footer: {
 		padding: 16,
 		borderTopWidth: 1,
-		borderTopColor: "#eee",
+		borderTopColor: "#ddd",
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		marginTop: 10,
+		elevation: 3,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 3,
 	},
 	button: {
-		backgroundColor: "#76DABF",
+		backgroundColor: "#4CAF50",
 		padding: 12,
-		borderRadius: 8,
+		borderRadius: 12,
 		minWidth: 120,
 		alignItems: "center",
+		elevation: 3,
 	},
 	buttonDisabled: {
-		backgroundColor: "#ccc",
+		backgroundColor: "#D3D3D3",
 	},
 	buttonText: {
 		color: "#fff",
@@ -197,3 +222,5 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 	},
 })
+
+export default InfoTableScreen
