@@ -12,8 +12,8 @@ import EditInfoScreen from "../screens/medicalStaff/personal/EditInfoScreen"
 import PrescriptionScreen from "../screens/medicalStaff/personal/PrescriptionScreen"
 import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
 
-import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
-import { InfoTableScreen } from "../screens/medicalStaff/LookUp/InfoTableScreen"
+import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
+import { InfoTableScreen } from "../screens/medicalStaff/LookUp/InfoTableScreen"
 
 const Stack = createNativeStackNavigator()
 
