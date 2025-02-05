@@ -141,3 +141,5 @@ __precompiled__/
 metro.config.js
 android/app/build.gradle
 ios/Podfile.lock
+
+android/gradle.properties
