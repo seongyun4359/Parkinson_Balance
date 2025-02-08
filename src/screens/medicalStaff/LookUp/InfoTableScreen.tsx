@@ -125,7 +125,7 @@ export const InfoTableScreen = () => {
 						} else {
 							newSelected.add(id)
 						}
-						return newSelected // ✅ 새로운 상태로 업데이트
+						return newSelected
 					})
 				}}
 				onToggleSelectAll={() => {
