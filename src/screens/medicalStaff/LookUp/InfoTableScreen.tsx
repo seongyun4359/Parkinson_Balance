@@ -106,7 +106,7 @@ export const InfoTableScreen = () => {
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.searchSection}>
+			<View>
 				<SearchFilterBar
 					onFiltersChange={setFilterConfigs}
 					filters={filterConfigs}
@@ -140,7 +140,7 @@ export const InfoTableScreen = () => {
 				onToggleSort={handleToggleSort}
 			/>
 
-			<View style={styles.footer}>
+			<View>
 				<Pagination
 					currentPage={currentPage}
 					totalPages={totalPages}
@@ -178,33 +178,7 @@ const styles = StyleSheet.create({
 		padding: 16,
 		backgroundColor: "#f9f9f9",
 	},
-	searchSection: {
-		marginBottom: 16,
-		padding: 10,
-		borderRadius: 12,
-		backgroundColor: "#fff",
-		elevation: 2,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.2,
-		shadowRadius: 2,
-	},
-	footer: {
-		padding: 16,
-		borderTopWidth: 1,
-		borderTopColor: "#ddd",
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		backgroundColor: "#fff",
-		borderRadius: 12,
-		marginTop: 10,
-		elevation: 3,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 3,
-	},
+
 	button: {
 		backgroundColor: "#4CAF50",
 		padding: 12,
