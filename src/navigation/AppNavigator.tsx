@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import LoginScreen from "../screens/auth/LoginScreen"
 import MedicalStaffHome from "../screens/medicalStaff/HomeScreen"
 import PatientHome from "../screens/patient/HomeScreen"
+import AlarmScreen from "../screens/patient/AlarmScreen"
 import SignUpScreen from "../screens/auth/SignUpScreen"
 import LostAccountScreen from "../screens/auth/LostAcountScreen"
 
@@ -36,6 +37,11 @@ const AppNavigator = () => {
 					name="PatientHome"
 					component={PatientHome}
 					options={{ title: "환자 홈" }}
+				/>
+				<Stack.Screen
+					name="Alarm"
+					component={AlarmScreen}
+					options={{ title: "알람페이지" }}
 				/>
 				<Stack.Screen
 					name="SignUp"
