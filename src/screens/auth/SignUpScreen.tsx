@@ -16,6 +16,17 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [password, setPassword] = useState("")
 	const [confirmPassword, setConfirmPassword] = useState("")
 
+	const handleSignUp = () => {
+		const userInfo = [
+			`이름: ${name}`,
+			`성별: ${gender}`,
+			`휴대폰번호: ${phone}`,
+			`비밀번호: ${password}`,
+			`비밀번호 확인: ${confirmPassword}`,
+		]
+		console.log(userInfo)
+	}
+
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>회원가입</Text>
@@ -60,12 +71,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				value={confirmPassword}
 				onChangeText={setConfirmPassword}
 			/>
-			<TouchableOpacity
-				style={styles.button}
-				onPress={() => {
-					console.log({ name, gender, phone, password, confirmPassword })
-				}}
-			>
+			<TouchableOpacity style={styles.button} onPress={handleSignUp}>
 				<Text style={styles.buttonText}>회원가입</Text>
 			</TouchableOpacity>
 			<TouchableOpacity onPress={() => navigation.goBack()}>
@@ -81,12 +87,12 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 		padding: 20,
-		backgroundColor: "#76DABF",
+		backgroundColor: "#F5F5F5",
 	},
 	title: {
-		fontSize: 24,
+		fontSize: 28,
 		fontWeight: "bold",
-		color: "#fff",
+		color: "#333",
 		marginBottom: 30,
 	},
 	input: {
@@ -96,7 +102,12 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		paddingHorizontal: 15,
 		fontSize: 16,
-		marginBottom: 20,
+		marginBottom: 15,
+		elevation: 3, // 안드로이드 그림자
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
 	},
 	pickerContainer: {
 		width: "100%",
@@ -104,7 +115,12 @@ const styles = StyleSheet.create({
 		backgroundColor: "#fff",
 		borderRadius: 10,
 		justifyContent: "center",
-		marginBottom: 20,
+		marginBottom: 15,
+		elevation: 3,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
 	},
 	picker: {
 		width: "100%",
@@ -113,20 +129,25 @@ const styles = StyleSheet.create({
 	button: {
 		width: "100%",
 		height: 50,
-		backgroundColor: "#fff",
+		backgroundColor: "#76DABF",
 		borderRadius: 10,
 		justifyContent: "center",
 		alignItems: "center",
 		marginTop: 10,
 		marginBottom: 20,
+		elevation: 3,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
 	},
 	buttonText: {
-		color: "#76DABF",
+		color: "#fff",
 		fontSize: 18,
 		fontWeight: "bold",
 	},
 	backText: {
-		color: "#fff",
+		color: "#555",
 		fontSize: 16,
 		textDecorationLine: "underline",
 	},
