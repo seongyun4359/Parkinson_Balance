@@ -4,13 +4,16 @@ import { LineChart } from "react-native-chart-kit"
 import { exerciseScores, exerciseHistory } from "../../../mock/exerciseData"
 
 export default function DetailTableScreen() {
+	// 운동 점수 데이터 배열로 정리
+	const scoreItems = [
+		{ label: "일간 운동 점수", value: exerciseScores.daily },
+		{ label: "주간 운동 점수", value: exerciseScores.weekly },
+		{ label: "월간 운동 점수", value: exerciseScores.monthly },
+	]
+
 	const chartData = {
-		labels: exerciseHistory.map((item) => ""), // x축 라벨은 빈 문자열로 처리
-		datasets: [
-			{
-				data: exerciseHistory.map((item) => item.score),
-			},
-		],
+		labels: exerciseHistory.map(() => ""), // x축 라벨은 빈 문자열 처리
+		datasets: [{ data: exerciseHistory.map((item) => item.score) }],
 	}
 
 	return (
@@ -21,18 +24,13 @@ export default function DetailTableScreen() {
 					<Text style={styles.headerCell}>환자명</Text>
 					<Text style={styles.headerCell}>홍길동</Text>
 				</View>
-				<View style={styles.row}>
-					<Text style={styles.cell}>일간 운동 점수</Text>
-					<Text style={styles.cell}>{exerciseScores.daily}</Text>
-				</View>
-				<View style={styles.row}>
-					<Text style={styles.cell}>주간 운동 점수</Text>
-					<Text style={styles.cell}>{exerciseScores.weekly}</Text>
-				</View>
-				<View style={styles.row}>
-					<Text style={styles.cell}>월간 운동 점수</Text>
-					<Text style={styles.cell}>{exerciseScores.monthly}</Text>
-				</View>
+
+				{scoreItems.map((item, index) => (
+					<View key={index} style={styles.row}>
+						<Text style={styles.cell}>{item.label}</Text>
+						<Text style={styles.cell}>{item.value}</Text>
+					</View>
+				))}
 			</View>
 
 			{/* 그래프 제목 */}
@@ -49,9 +47,7 @@ export default function DetailTableScreen() {
 					backgroundGradientTo: "#ffffff",
 					decimalPlaces: 0,
 					color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-					style: {
-						borderRadius: 16,
-					},
+					style: { borderRadius: 16 },
 				}}
 				bezier
 				style={styles.chart}

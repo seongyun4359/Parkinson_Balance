@@ -24,6 +24,15 @@ const PrescriptionModal = ({
 }: PrescriptionModalProps) => {
 	if (!prescription) return null
 
+	const infoItems = [
+		{ label: "병원", value: prescription.hospitalName },
+		{ label: "담당의", value: prescription.doctorName },
+		{ label: "진단", value: prescription.diagnosis },
+		...(prescription.nextAppointment
+			? [{ label: "다음 예약", value: prescription.nextAppointment }]
+			: []),
+	]
+
 	return (
 		<Modal
 			visible={visible}
@@ -33,28 +42,28 @@ const PrescriptionModal = ({
 		>
 			<View style={styles.modalOverlay}>
 				<View style={styles.modalContent}>
+					{/* 헤더 */}
 					<View style={styles.modalHeader}>
 						<Text style={styles.modalTitle}>처방 상세 정보</Text>
 						<TouchableOpacity onPress={onClose}>
 							<Ionicons name="close" size={24} color="#333" />
 						</TouchableOpacity>
 					</View>
+
+					{/* 본문 스크롤 영역 */}
 					<ScrollView style={styles.modalBody}>
 						<Text style={styles.modalDate}>{prescription.date}</Text>
-						<View style={styles.infoRow}>
-							<Text style={styles.label}>병원</Text>
-							<Text style={styles.value}>{prescription.hospitalName}</Text>
-						</View>
-						<View style={styles.infoRow}>
-							<Text style={styles.label}>담당의</Text>
-							<Text style={styles.value}>{prescription.doctorName}</Text>
-						</View>
-						<View style={styles.infoRow}>
-							<Text style={styles.label}>진단</Text>
-							<Text style={styles.value}>{prescription.diagnosis}</Text>
-						</View>
 
-						<Text style={styles.sectionTitle}>처방 약품</Text>
+						{/* 병원, 담당의, 진단, 다음 예약 정보 */}
+						{infoItems.map((item, index) => (
+							<View key={index} style={styles.infoRow}>
+								<Text style={styles.label}>{item.label}</Text>
+								<Text style={styles.value}>{item.value}</Text>
+							</View>
+						))}
+
+						{/* 처방 약품 */}
+						<Text style={styles.sectionTitle}>처방 운동</Text>
 						{prescription.medications.map((med, index) => (
 							<View key={index} style={styles.medicationItem}>
 								<Text style={styles.medName}>{med.name}</Text>
@@ -63,6 +72,7 @@ const PrescriptionModal = ({
 							</View>
 						))}
 
+						{/* 운동 처방 */}
 						<Text style={styles.sectionTitle}>운동 처방</Text>
 						{prescription.exercisePrescriptions?.length ? (
 							prescription.exercisePrescriptions.map((exercise, index) => (
@@ -77,12 +87,6 @@ const PrescriptionModal = ({
 							))
 						) : (
 							<Text style={styles.noData}>운동 처방이 없습니다.</Text>
-						)}
-						{prescription.nextAppointment && (
-							<View style={styles.infoRow}>
-								<Text style={styles.label}>다음 예약</Text>
-								<Text style={styles.value}>{prescription.nextAppointment}</Text>
-							</View>
 						)}
 					</ScrollView>
 				</View>

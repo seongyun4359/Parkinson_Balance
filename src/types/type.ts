@@ -12,21 +12,21 @@ export enum RoleType {
 
 //  User (사용자 정보)
 export interface User {
-	userId: string // Nanold
+	userId: string
 	id: string
 	password: string
 	name: string
 	gender: Gender
-	createdDate: string // LocalDateTime
-	modifiedDate: string // LocalDateTime
+	createdDate: string
+	modifiedDate: string
 	role: RoleType
-	lastLoginDate: string // LocalDateTime
-	exerciseNotificationTime: string // LocalDateTime
+	lastLoginDate: string
+	exerciseNotificationTime: string
 }
 
 //  Exercise (운동 정보)
 export interface Exercise {
-	exerciseId: string // Nanold
+	exerciseId: string
 	category: Category
 	index: number
 	korName: string
@@ -38,25 +38,25 @@ export interface Exercise {
 
 //  ExerciseHistories (운동 수행 기록)
 export interface ExerciseHistory {
-	historyId: string // Nanold
+	historyId: string
 	user: User
 	exercise: Exercise
 	repeatCount: number
 	setCount: number
-	doneDate: string // LocalDateTime
+	doneDate: string
 	repeatGoal: number
 	setGoal: number
 }
 
 //  Category (운동 카테고리)
 export interface Category {
-	categoryId: string // Nanold
+	categoryId: string
 	categoryName: string
 }
 
 //  Goals (사용자의 운동 목표)
 export interface Goal {
-	goalId: string // Nanold
+	goalId: string
 	user: User
 	exercise: Exercise
 	repeatCount: number
@@ -66,9 +66,9 @@ export interface Goal {
 
 //  Notifications (알림)
 export interface Notification {
-	notificationId: string // Nanold
+	notificationId: string
 	user: User
 	title: string
 	content: string
-	createdDate: string // LocalDateTime
+	createdDate: string
 }
