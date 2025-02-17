@@ -17,3 +17,18 @@ export interface PrescriptionListResponse {
 	totalPages: number
 	currentPage: number
 }
+
+export interface ExercisePrescription {
+	type: string
+	details: string[]
+}
+
+export interface Prescription {
+	date: string
+	hospitalName: string
+	doctorName: string
+	diagnosis: string
+	medications: { name: string; dosage: string; instructions: string }[]
+	exercisePrescriptions?: ExercisePrescription[] // ✅ 여기서 사용
+	nextAppointment?: string
+}
