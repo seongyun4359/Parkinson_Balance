@@ -147,10 +147,10 @@ export const InfoTableScreen = () => {
 					onPageChange={setCurrentPage}
 					hasNextPage={false}
 					onPrevPage={function (): void {
-						throw new Error("Function not implemented.")
+						throw new Error("기능이 구현되지 않았습니다.")
 					}}
 					onNextPage={function (): void {
-						throw new Error("Function not implemented.")
+						throw new Error("F기능이 구현되지 않았습니다.")
 					}}
 				/>
 

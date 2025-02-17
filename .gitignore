@@ -37,9 +37,7 @@ dist/
 # React Native specific
 /android/app/build/
 .android/
-.android/*
-/ios/build/
-/ios/Pods/
+.ios/
 /android/.gradle/
 /android/.cxx/
 /android/cxx/

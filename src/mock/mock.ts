@@ -15,6 +15,7 @@ export interface Patient {
 // mock.ts
 export type PatientInfoType = {
 	id: string
+	password?: string
 	name: string
 	gender: string
 	phoneNumber: string

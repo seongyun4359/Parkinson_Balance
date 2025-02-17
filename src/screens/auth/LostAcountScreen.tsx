@@ -55,13 +55,14 @@ const styles = StyleSheet.create({
 		backgroundColor: "#76DABF",
 	},
 	title: {
-		fontSize: 24,
+		fontSize: 28,
 		fontWeight: "bold",
 		color: "#fff",
 		marginBottom: 20,
 	},
 	description: {
-		fontSize: 16,
+		fontSize: 20,
+		fontWeight: "bold",
 		color: "#fff",
 		textAlign: "center",
 		marginBottom: 30,
