@@ -27,7 +27,7 @@ export interface PatientTableProps {
 }
 
 export interface Patient {
-	exerciseScore: any
+	exerciseScore: number
 	id: string
 	name: string
 	lastVisit: string
