@@ -6,6 +6,10 @@ import LoginScreen from "../screens/auth/LoginScreen"
 import MedicalStaffHome from "../screens/medicalStaff/HomeScreen"
 import PatientHome from "../screens/patient/HomeScreen"
 import AlarmScreen from "../screens/patient/AlarmScreen"
+import ExerciseScreen from "../screens/patient/ExerciseScreen"
+import RecordScreen from "../screens/patient/RecordScreen"
+import CategoryScreen from "../screens/patient/CategoryScreen"
+import DayRecordScreen from "../screens/patient/DayRecordScreen"
 import SignUpScreen from "../screens/auth/SignUpScreen"
 import LostAccountScreen from "../screens/auth/LostAcountScreen"
 
@@ -15,8 +19,9 @@ import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
 
 import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
 import { InfoTableScreen } from "../screens/medicalStaff/LookUp/InfoTableScreen"
+import { RootStackParamList } from "./Root"
 
-const Stack = createNativeStackNavigator()
+const Stack = createNativeStackNavigator<RootStackParamList>()
 
 const AppNavigator = () => {
 	return (
@@ -42,6 +47,26 @@ const AppNavigator = () => {
 					name="Alarm"
 					component={AlarmScreen}
 					options={{ title: "알람페이지" }}
+				/>
+				<Stack.Screen
+					name="ExerciseScreen"
+					component={ExerciseScreen}
+					options={{ title: "운동 시작" }}
+				/>
+				<Stack.Screen
+					name="Category"
+					component={CategoryScreen}
+					options={{ title: "운동 종류" }}
+				/>
+				<Stack.Screen
+					name="DayRecord"
+					component={DayRecordScreen}
+					options={{ title: "운동 일일 기록" }}
+				/>
+				<Stack.Screen
+					name="RecordScreen"
+					component={RecordScreen}
+					options={{ title: "운동 기록" }}
 				/>
 				<Stack.Screen
 					name="SignUp"

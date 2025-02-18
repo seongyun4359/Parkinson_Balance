@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, Dimensions, TouchableOpacity } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../navigation/Root';
+import { useNavigation } from '@react-navigation/native';
 import type XDate from 'xdate';
+
+type DayRecordScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'DayRecord'
+>;
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const FIXED_CALENDAR_HEIGHT = 400;
@@ -15,11 +23,18 @@ const CalendarComponent: React.FC = () => {
     return `${yyyy}-${mm}-${dd}`;
   });
 
+  const navigation = useNavigation<DayRecordScreenNavigationProp>();
+
+  const handleDayPress = (day: DateData) => {
+    setSelectedDate(day.dateString);
+    navigation.navigate('DayRecord', { date: day.dateString });
+  };
+
   return (
     <View style={[styles.container, { height: FIXED_CALENDAR_HEIGHT }]}>
       <Calendar
         initialDate={selectedDate}
-        onDayPress={(day: DateData) => setSelectedDate(day.dateString)}
+        onDayPress={handleDayPress}
         markedDates={{
           [selectedDate]: {
             selected: true,
@@ -38,8 +53,18 @@ const CalendarComponent: React.FC = () => {
         renderHeader={(date: XDate | undefined) => {
           if (!date) return null;
           const monthNames = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
           ];
           return (
             <View style={styles.headerContainer}>
@@ -69,7 +94,10 @@ const CalendarComponent: React.FC = () => {
         dayComponent={({ date }) => {
           const isToday = date?.dateString === selectedDate;
           return (
-            <View
+            <TouchableOpacity
+              onPress={() => {
+                if (date) handleDayPress(date);
+              }}
               style={[
                 styles.dayContainer,
                 isToday ? styles.selectedDay : styles.defaultDay,
@@ -78,7 +106,7 @@ const CalendarComponent: React.FC = () => {
               <Text style={[styles.dayText, isToday && styles.selectedDayText]}>
                 {date?.day}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         }}
       />
@@ -114,12 +142,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   greenDot: {
-    fontSize: 12,
+    fontSize: 15,
     color: '#76DABF',
     marginHorizontal: 2,
   },
   arrowText: {
-    fontSize: 24,
+    fontSize: 28,
+    fontWeight: 'bold',
     color: '#76DABF',
     marginHorizontal: 20,
   },

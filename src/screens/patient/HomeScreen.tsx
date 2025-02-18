@@ -6,10 +6,10 @@ import ScreenHeader from "../../components/patient/ScreenHeader"
 import Calendar from "../../components/patient/Calendar"
 import { RootStackParamList } from "../../navigation/Root"
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>
 
 const HomeScreen = () => {
-	const navigation = useNavigation<HomeScreenNavigationProp>() 
+	const navigation = useNavigation<HomeScreenNavigationProp>()
 
 	return (
 		<View style={styles.container}>
@@ -21,11 +21,12 @@ const HomeScreen = () => {
 				<MenuButton
 					source={require("../../assets/menu/menu-exercise.png")}
 					label="운동 종류"
+					onPress={() => navigation.navigate("Category")}
 				/>
 				<MenuButton
 					source={require("../../assets/menu/menu-alarm.png")}
 					label="알람"
-					onPress={() => navigation.navigate("Alarm")} 
+					onPress={() => navigation.navigate("Alarm")}
 				/>
 				<MenuButton
 					source={require("../../assets/menu/menu-information.png")}
@@ -34,13 +35,14 @@ const HomeScreen = () => {
 				<MenuButton
 					source={require("../../assets/menu/menu-start.png")}
 					label="운동 시작"
+					onPress={() => navigation.navigate("ExerciseScreen")}
 				/>
 			</View>
 		</View>
 	)
 }
 
-// 메뉴 버튼 컴포넌트 (onPress 추가)
+// 메뉴 버튼 컴포넌트
 const MenuButton = ({
 	source,
 	label,
