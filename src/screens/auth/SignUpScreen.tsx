@@ -8,6 +8,7 @@ import {
 	ScrollView,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
+import { signupUser } from "../../apis/SignUp"
 
 const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [name, setName] = useState("")
@@ -22,9 +23,13 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [second, setSecond] = useState("")
 	const [amPm, setAmPm] = useState("AM")
 
-	const handleSignUp = () => {
-		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
+	const handleSignUp = async () => {
+		if (password !== confirmPassword) {
+			alert("비밀번호가 일치하지 않습니다.")
+			return
+		}
 
+		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
 		let adjustedHour = parseInt(hour) || 0
 
 		if (amPm === "PM" && adjustedHour !== 12) {
@@ -33,17 +38,65 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			adjustedHour = 0
 		}
 
-		const exerciseNotificationTime = `${adjustedHour}:${minute}:${second}`
+		const exerciseNotificationTime = `${String(adjustedHour).padStart(
+			2,
+			"0"
+		)}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
-		const userInfo = [
-			`이름: ${name}`,
-			`성별: ${gender}`,
-			`휴대폰번호: ${fullPhoneNumber}`,
-			`비밀번호: ${password}`,
-			`비밀번호 확인: ${confirmPassword}`,
-			`운동 알림 시간: ${exerciseNotificationTime}`,
-		]
-		console.log(userInfo)
+		const userData = {
+			phoneNumber: fullPhoneNumber,
+			password,
+			name,
+			gender: gender === "남성" ? "MALE" : "FEMALE",
+			fcmToken: "testFCMTOKEN",
+			exerciseNotificationTime,
+		}
+
+		const headers = {
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		}
+
+		// 📌 요청 전 디버깅 로그
+		console.log("===================================")
+		console.log("📌 [회원가입 요청] 시작")
+		console.log("🔹 Headers:", headers)
+		console.log("🔹 Body:", JSON.stringify(userData, null, 2))
+		console.log("===================================")
+
+		try {
+			const response = await signupUser(userData, headers)
+
+			// ✅ 성공 디버깅 로그
+			console.log("✅ [회원가입 성공] 응답 데이터:", response.data)
+			console.log("===================================")
+			alert("회원가입이 완료되었습니다!")
+			navigation.goBack()
+		} catch (error) {
+			console.log("🚨 [회원가입 오류 발생]")
+
+			if (error.response) {
+				console.error("🔴 HTTP 상태 코드:", error.response.status)
+				console.error(
+					"🔴 응답 데이터:",
+					JSON.stringify(error.response.data, null, 2)
+				) // 🛑 응답 본문 확인
+
+				alert(
+					`회원가입 실패: ${
+						error.response.data?.message || "다시 시도해주세요."
+					}`
+				)
+			} else if (error.request) {
+				console.error("🔴 요청이 이루어졌지만 응답 없음:", error.request)
+				alert("서버로부터 응답이 없습니다. 네트워크 상태를 확인해주세요.")
+			} else {
+				console.error("🔴 요청 설정 중 오류 발생:", error.message)
+				alert("요청 중 오류가 발생했습니다.")
+			}
+
+			console.error("🛑 전체 에러 객체:", error)
+		}
 	}
 
 	return (
@@ -60,13 +113,12 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 						onChangeText={setName}
 					/>
 				</View>
-
 				<View style={styles.inputContainer}>
 					<Text style={styles.label}>성별</Text>
 					<View style={styles.pickerContainer}>
 						<Picker
 							selectedValue={gender}
-							onValueChange={(itemValue) => setGender(itemValue)}
+							onValueChange={setGender}
 							style={styles.picker}
 						>
 							<Picker.Item label="남성" value="남성" />
@@ -84,7 +136,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					keyboardType="numeric"
 					maxLength={3}
 					value={phoneNumber1}
-					onChangeText={(text) => setPhoneNumber1(text)}
+					onChangeText={setPhoneNumber1}
 				/>
 				<Text>-</Text>
 				<TextInput
@@ -94,7 +146,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					keyboardType="numeric"
 					maxLength={4}
 					value={phoneNumber2}
-					onChangeText={(text) => setPhoneNumber2(text)}
+					onChangeText={setPhoneNumber2}
 				/>
 				<Text>-</Text>
 				<TextInput
@@ -104,7 +156,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					keyboardType="numeric"
 					maxLength={4}
 					value={phoneNumber3}
-					onChangeText={(text) => setPhoneNumber3(text)}
+					onChangeText={setPhoneNumber3}
 				/>
 			</View>
 			<Text style={styles.label}>비밀번호</Text>
@@ -132,6 +184,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					placeholder="시"
 					placeholderTextColor="#999"
 					keyboardType="numeric"
+					maxLength={2}
 					value={hour}
 					onChangeText={setHour}
 				/>
@@ -141,6 +194,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					placeholder="분"
 					placeholderTextColor="#999"
 					keyboardType="numeric"
+					maxLength={2}
 					value={minute}
 					onChangeText={setMinute}
 				/>
@@ -150,6 +204,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					placeholder="초"
 					placeholderTextColor="#999"
 					keyboardType="numeric"
+					maxLength={2}
 					value={second}
 					onChangeText={setSecond}
 				/>
@@ -158,7 +213,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			<View style={styles.pickerContainer}>
 				<Picker
 					selectedValue={amPm}
-					onValueChange={(itemValue) => setAmPm(itemValue)}
+					onValueChange={setAmPm}
 					style={styles.picker}
 				>
 					<Picker.Item label="AM" value="AM" />
@@ -219,7 +274,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		justifyContent: "center",
 		marginBottom: 15,
-		elevation: 3,
+		elevation: 1,
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
@@ -282,7 +337,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 10,
 		marginBottom: 20,
-		elevation: 3,
+		elevation: 1,
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,

@@ -1,8 +1,9 @@
-import { REACT_NATIVE_APP_API_ENDPOINT } from "@env"
-
 export const signupUser = async (userData) => {
+	// API_ENDPOINT를 변수로 선언하고 사용
+	const API_ENDPOINT = "https://kwhcclab.com:20955/api"
+
 	try {
-		const response = await fetch(`${REACT_NATIVE_APP_API_ENDPOINT}/signup`, {
+		const response = await fetch(`${API_ENDPOINT}/signup`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
