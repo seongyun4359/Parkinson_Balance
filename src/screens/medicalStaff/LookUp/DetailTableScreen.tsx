@@ -1,31 +1,31 @@
 import React from "react"
 import { View, Text, StyleSheet, Dimensions } from "react-native"
 import { LineChart } from "react-native-chart-kit"
-import { exerciseScores, exerciseHistory } from "../../../mock/exerciseData"
+import { exerciseHistory } from "../../../mock/exerciseData"
 
 export default function DetailTableScreen() {
-	// 운동 점수 데이터 배열로 정리
-	const scoreItems = [
-		{ label: "일간 운동 점수", value: exerciseScores.daily },
-		{ label: "주간 운동 점수", value: exerciseScores.weekly },
-		{ label: "월간 운동 점수", value: exerciseScores.monthly },
+	const goalItems = [
+		{ label: "일간 목표 달성률", value: "80%" },
+		{ label: "주간 목표 달성률", value: "75%" },
+		{ label: "월간 목표 달성률", value: "85%" },
 	]
 
 	const chartData = {
-		labels: exerciseHistory.map(() => ""), // x축 라벨은 빈 문자열 처리
+		labels: exerciseHistory.map(() => ""),
 		datasets: [{ data: exerciseHistory.map((item) => item.score) }],
 	}
 
 	return (
 		<View style={styles.container}>
-			{/* 점수 테이블 */}
+			<Text style={styles.analysisText}>운동 목표 달성률 분석</Text>
+
 			<View style={styles.scoreTable}>
 				<View style={styles.headerRow}>
 					<Text style={styles.headerCell}>환자명</Text>
 					<Text style={styles.headerCell}>홍길동</Text>
 				</View>
 
-				{scoreItems.map((item, index) => (
+				{goalItems.map((item, index) => (
 					<View key={index} style={styles.row}>
 						<Text style={styles.cell}>{item.label}</Text>
 						<Text style={styles.cell}>{item.value}</Text>
@@ -33,25 +33,23 @@ export default function DetailTableScreen() {
 				))}
 			</View>
 
-			{/* 그래프 제목 */}
-			<Text style={styles.graphTitle}>운동 추이</Text>
+			<Text style={styles.graphTitle}>운동 목표 달성 추이</Text>
 
-			{/* 라인 차트 */}
-			<LineChart
-				data={chartData}
-				width={Dimensions.get("window").width - 40}
-				height={220}
-				chartConfig={{
-					backgroundColor: "#ffffff",
-					backgroundGradientFrom: "#ffffff",
-					backgroundGradientTo: "#ffffff",
-					decimalPlaces: 0,
-					color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-					style: { borderRadius: 16 },
-				}}
-				bezier
-				style={styles.chart}
-			/>
+			<View style={styles.chartContainer}>
+				<LineChart
+					data={chartData}
+					width={Dimensions.get("window").width - 40}
+					height={220}
+					chartConfig={{
+						backgroundColor: "#ffffff",
+						backgroundGradientFrom: "#ffffff",
+						backgroundGradientTo: "#ffffff",
+						decimalPlaces: 0,
+						color: (opacity = 1) => `rgba(118, 218, 191, ${opacity})`,
+					}}
+					bezier
+				/>
+			</View>
 		</View>
 	)
 }
@@ -61,6 +59,12 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 20,
 		backgroundColor: "#ffffff",
+	},
+	analysisText: {
+		fontSize: 24,
+		fontWeight: "500",
+		color: "#000000",
+		marginBottom: 20,
 	},
 	scoreTable: {
 		borderWidth: 1,
@@ -84,6 +88,7 @@ const styles = StyleSheet.create({
 		padding: 12,
 		fontWeight: "bold",
 		textAlign: "center",
+		backgroundColor: "#f1f1f1",
 	},
 	cell: {
 		flex: 1,
@@ -94,9 +99,17 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: "bold",
 		marginBottom: 10,
+		color: "#000000",
 	},
-	chart: {
-		marginVertical: 8,
-		borderRadius: 16,
+	chartContainer: {
+		backgroundColor: "#ffffff",
+		borderRadius: 12,
+		paddingTop: 5,
+		paddingRight: 5,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.1,
+		shadowRadius: 6,
+		elevation: 1,
 	},
 })

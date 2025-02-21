@@ -31,7 +31,6 @@ export const InfoTableScreen = () => {
 	const getFilteredData = () => {
 		let filtered = [...patients]
 
-		// 최근 로그인 필터 적용
 		const loginFilter = filterConfigs.find((f) => f.key === "lastLogin")
 		if (loginFilter) {
 			const daysAgo = parseInt(
@@ -43,7 +42,6 @@ export const InfoTableScreen = () => {
 			filtered = filtered.filter((p) => new Date(p.lastLogin) >= cutoffDate)
 		}
 
-		// 운동 수행 점수 필터 적용
 		const scoreFilter = filterConfigs.find((f) => f.key === "exerciseScore")
 		if (scoreFilter) {
 			filtered.sort((a, b) =>
@@ -53,7 +51,6 @@ export const InfoTableScreen = () => {
 			)
 		}
 
-		// 즐겨찾기 필터 적용
 		const favoriteFilter = filterConfigs.find((f) => f.key === "isFavorite")
 		if (favoriteFilter) {
 			filtered = filtered.filter((p) => p.isFavorite)
@@ -89,7 +86,6 @@ export const InfoTableScreen = () => {
 		)
 	}
 
-	// ✅ 안정성 강화 - Navigation 오류 방지
 	const handleViewDetails = () => {
 		try {
 			if (selectedPatients.size === 0) {
@@ -102,6 +98,23 @@ export const InfoTableScreen = () => {
 			console.error("Navigation Error:", error)
 			Alert.alert("오류", "환자 정보를 조회하는 중 문제가 발생했습니다.")
 		}
+	}
+
+	// 단체 알림 전송 함수
+	const handleSendGroupNotification = () => {
+		if (selectedPatients.size === 0) {
+			Alert.alert("알림", "알림을 전송할 환자를 선택하세요.")
+			return
+		}
+
+		const selectedPatientIds = Array.from(selectedPatients)
+		console.log("단체 알림 전송 대상 환자들: ", selectedPatientIds)
+
+		// 여기서 단체 알림 전송 API나 로직을 호출
+		Alert.alert(
+			"알림 전송",
+			`${selectedPatients.size}명에게 알림을 전송했습니다.`
+		)
 	}
 
 	return (
@@ -146,27 +159,45 @@ export const InfoTableScreen = () => {
 					totalPages={totalPages}
 					onPageChange={setCurrentPage}
 					hasNextPage={false}
-					onPrevPage={function (): void {
+					onPrevPage={() => {
 						throw new Error("기능이 구현되지 않았습니다.")
 					}}
-					onNextPage={function (): void {
-						throw new Error("F기능이 구현되지 않았습니다.")
+					onNextPage={() => {
+						throw new Error("기능이 구현되지 않았습니다.")
 					}}
 				/>
 
-				<TouchableOpacity
-					style={[
-						styles.button,
-						selectedPatients.size === 0 && styles.buttonDisabled,
-					]}
-					onPress={handleViewDetails}
-					disabled={selectedPatients.size === 0}
-					activeOpacity={0.7}
-				>
-					<Text
-						style={styles.buttonText}
-					>{`${selectedPatients.size}명 조회`}</Text>
-				</TouchableOpacity>
+				<View style={styles.buttonContainer}>
+					<TouchableOpacity
+						style={[
+							styles.button,
+							selectedPatients.size === 0 && styles.buttonDisabled,
+							{ backgroundColor: "#4CAF50" },
+						]}
+						onPress={handleViewDetails}
+						disabled={selectedPatients.size === 0}
+						activeOpacity={0.7}
+					>
+						<Text
+							style={styles.buttonText}
+						>{`${selectedPatients.size}명 조회`}</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						style={[
+							styles.button,
+							selectedPatients.size === 0 && styles.buttonDisabled,
+							{ backgroundColor: "#FF9800" },
+						]}
+						onPress={handleSendGroupNotification}
+						disabled={selectedPatients.size === 0}
+						activeOpacity={0.7}
+					>
+						<Text
+							style={styles.buttonText}
+						>{`${selectedPatients.size}명 알림`}</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
 		</View>
 	)
@@ -178,7 +209,12 @@ const styles = StyleSheet.create({
 		padding: 16,
 		backgroundColor: "#f9f9f9",
 	},
-
+	buttonContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		width: "100%",
+		marginTop: 10,
+	},
 	button: {
 		backgroundColor: "#4CAF50",
 		padding: 12,
@@ -186,6 +222,7 @@ const styles = StyleSheet.create({
 		minWidth: 120,
 		alignItems: "center",
 		elevation: 3,
+		marginTop: 10,
 	},
 	buttonDisabled: {
 		backgroundColor: "#D3D3D3",
