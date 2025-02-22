@@ -1,9 +1,10 @@
+import { getApiEndpoint } from "../config/api"
+
 export const signupUser = async (userData) => {
-	// API_ENDPOINT를 변수로 선언하고 사용
-	const API_ENDPOINT = "https://kwhcclab.com:20955/api"
+	const API_ENDPOINT = getApiEndpoint()
 
 	try {
-		const response = await fetch(`${API_ENDPOINT}/signup`, {
+		const response = await fetch(`${API_ENDPOINT}/api/signup`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -12,7 +13,8 @@ export const signupUser = async (userData) => {
 		})
 
 		if (!response.ok) {
-			throw new Error(`HTTP error! Status: ${response.status}`)
+			const errorData = await response.json()
+			throw new Error(errorData.message || `HTTP error! Status: ${response.status}`)
 		}
 
 		const data = await response.json()
