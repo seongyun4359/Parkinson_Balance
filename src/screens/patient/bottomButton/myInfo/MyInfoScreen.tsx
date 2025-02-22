@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import PatientInfoCard from "../../../../components/patient/my-info/PatientInfo"
 import { searchPatientByName } from "../../../../mock/mock"
 import { useNavigation } from "@react-navigation/native"
@@ -32,33 +33,54 @@ const MyInfoScreen: React.FC = () => {
 		}
 	}
 
+	const handleLogout = () => {
+		Alert.alert(
+			"로그아웃",
+			"로그아웃 하시겠습니까?",
+			[
+				{
+					text: "취소",
+					style: "cancel",
+				},
+				{
+					text: "네",
+					onPress: async () => {
+						try {
+							// 토큰 제거
+							await AsyncStorage.removeItem("authToken")
+							// 홈 화면으로 이동
+							navigation.reset({
+								index: 0,
+								routes: [{ name: "Login" }],
+							})
+						} catch (error) {
+							console.error("로그아웃 실패:", error)
+							Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.")
+						}
+					},
+				},
+			],
+			{ cancelable: false }
+		)
+	}
+
 	return (
 		<View style={styles.container}>
 			{patientInfo ? (
-				<PatientInfoCard
-					patientInfo={patientInfo}
-					onPrescriptionPress={handlePrescriptionPress}
-				/>
+				<PatientInfoCard patientInfo={patientInfo} onPrescriptionPress={handlePrescriptionPress} />
 			) : (
 				<View style={styles.placeholderContainer}>
 					<Ionicons name="search" size={48} color="#ddd" />
-					<Text style={styles.placeholderText}>
-						환자 정보를 찾을 수 없습니다.
-					</Text>
+					<Text style={styles.placeholderText}>환자 정보를 찾을 수 없습니다.</Text>
 				</View>
 			)}
 
 			<View style={styles.footerButtons}>
-				<TouchableOpacity
-					style={[styles.footerButton, styles.notificationButton]}
-				>
+				<TouchableOpacity style={[styles.footerButton, styles.notificationButton]} onPress={handleLogout}>
 					<Ionicons name="log-out-outline" size={24} color="#fff" />
 					<Text style={styles.footerButtonText}>로그아웃</Text>
 				</TouchableOpacity>
-				<TouchableOpacity
-					style={[styles.footerButton, styles.editButton]}
-					onPress={handleEditPress}
-				>
+				<TouchableOpacity style={[styles.footerButton, styles.editButton]} onPress={handleEditPress}>
 					<Ionicons name="create-outline" size={24} color="#fff" />
 					<Text style={styles.footerButtonText}>정보 수정</Text>
 				</TouchableOpacity>
