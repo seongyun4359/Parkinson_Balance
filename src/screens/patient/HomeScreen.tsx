@@ -31,6 +31,7 @@ const HomeScreen = () => {
 				<MenuButton
 					source={require("../../assets/menu/menu-information.png")}
 					label="내 정보"
+					onPress={() => navigation.navigate("MyInformation")}
 				/>
 				<MenuButton
 					source={require("../../assets/menu/menu-start.png")}

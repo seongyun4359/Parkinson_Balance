@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react"
-import {
-	ScrollView,
-	Text,
-	TouchableOpacity,
-	StyleSheet,
-	Alert,
-} from "react-native"
+import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert } from "react-native"
 import NameGenderInput from "../../components/auth/NameGenderInput"
 import PhoneNumberInput from "../../components/auth/PhoneNumberInput"
 import PasswordInput from "../../components/auth/PasswordInput"
@@ -25,8 +19,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [second, setSecond] = useState("")
 	const [amPm, setAmPm] = useState("AM")
 
-	const passwordPattern =
-		/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d_!@#$%^&*\-+=?]{4,20}$/
+	const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d_!@#$%^&*\-+=?]{4,20}$/
 
 	const handleSignUp = async () => {
 		if (password !== confirmPassword) {
@@ -35,21 +28,11 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		}
 
 		if (!passwordPattern.test(password)) {
-			Alert.alert(
-				"비밀번호 조건 미충족",
-				"비밀번호는 4~20자, 영문 대소문자, 숫자, 특수문자를 포함해야 합니다."
-			)
+			Alert.alert("비밀번호 조건 미충족", "비밀번호는 4~20자, 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.")
 			return
 		}
 
-		if (
-			!name ||
-			!phoneNumber1 ||
-			!phoneNumber2 ||
-			!phoneNumber3 ||
-			!password ||
-			!confirmPassword
-		) {
+		if (!name || !phoneNumber1 || !phoneNumber2 || !phoneNumber3 || !password || !confirmPassword) {
 			Alert.alert("필수 항목 확인", "모든 필드를 입력해주세요.")
 			return
 		}
@@ -60,12 +43,15 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		}
 
 		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
-		let adjustedHour = parseInt(hour) || 0
+		let adjustedHour = parseInt(hour)
 
-		const exerciseNotificationTime = `${String(adjustedHour).padStart(
-			2,
-			"0"
-		)}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
+		if (amPm === "PM" && adjustedHour !== 12) {
+			adjustedHour += 12
+		} else if (amPm === "AM" && adjustedHour === 12) {
+			adjustedHour = 0
+		}
+
+		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
 		const userData = {
 			phoneNumber: fullPhoneNumber,
@@ -78,25 +64,16 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 		try {
 			const response = await signupUser(userData)
-			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!")
-			navigation.goBack()
+			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!", [{ text: "확인", onPress: () => navigation.goBack() }])
 		} catch (error) {
-			Alert.alert(
-				"회원가입 실패",
-				"회원가입에 실패했습니다. 다시 시도해주세요."
-			)
+			Alert.alert("회원가입 실패", error.message || "회원가입에 실패했습니다. 다시 시도해주세요.")
 		}
 	}
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>회원가입</Text>
-			<NameGenderInput
-				name={name}
-				setName={setName}
-				gender={gender}
-				setGender={setGender}
-			/>
+			<NameGenderInput name={name} setName={setName} gender={gender} setGender={setGender} />
 			<PhoneNumberInput
 				phoneNumber1={phoneNumber1}
 				setPhoneNumber1={setPhoneNumber1}
@@ -105,24 +82,9 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				phoneNumber3={phoneNumber3}
 				setPhoneNumber3={setPhoneNumber3}
 			/>
-			<PasswordInput
-				value={password}
-				onChangeText={setPassword}
-				placeholder="비밀번호"
-			/>
-			<PasswordInput
-				value={confirmPassword}
-				onChangeText={setConfirmPassword}
-				placeholder="비밀번호 확인"
-			/>
-			<ExerciseTimeInput
-				hour={hour}
-				setHour={setHour}
-				minute={minute}
-				setMinute={setMinute}
-				second={second}
-				setSecond={setSecond}
-			/>
+			<PasswordInput value={password} onChangeText={setPassword} placeholder="비밀번호" />
+			<PasswordInput value={confirmPassword} onChangeText={setConfirmPassword} placeholder="비밀번호 확인" />
+			<ExerciseTimeInput hour={hour} setHour={setHour} minute={minute} setMinute={setMinute} second={second} setSecond={setSecond} />
 			<TouchableOpacity style={styles.button} onPress={handleSignUp}>
 				<Text style={styles.buttonText}>회원가입</Text>
 			</TouchableOpacity>
