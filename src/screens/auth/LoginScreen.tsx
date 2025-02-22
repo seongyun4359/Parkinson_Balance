@@ -65,18 +65,14 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				password: password,
 			}
 
-			console.log("📤 로그인 요청 데이터:", loginData)
+			console.log("📤 로그인 시도:", loginData)
 
 			const response = await loginUser(loginData)
-			console.log("📥 로그인 응답 데이터:", response)
+			console.log("📥 로그인 응답:", response)
 
 			if (response.status === "SUCCESS" && response.data[0]) {
-				const { memberInfoResponse, tokenDTO } = response.data[0]
-				console.log("✅ 로그인 성공:", {
-					role: memberInfoResponse.role,
-					name: memberInfoResponse.name,
-					accessToken: tokenDTO?.accessToken ? "존재" : "없음",
-				})
+				const { memberInfoResponse } = response.data[0]
+				console.log("✅ 로그인 성공:", memberInfoResponse)
 
 				if (memberInfoResponse.role === "PATIENT") {
 					console.log("🏥 환자 화면으로 이동")
@@ -97,6 +93,30 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				response: error.response,
 			})
 			Alert.alert("로그인 실패", error.message || "로그인에 실패했습니다. 다시 시도해주세요.")
+		}
+	}
+
+	// 임시 관리자 로그인 핸들러 추가
+	const handleAdminLogin = async () => {
+		try {
+			const adminLoginData = {
+				phoneNumber: "010-1234-5678",
+				password: "test1234",
+			}
+
+			console.log("📤 관리자 로그인 시도:", adminLoginData)
+
+			const response = await loginUser(adminLoginData)
+			console.log("📥 관리자 로그인 응답:", response)
+
+			if (response.status === "SUCCESS" && response.data[0]) {
+				const { memberInfoResponse } = response.data[0]
+				console.log("✅ 관리자 로그인 성공:", memberInfoResponse)
+				navigation.navigate("MedicalStaffHome")
+			}
+		} catch (error) {
+			console.error("🚨 관리자 로그인 에러:", error)
+			Alert.alert("로그인 실패", "관리자 로그인에 실패했습니다.")
 		}
 	}
 
@@ -162,6 +182,11 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 			<TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("SignUp")}>
 				<Text style={styles.signupButtonText}>회원가입</Text>
+			</TouchableOpacity>
+
+			{/* 임시 관리자 로그인 버튼 추가 */}
+			<TouchableOpacity style={[styles.adminButton, { marginBottom: 20 }]} onPress={handleAdminLogin}>
+				<Text style={styles.adminButtonText}>관리자 로그인</Text>
 			</TouchableOpacity>
 
 			<TouchableOpacity onPress={() => navigation.navigate("LostAccount")}>
@@ -251,6 +276,20 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 14,
 		textDecorationLine: "underline",
+	},
+	// 관리자 로그인 버튼 스타일 추가
+	adminButton: {
+		width: "80%",
+		height: 50,
+		backgroundColor: "#FF6B6B", // 구분을 위한 다른 색상
+		borderRadius: 10,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	adminButtonText: {
+		color: "#fff",
+		fontSize: 18,
+		fontWeight: "bold",
 	},
 })
 
