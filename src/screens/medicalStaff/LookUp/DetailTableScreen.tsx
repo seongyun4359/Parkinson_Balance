@@ -2,12 +2,13 @@ import React from "react"
 import { View, Text, StyleSheet, Dimensions } from "react-native"
 import { LineChart } from "react-native-chart-kit"
 import { exerciseHistory } from "../../../mock/exerciseData"
+import Icon from "react-native-vector-icons/MaterialIcons"
 
 export default function DetailTableScreen() {
 	const goalItems = [
-		{ label: "일간 목표 달성률", value: "80%" },
-		{ label: "주간 목표 달성률", value: "75%" },
-		{ label: "월간 목표 달성률", value: "85%" },
+		{ label: "일간 목표 달성률", value: "80%", icon: "today" },
+		{ label: "주간 목표 달성률", value: "75%", icon: "date-range" },
+		{ label: "월간 목표 달성률", value: "85%", icon: "calendar-today" },
 	]
 
 	const chartData = {
@@ -17,23 +18,31 @@ export default function DetailTableScreen() {
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.analysisText}>운동 목표 달성률 분석</Text>
+			<Text style={styles.analysisText}>
+				<Icon name="analytics" size={24} color="#000" /> 운동 목표 달성률 분석
+			</Text>
 
 			<View style={styles.scoreTable}>
 				<View style={styles.headerRow}>
-					<Text style={styles.headerCell}>환자명</Text>
+					<Text style={styles.headerCell}>
+						<Icon name="person" size={20} color="#000" /> 환자명
+					</Text>
 					<Text style={styles.headerCell}>홍길동</Text>
 				</View>
 
 				{goalItems.map((item, index) => (
 					<View key={index} style={styles.row}>
-						<Text style={styles.cell}>{item.label}</Text>
+						<Text style={styles.cell}>
+							<Icon name={item.icon} size={20} color="#000" /> {item.label}
+						</Text>
 						<Text style={styles.cell}>{item.value}</Text>
 					</View>
 				))}
 			</View>
 
-			<Text style={styles.graphTitle}>운동 목표 달성 추이</Text>
+			<Text style={styles.graphTitle}>
+				<Icon name="trending-up" size={20} color="#000" /> 운동 목표 달성 추이
+			</Text>
 
 			<View style={styles.chartContainer}>
 				<LineChart

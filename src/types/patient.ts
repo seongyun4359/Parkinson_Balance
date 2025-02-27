@@ -1,9 +1,9 @@
 export interface PatientInfoType {
+	memberId: string
 	name: string
-	gender: string
 	phoneNumber: string
-	prescriptionImage?: string
-	password: string
+	gender: "MALE" | "FEMALE"
+	lastLoginAt?: string
 }
 
 export interface PatientInfoProps {
