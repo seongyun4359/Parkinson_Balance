@@ -1,13 +1,10 @@
-import React, { useState } from "react"
-import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-	ScrollView,
-} from "react-native"
-import { Picker } from "@react-native-picker/picker"
+import React, { useState, useEffect } from "react"
+import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert } from "react-native"
+import NameGenderInput from "../../components/auth/NameGenderInput"
+import PhoneNumberInput from "../../components/auth/PhoneNumberInput"
+import PasswordInput from "../../components/auth/PasswordInput"
+import ExerciseTimeInput from "../../components/auth/ExerciseTimeInput"
+import { signupUser } from "../../apis/SignUp"
 
 const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [name, setName] = useState("")
@@ -22,10 +19,31 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [second, setSecond] = useState("")
 	const [amPm, setAmPm] = useState("AM")
 
-	const handleSignUp = () => {
-		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
+	const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d_!@#$%^&*\-+=?]{4,20}$/
 
-		let adjustedHour = parseInt(hour) || 0
+	const handleSignUp = async () => {
+		if (password !== confirmPassword) {
+			Alert.alert("비밀번호 오류", "비밀번호가 일치하지 않습니다.")
+			return
+		}
+
+		if (!passwordPattern.test(password)) {
+			Alert.alert("비밀번호 조건 미충족", "비밀번호는 4~20자, 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.")
+			return
+		}
+
+		if (!name || !phoneNumber1 || !phoneNumber2 || !phoneNumber3 || !password || !confirmPassword) {
+			Alert.alert("필수 항목 확인", "모든 필드를 입력해주세요.")
+			return
+		}
+
+		if (!hour || !minute || !second) {
+			Alert.alert("운동 알림 시간 확인", "운동 알림 시간을 입력해주세요.")
+			return
+		}
+
+		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
+		let adjustedHour = parseInt(hour)
 
 		if (amPm === "PM" && adjustedHour !== 12) {
 			adjustedHour += 12
@@ -33,138 +51,40 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			adjustedHour = 0
 		}
 
-		const exerciseNotificationTime = `${adjustedHour}:${minute}:${second}`
+		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
-		const userInfo = [
-			`이름: ${name}`,
-			`성별: ${gender}`,
-			`휴대폰번호: ${fullPhoneNumber}`,
-			`비밀번호: ${password}`,
-			`비밀번호 확인: ${confirmPassword}`,
-			`운동 알림 시간: ${exerciseNotificationTime}`,
-		]
-		console.log(userInfo)
+		const userData = {
+			phoneNumber: fullPhoneNumber,
+			password,
+			name,
+			gender: gender === "남성" ? "MALE" : "FEMALE",
+			fcmToken: "testFCMTOKEN",
+			exerciseNotificationTime,
+		}
+
+		try {
+			const response = await signupUser(userData)
+			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!", [{ text: "확인", onPress: () => navigation.goBack() }])
+		} catch (error) {
+			Alert.alert("회원가입 실패", error.message || "회원가입에 실패했습니다. 다시 시도해주세요.")
+		}
 	}
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>회원가입</Text>
-			<View style={styles.nameGenderContainer}>
-				<View style={styles.inputContainer}>
-					<Text style={styles.label}>이름</Text>
-					<TextInput
-						style={styles.input}
-						placeholder="이름"
-						placeholderTextColor="#999"
-						value={name}
-						onChangeText={setName}
-					/>
-				</View>
-
-				<View style={styles.inputContainer}>
-					<Text style={styles.label}>성별</Text>
-					<View style={styles.pickerContainer}>
-						<Picker
-							selectedValue={gender}
-							onValueChange={(itemValue) => setGender(itemValue)}
-							style={styles.picker}
-						>
-							<Picker.Item label="남성" value="남성" />
-							<Picker.Item label="여성" value="여성" />
-						</Picker>
-					</View>
-				</View>
-			</View>
-			<Text style={styles.label}>휴대폰 번호</Text>
-			<View style={styles.phoneNumberContainer}>
-				<TextInput
-					style={styles.phoneInput}
-					placeholder="010"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					maxLength={3}
-					value={phoneNumber1}
-					onChangeText={(text) => setPhoneNumber1(text)}
-				/>
-				<Text>-</Text>
-				<TextInput
-					style={styles.phoneInput}
-					placeholder="1234"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					maxLength={4}
-					value={phoneNumber2}
-					onChangeText={(text) => setPhoneNumber2(text)}
-				/>
-				<Text>-</Text>
-				<TextInput
-					style={styles.phoneInput}
-					placeholder="5678"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					maxLength={4}
-					value={phoneNumber3}
-					onChangeText={(text) => setPhoneNumber3(text)}
-				/>
-			</View>
-			<Text style={styles.label}>비밀번호</Text>
-			<TextInput
-				style={styles.input}
-				placeholder="비밀번호"
-				placeholderTextColor="#999"
-				secureTextEntry
-				value={password}
-				onChangeText={setPassword}
+			<NameGenderInput name={name} setName={setName} gender={gender} setGender={setGender} />
+			<PhoneNumberInput
+				phoneNumber1={phoneNumber1}
+				setPhoneNumber1={setPhoneNumber1}
+				phoneNumber2={phoneNumber2}
+				setPhoneNumber2={setPhoneNumber2}
+				phoneNumber3={phoneNumber3}
+				setPhoneNumber3={setPhoneNumber3}
 			/>
-			<Text style={styles.label}>비밀번호 확인</Text>
-			<TextInput
-				style={styles.input}
-				placeholder="비밀번호 확인"
-				placeholderTextColor="#999"
-				secureTextEntry
-				value={confirmPassword}
-				onChangeText={setConfirmPassword}
-			/>
-			<Text style={styles.label}>운동 알림 시간</Text>
-			<View style={styles.timeInputContainer}>
-				<TextInput
-					style={styles.timeInput}
-					placeholder="시"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					value={hour}
-					onChangeText={setHour}
-				/>
-				<Text>:</Text>
-				<TextInput
-					style={styles.timeInput}
-					placeholder="분"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					value={minute}
-					onChangeText={setMinute}
-				/>
-				<Text>:</Text>
-				<TextInput
-					style={styles.timeInput}
-					placeholder="초"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					value={second}
-					onChangeText={setSecond}
-				/>
-			</View>
-			<Text style={styles.label}>오전/오후</Text>
-			<View style={styles.pickerContainer}>
-				<Picker
-					selectedValue={amPm}
-					onValueChange={(itemValue) => setAmPm(itemValue)}
-					style={styles.picker}
-				>
-					<Picker.Item label="AM" value="AM" />
-					<Picker.Item label="PM" value="PM" />
-				</Picker>
-			</View>
+			<PasswordInput value={password} onChangeText={setPassword} placeholder="비밀번호" />
+			<PasswordInput value={confirmPassword} onChangeText={setConfirmPassword} placeholder="비밀번호 확인" />
+			<ExerciseTimeInput hour={hour} setHour={setHour} minute={minute} setMinute={setMinute} second={second} setSecond={setSecond} />
 			<TouchableOpacity style={styles.button} onPress={handleSignUp}>
 				<Text style={styles.buttonText}>회원가입</Text>
 			</TouchableOpacity>
@@ -189,90 +109,6 @@ const styles = StyleSheet.create({
 		color: "#333",
 		marginBottom: 20,
 	},
-	label: {
-		width: "100%",
-		fontSize: 16,
-		color: "#333",
-		marginBottom: 5,
-		textAlign: "left",
-	},
-	input: {
-		width: "100%",
-		height: 50,
-		backgroundColor: "#fff",
-		borderRadius: 10,
-		paddingHorizontal: 15,
-		fontSize: 16,
-		marginBottom: 15,
-		elevation: 1,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
-	},
-	pickerContainer: {
-		width: "100%",
-		height: 50,
-		backgroundColor: "#fff",
-		borderRadius: 10,
-		justifyContent: "center",
-		marginBottom: 15,
-		elevation: 3,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
-	},
-	picker: {
-		width: "100%",
-		height: "100%",
-	},
-	phoneNumberContainer: {
-		width: "100%",
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 15,
-	},
-	phoneInput: {
-		width: "30%",
-		height: 50,
-		backgroundColor: "#fff",
-		borderRadius: 10,
-		paddingHorizontal: 15,
-		fontSize: 16,
-		elevation: 1,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
-	},
-	timeInputContainer: {
-		width: "100%",
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 15,
-	},
-	timeInput: {
-		width: "30%",
-		height: 50,
-		backgroundColor: "#fff",
-		borderRadius: 10,
-		paddingHorizontal: 15,
-		fontSize: 16,
-		elevation: 1,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
-	},
 	button: {
 		width: "100%",
 		height: 50,
@@ -282,11 +118,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 10,
 		marginBottom: 20,
-		elevation: 3,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
 	},
 	buttonText: {
 		color: "#fff",
@@ -297,15 +128,6 @@ const styles = StyleSheet.create({
 		color: "#555",
 		fontSize: 16,
 		textDecorationLine: "underline",
-	},
-	nameGenderContainer: {
-		width: "100%",
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 15,
-	},
-	inputContainer: {
-		width: "48%",
 	},
 })
 

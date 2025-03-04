@@ -25,6 +25,7 @@ import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
 import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
 import { InfoTableScreen } from "../screens/medicalStaff/LookUp/InfoTableScreen"
 import { RootStackParamList } from "./Root"
+import MyInfoScreen from "../screens/patient/bottomButton/myInfo/MyInfoScreen"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
@@ -127,6 +128,11 @@ const AppNavigator = () => {
 					name="DetailTable"
 					component={DetailTableScreen}
 					options={{ title: "상세 테이블" }}
+				/>
+				<Stack.Screen
+					name="MyInformation"
+					component={MyInfoScreen}
+					options={{ title: "내 정보" }}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>

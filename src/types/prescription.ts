@@ -1,3 +1,5 @@
+import { Key, ReactNode } from "react"
+
 export interface Prescription {
 	id: string
 	date: string
@@ -19,6 +21,11 @@ export interface PrescriptionListResponse {
 }
 
 export interface ExercisePrescription {
+	goalId: Key | null | undefined
+	duration: any
+	exerciseName: ReactNode
+	setCount: ReactNode
+	repeatCount: ReactNode
 	type: string
 	details: string[]
 }
@@ -29,6 +36,6 @@ export interface Prescription {
 	doctorName: string
 	diagnosis: string
 	medications: { name: string; dosage: string; instructions: string }[]
-	exercisePrescriptions?: ExercisePrescription[] // ✅ 여기서 사용
+	exercisePrescriptions?: ExercisePrescription[]
 	nextAppointment?: string
 }

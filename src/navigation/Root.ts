@@ -27,4 +27,6 @@ export type RootStackParamList = {
 	StrengthExercise: undefined
 	BalanceExercise: undefined
 	OralExercise: undefined
+	MyInformation: undefined
+
 }

@@ -1,8 +1,10 @@
-import { REACT_NATIVE_APP_API_ENDPOINT } from "@env"
+import { getApiEndpoint } from "../config/api"
 
 export const signupUser = async (userData) => {
+	const API_ENDPOINT = getApiEndpoint()
+
 	try {
-		const response = await fetch(`${REACT_NATIVE_APP_API_ENDPOINT}/signup`, {
+		const response = await fetch(`${API_ENDPOINT}/api/signup`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -11,7 +13,8 @@ export const signupUser = async (userData) => {
 		})
 
 		if (!response.ok) {
-			throw new Error(`HTTP error! Status: ${response.status}`)
+			const errorData = await response.json()
+			throw new Error(errorData.message || `HTTP error! Status: ${response.status}`)
 		}
 
 		const data = await response.json()
