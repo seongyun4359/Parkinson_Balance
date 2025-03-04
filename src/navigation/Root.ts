@@ -23,5 +23,10 @@ export type RootStackParamList = {
 	SearchInfo: undefined
 	InfoTable: undefined
 	DetailTable: undefined
+	KidneyExercise: undefined
+	StrengthExercise: undefined
+	BalanceExercise: undefined
+	OralExercise: undefined
 	MyInformation: undefined
+
 }

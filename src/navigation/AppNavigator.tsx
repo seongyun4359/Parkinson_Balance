@@ -6,9 +6,14 @@ import LoginScreen from "../screens/auth/LoginScreen"
 import MedicalStaffHome from "../screens/medicalStaff/HomeScreen"
 import PatientHome from "../screens/patient/HomeScreen"
 import AlarmScreen from "../screens/patient/bottomButton/AlarmScreen"
-import ExerciseScreen from "../screens/patient//bottomButton/exerciseVideo/ExerciseScreen"
+import ExerciseScreen from "../screens/patient/bottomButton/exerciseVideo/ExerciseScreen"
 import RecordScreen from "../screens/patient/bottomButton/exerciseVideo/RecordScreen"
-import CategoryScreen from "../screens/patient/bottomButton/CategoryScreen"
+import CategoryScreen from "../screens/patient/bottomButton/category/CategoryScreen"
+import KidneyExerciseScreen from "../screens/patient/bottomButton/category/kidneyExerciseScreen"
+import StrengthExerciseScreen from "../screens/patient/bottomButton/category/strengthExerciseScreen"
+import BalanceExerciseScreen from "../screens/patient/bottomButton/category/balanceExerciseScreen"
+import OralExerciseScreen from "../screens/patient/bottomButton/category/oralExerciseScreen"
+
 import DayRecordScreen from "../screens/patient/calendar/DayRecordScreen"
 import SignUpScreen from "../screens/auth/SignUpScreen"
 import LostAccountScreen from "../screens/auth/LostAcountScreen"
@@ -58,6 +63,26 @@ const AppNavigator = () => {
 					name="Category"
 					component={CategoryScreen}
 					options={{ title: "운동 종류" }}
+				/>
+				<Stack.Screen
+					name="KidneyExercise"
+					component={KidneyExerciseScreen}
+					options={{ title: "신장운동" }}
+				/>
+				<Stack.Screen
+					name="StrengthExercise"
+					component={StrengthExerciseScreen}
+					options={{ title: "근력 운동" }}
+				/>
+				<Stack.Screen
+					name="BalanceExercise"
+					component={BalanceExerciseScreen}
+					options={{ title: "균형/협응 운동" }}
+				/>
+				<Stack.Screen
+					name="OralExercise"
+					component={OralExerciseScreen}
+					options={{ title: "구강/발성 운동" }}
 				/>
 				<Stack.Screen
 					name="DayRecord"
