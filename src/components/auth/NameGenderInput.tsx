@@ -8,32 +8,17 @@ interface NameGenderInputProps {
 	setGender: React.Dispatch<React.SetStateAction<string>>
 }
 
-const NameGenderInput: React.FC<NameGenderInputProps> = ({
-	name,
-	setName,
-	gender,
-	setGender,
-}) => {
+const NameGenderInput: React.FC<NameGenderInputProps> = ({ name, setName, gender, setGender }) => {
 	return (
 		<View style={styles.container}>
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>이름</Text>
-				<TextInput
-					style={styles.input}
-					placeholder="이름"
-					placeholderTextColor="#999"
-					value={name}
-					onChangeText={setName}
-				/>
+				<TextInput style={styles.input} placeholder="이름" placeholderTextColor="#999" value={name} onChangeText={setName} />
 			</View>
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>성별</Text>
 				<View style={styles.pickerContainer}>
-					<Picker
-						selectedValue={gender}
-						onValueChange={setGender}
-						style={styles.picker}
-					>
+					<Picker selectedValue={gender} onValueChange={setGender} style={styles.picker}>
 						<Picker.Item label="남성" value="남성" />
 						<Picker.Item label="여성" value="여성" />
 					</Picker>

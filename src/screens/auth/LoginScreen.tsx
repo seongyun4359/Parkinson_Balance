@@ -13,7 +13,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const cleaned = text.replace(/[^0-9]/g, "")
 		setPhoneNumber1(cleaned)
 		if (cleaned.length === 3) {
-			// 다음 입력 필드로 포커스 이동
 			phoneNumber2Ref.current?.focus()
 		}
 	}
@@ -22,7 +21,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const cleaned = text.replace(/[^0-9]/g, "")
 		setPhoneNumber2(cleaned)
 		if (cleaned.length === 4) {
-			// 다음 입력 필드로 포커스 이동
 			phoneNumber3Ref.current?.focus()
 		}
 	}
@@ -31,12 +29,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const cleaned = text.replace(/[^0-9]/g, "")
 		setPhoneNumber3(cleaned)
 		if (cleaned.length === 4) {
-			// 비밀번호 입력 필드로 포커스 이동
 			passwordRef.current?.focus()
 		}
 	}
-
-	// 입력 필드 참조 생성
 	const phoneNumber2Ref = useRef<TextInput>(null)
 	const phoneNumber3Ref = useRef<TextInput>(null)
 	const passwordRef = useRef<TextInput>(null)
@@ -124,10 +119,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		<View style={styles.container}>
 			<Image source={require("../../assets/logo/app-logo.png")} style={styles.logo} />
 
+			<Text style={styles.label}>전화번호</Text>
 			<View style={styles.phoneNumberContainer}>
 				<TextInput
 					style={[styles.phoneInput, styles.phoneFirst]}
-					placeholder="010"
 					placeholderTextColor="#fff"
 					value={phoneNumber1}
 					onChangeText={handlePhoneNumber1Change}
@@ -140,7 +135,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				<TextInput
 					ref={phoneNumber2Ref}
 					style={styles.phoneInput}
-					placeholder="0000"
 					placeholderTextColor="#fff"
 					value={phoneNumber2}
 					onChangeText={handlePhoneNumber2Change}
@@ -153,7 +147,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				<TextInput
 					ref={phoneNumber3Ref}
 					style={styles.phoneInput}
-					placeholder="0000"
 					placeholderTextColor="#fff"
 					value={phoneNumber3}
 					onChangeText={handlePhoneNumber3Change}
@@ -164,6 +157,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				/>
 			</View>
 
+			<Text style={styles.label}>비밀번호</Text>
 			<TextInput
 				ref={passwordRef}
 				style={styles.input}
@@ -233,6 +227,14 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: "#fff",
 		marginBottom: 20,
+	},
+	label: {
+		color: "#fff",
+		fontSize: 20,
+		fontWeight: "bold",
+		alignSelf: "flex-start",
+		marginLeft: 30,
+		marginBottom: 8,
 	},
 	button: {
 		width: "80%",

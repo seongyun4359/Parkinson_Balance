@@ -9,37 +9,34 @@ const ExerciseTimeInput: React.FC<{
 	second: string
 	setSecond: React.Dispatch<React.SetStateAction<string>>
 }> = ({ hour, setHour, minute, setMinute, second, setSecond }) => {
+	const handleHourChange = (text: string) => {
+		const value = parseInt(text)
+		if (!isNaN(value) && value >= 0 && value <= 23) {
+			setHour(String(value))
+		}
+	}
+
+	const handleMinuteChange = (text: string) => {
+		const value = parseInt(text)
+		if (!isNaN(value) && value >= 0 && value <= 59) {
+			setMinute(String(value))
+		}
+	}
+
+	const handleSecondChange = (text: string) => {
+		const value = parseInt(text)
+		if (!isNaN(value) && value >= 0 && value <= 59) {
+			setSecond(String(value))
+		}
+	}
+
 	return (
 		<View style={styles.timeInputContainer}>
-			<TextInput
-				style={styles.timeInput}
-				placeholder="시"
-				placeholderTextColor="#999"
-				keyboardType="numeric"
-				maxLength={2}
-				value={hour}
-				onChangeText={setHour}
-			/>
+			<TextInput style={styles.timeInput} placeholder="시" placeholderTextColor="#999" keyboardType="numeric" maxLength={2} value={hour} onChangeText={handleHourChange} />
 			<Text>:</Text>
-			<TextInput
-				style={styles.timeInput}
-				placeholder="분"
-				placeholderTextColor="#999"
-				keyboardType="numeric"
-				maxLength={2}
-				value={minute}
-				onChangeText={setMinute}
-			/>
+			<TextInput style={styles.timeInput} placeholder="분" placeholderTextColor="#999" keyboardType="numeric" maxLength={2} value={minute} onChangeText={handleMinuteChange} />
 			<Text>:</Text>
-			<TextInput
-				style={styles.timeInput}
-				placeholder="초"
-				placeholderTextColor="#999"
-				keyboardType="numeric"
-				maxLength={2}
-				value={second}
-				onChangeText={setSecond}
-			/>
+			<TextInput style={styles.timeInput} placeholder="초" placeholderTextColor="#999" keyboardType="numeric" maxLength={2} value={second} onChangeText={handleSecondChange} />
 		</View>
 	)
 }

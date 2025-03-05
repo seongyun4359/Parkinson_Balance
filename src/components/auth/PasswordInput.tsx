@@ -1,24 +1,34 @@
-import React from "react"
-import { TextInput, StyleSheet } from "react-native"
+import React, { useState } from "react"
+import { TextInput, StyleSheet, View } from "react-native"
+import Icon from "react-native-vector-icons/AntDesign"
 
 const PasswordInput: React.FC<{
 	value: string
 	onChangeText: (text: string) => void
 	placeholder: string
 }> = ({ value, onChangeText, placeholder }) => {
+	const [showPassword, setShowPassword] = useState(false)
+
+	const togglePasswordVisibility = () => {
+		setShowPassword(true)
+		setTimeout(() => {
+			setShowPassword(false)
+		}, 3000)
+	}
+
 	return (
-		<TextInput
-			style={styles.input}
-			placeholder={placeholder}
-			placeholderTextColor="#999"
-			secureTextEntry
-			value={value}
-			onChangeText={onChangeText}
-		/>
+		<View style={styles.container}>
+			<TextInput style={styles.input} placeholder={placeholder} placeholderTextColor="#999" secureTextEntry={!showPassword} value={value} onChangeText={onChangeText} />
+			<Icon name="eye" size={24} color="#999" style={styles.icon} onPress={togglePasswordVisibility} />
+		</View>
 	)
 }
 
 const styles = StyleSheet.create({
+	container: {
+		position: "relative",
+		width: "100%",
+	},
 	input: {
 		width: "100%",
 		height: 50,
@@ -34,6 +44,13 @@ const styles = StyleSheet.create({
 		shadowRadius: 4,
 		borderWidth: 1,
 		borderColor: "#808080",
+		paddingRight: 40,
+	},
+	icon: {
+		position: "absolute",
+		right: 10,
+		top: "50%",
+		transform: [{ translateY: -12 }],
 	},
 })
 
