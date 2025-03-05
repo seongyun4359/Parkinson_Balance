@@ -183,15 +183,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			<TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("SignUp")}>
 				<Text style={styles.signupButtonText}>회원가입</Text>
 			</TouchableOpacity>
-
-			{/* 임시 관리자 로그인 버튼 추가 */}
-			<TouchableOpacity style={[styles.adminButton, { marginBottom: 20 }]} onPress={handleAdminLogin}>
-				<Text style={styles.adminButtonText}>관리자 로그인</Text>
-			</TouchableOpacity>
-
-			<TouchableOpacity onPress={() => navigation.navigate("LostAccount")}>
-				<Text style={styles.lostAccount}>계정을 잃어버리셨나요?</Text>
-			</TouchableOpacity>
 		</View>
 	)
 }
@@ -268,25 +259,6 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	signupButtonText: {
-		color: "#fff",
-		fontSize: 18,
-		fontWeight: "bold",
-	},
-	lostAccount: {
-		color: "#fff",
-		fontSize: 14,
-		textDecorationLine: "underline",
-	},
-	// 관리자 로그인 버튼 스타일 추가
-	adminButton: {
-		width: "80%",
-		height: 50,
-		backgroundColor: "#FF6B6B", // 구분을 위한 다른 색상
-		borderRadius: 10,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	adminButtonText: {
 		color: "#fff",
 		fontSize: 18,
 		fontWeight: "bold",
