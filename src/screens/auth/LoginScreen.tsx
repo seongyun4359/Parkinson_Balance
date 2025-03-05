@@ -100,7 +100,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const handleAdminLogin = async () => {
 		try {
 			const adminLoginData = {
-				phoneNumber: "010-1234-5678",
+				phoneNumber: "010-1111-1111",
 				password: "test1234",
 			}
 
