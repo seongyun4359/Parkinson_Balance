@@ -13,7 +13,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const cleaned = text.replace(/[^0-9]/g, "")
 		setPhoneNumber1(cleaned)
 		if (cleaned.length === 3) {
-			// 다음 입력 필드로 포커스 이동
 			phoneNumber2Ref.current?.focus()
 		}
 	}
@@ -22,7 +21,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const cleaned = text.replace(/[^0-9]/g, "")
 		setPhoneNumber2(cleaned)
 		if (cleaned.length === 4) {
-			// 다음 입력 필드로 포커스 이동
 			phoneNumber3Ref.current?.focus()
 		}
 	}
@@ -31,12 +29,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const cleaned = text.replace(/[^0-9]/g, "")
 		setPhoneNumber3(cleaned)
 		if (cleaned.length === 4) {
-			// 비밀번호 입력 필드로 포커스 이동
 			passwordRef.current?.focus()
 		}
 	}
-
-	// 입력 필드 참조 생성
 	const phoneNumber2Ref = useRef<TextInput>(null)
 	const phoneNumber3Ref = useRef<TextInput>(null)
 	const passwordRef = useRef<TextInput>(null)
@@ -124,10 +119,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		<View style={styles.container}>
 			<Image source={require("../../assets/logo/app-logo.png")} style={styles.logo} />
 
+			<Text style={styles.label}>전화번호</Text>
 			<View style={styles.phoneNumberContainer}>
 				<TextInput
 					style={[styles.phoneInput, styles.phoneFirst]}
-					placeholder="010"
 					placeholderTextColor="#fff"
 					value={phoneNumber1}
 					onChangeText={handlePhoneNumber1Change}
@@ -140,7 +135,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				<TextInput
 					ref={phoneNumber2Ref}
 					style={styles.phoneInput}
-					placeholder="0000"
 					placeholderTextColor="#fff"
 					value={phoneNumber2}
 					onChangeText={handlePhoneNumber2Change}
@@ -153,7 +147,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				<TextInput
 					ref={phoneNumber3Ref}
 					style={styles.phoneInput}
-					placeholder="0000"
 					placeholderTextColor="#fff"
 					value={phoneNumber3}
 					onChangeText={handlePhoneNumber3Change}
@@ -164,6 +157,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				/>
 			</View>
 
+			<Text style={styles.label}>비밀번호</Text>
 			<TextInput
 				ref={passwordRef}
 				style={styles.input}
@@ -182,15 +176,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 			<TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("SignUp")}>
 				<Text style={styles.signupButtonText}>회원가입</Text>
-			</TouchableOpacity>
-
-			{/* 임시 관리자 로그인 버튼 추가 */}
-			<TouchableOpacity style={[styles.adminButton, { marginBottom: 20 }]} onPress={handleAdminLogin}>
-				<Text style={styles.adminButtonText}>관리자 로그인</Text>
-			</TouchableOpacity>
-
-			<TouchableOpacity onPress={() => navigation.navigate("LostAccount")}>
-				<Text style={styles.lostAccount}>계정을 잃어버리셨나요?</Text>
 			</TouchableOpacity>
 		</View>
 	)
@@ -243,6 +228,14 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		marginBottom: 20,
 	},
+	label: {
+		color: "#fff",
+		fontSize: 20,
+		fontWeight: "bold",
+		alignSelf: "flex-start",
+		marginLeft: 30,
+		marginBottom: 8,
+	},
 	button: {
 		width: "80%",
 		height: 50,
@@ -268,25 +261,6 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	signupButtonText: {
-		color: "#fff",
-		fontSize: 18,
-		fontWeight: "bold",
-	},
-	lostAccount: {
-		color: "#fff",
-		fontSize: 14,
-		textDecorationLine: "underline",
-	},
-	// 관리자 로그인 버튼 스타일 추가
-	adminButton: {
-		width: "80%",
-		height: 50,
-		backgroundColor: "#FF6B6B", // 구분을 위한 다른 색상
-		borderRadius: 10,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	adminButtonText: {
 		color: "#fff",
 		fontSize: 18,
 		fontWeight: "bold",

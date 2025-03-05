@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert } from "react-native"
 import NameGenderInput from "../../components/auth/NameGenderInput"
 import PhoneNumberInput from "../../components/auth/PhoneNumberInput"
@@ -18,6 +18,7 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [minute, setMinute] = useState("")
 	const [second, setSecond] = useState("")
 	const [amPm, setAmPm] = useState("AM")
+	const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null)
 
 	const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d_!@#$%^&*\-+=?]{4,20}$/
 
@@ -45,12 +46,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
 		let adjustedHour = parseInt(hour)
 
-		if (amPm === "PM" && adjustedHour !== 12) {
-			adjustedHour += 12
-		} else if (amPm === "AM" && adjustedHour === 12) {
-			adjustedHour = 0
-		}
-
 		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
 		const userData = {
@@ -70,6 +65,11 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		}
 	}
 
+	const handleConfirmPasswordChange = (text: string) => {
+		setConfirmPassword(text)
+		setPasswordMatch(text === password)
+	}
+
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>회원가입</Text>
@@ -82,8 +82,13 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				phoneNumber3={phoneNumber3}
 				setPhoneNumber3={setPhoneNumber3}
 			/>
+			<Text style={styles.label}>비밀번호</Text>
 			<PasswordInput value={password} onChangeText={setPassword} placeholder="비밀번호" />
-			<PasswordInput value={confirmPassword} onChangeText={setConfirmPassword} placeholder="비밀번호 확인" />
+
+			<Text style={styles.label}>비밀번호 확인</Text>
+			<PasswordInput value={confirmPassword} onChangeText={handleConfirmPasswordChange} placeholder="비밀번호 확인" />
+
+			<Text style={styles.label}>고정 운동 알림 시간</Text>
 			<ExerciseTimeInput hour={hour} setHour={setHour} minute={minute} setMinute={setMinute} second={second} setSecond={setSecond} />
 			<TouchableOpacity style={styles.button} onPress={handleSignUp}>
 				<Text style={styles.buttonText}>회원가입</Text>
@@ -128,6 +133,12 @@ const styles = StyleSheet.create({
 		color: "#555",
 		fontSize: 16,
 		textDecorationLine: "underline",
+	},
+	label: {
+		fontSize: 16,
+		color: "#333",
+		marginBottom: 5,
+		alignSelf: "flex-start",
 	},
 })
 
