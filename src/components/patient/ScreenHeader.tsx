@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     paddingVertical: 20,
+    marginTop: 10,
   },
   logo: {
     width: 40,
