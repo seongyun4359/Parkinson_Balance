@@ -33,16 +33,23 @@ export const initializeFirebase = async () => {
 		validateFirebaseConfig()
 
 		// 이미 초기화된 앱이 있는지 확인
+		let app
 		if (getApps().length === 0) {
 			console.log("🔧 Firebase 앱 초기화 시작")
 			console.log("📋 Firebase 설정:", firebaseConfig)
-			const app = initializeApp(firebaseConfig)
+			app = initializeApp(firebaseConfig)
 			console.log("✅ Firebase 앱 초기화 완료")
-			return app
 		} else {
+			app = getApp()
 			console.log("ℹ️ 이미 초기화된 Firebase 앱 사용")
-			return getApp()
 		}
+
+		// Messaging 초기화 확인
+		if (messaging().app) {
+			console.log("✅ Firebase Messaging 초기화 완료")
+		}
+
+		return app
 	} catch (error) {
 		console.error("🚨 Firebase 초기화 오류:", error)
 		if (error instanceof Error) {
@@ -71,13 +78,9 @@ export const requestFCMToken = async () => {
 	try {
 		console.log("🚀 FCM 토큰 요청 시작...")
 
-		// Firebase 앱이 초기화되었는지 확인
-		if (getApps().length === 0) {
-			const app = await initializeFirebase()
-			if (!app) {
-				throw new Error("Firebase 초기화 실패")
-			}
-		}
+		// Firebase 앱 초기화 확인
+		const app = getApps().length === 0 ? await initializeFirebase() : getApp()
+		if (!app) throw new Error("Firebase 초기화 실패")
 
 		if (Platform.OS === "android" || Platform.OS === "ios") {
 			// Android 권한 요청
@@ -112,12 +115,10 @@ export const requestFCMToken = async () => {
 
 export const setupFCMListener = async () => {
 	try {
-		// Firebase 앱이 초기화되었는지 확인
-		if (getApps().length === 0) {
-			const app = await initializeFirebase()
-			if (!app) {
-				throw new Error("Firebase 초기화 실패")
-			}
+		// Firebase 앱 초기화 확인
+		const app = getApps().length === 0 ? await initializeFirebase() : getApp()
+		if (!app || !messaging().app) {
+			throw new Error("Firebase Messaging이 초기화되지 않았습니다.")
 		}
 
 		if (Platform.OS === "android" || Platform.OS === "ios") {

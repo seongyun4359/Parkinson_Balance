@@ -18,7 +18,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [hour, setHour] = useState("")
 	const [minute, setMinute] = useState("")
 	const [second, setSecond] = useState("")
-	const [amPm, setAmPm] = useState("AM")
 	const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null)
 
 	const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d_!@#$%^&*\-+=?]{4,20}$/
@@ -66,7 +65,13 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!", [{ text: "확인", onPress: () => navigation.goBack() }])
 		} catch (error) {
 			console.error("회원가입 실패:", error)
-			Alert.alert("회원가입 실패", error.message)
+
+			// 전화번호 중복 오류 처리
+			if (error.response?.status === 409) {
+				Alert.alert("회원가입 실패", "이미 가입된 전화번호입니다.")
+			} else {
+				Alert.alert("회원가입 실패", error.message || "알 수 없는 오류가 발생했습니다.")
+			}
 		}
 	}
 
