@@ -5,6 +5,7 @@ import PhoneNumberInput from "../../components/auth/PhoneNumberInput"
 import PasswordInput from "../../components/auth/PasswordInput"
 import ExerciseTimeInput from "../../components/auth/ExerciseTimeInput"
 import { signupUser } from "../../apis/SignUp"
+import { getFCMToken } from "../../utils/fcmToken"
 
 const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [name, setName] = useState("")
@@ -17,7 +18,6 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [hour, setHour] = useState("")
 	const [minute, setMinute] = useState("")
 	const [second, setSecond] = useState("")
-	const [amPm, setAmPm] = useState("AM")
 	const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null)
 
 	const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d_!@#$%^&*\-+=?]{4,20}$/
@@ -48,20 +48,30 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
-		const userData = {
-			phoneNumber: fullPhoneNumber,
-			password,
-			name,
-			gender: gender === "남성" ? "MALE" : "FEMALE",
-			fcmToken: "testFCMTOKEN",
-			exerciseNotificationTime,
-		}
-
 		try {
-			const response = await signupUser(userData)
+			// FCM 토큰 가져오기
+			const fcmToken = await getFCMToken()
+
+			const signUpData = {
+				phoneNumber: fullPhoneNumber,
+				password,
+				name,
+				gender: gender === "남성" ? "MALE" : "FEMALE",
+				fcmToken,
+				exerciseNotificationTime,
+			}
+
+			const response = await signupUser(signUpData)
 			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!", [{ text: "확인", onPress: () => navigation.goBack() }])
 		} catch (error) {
-			Alert.alert("회원가입 실패", error.message || "회원가입에 실패했습니다. 다시 시도해주세요.")
+			console.error("회원가입 실패:", error)
+
+			// 전화번호 중복 오류 처리
+			if (error.response?.status === 409) {
+				Alert.alert("회원가입 실패", "이미 가입된 전화번호입니다.")
+			} else {
+				Alert.alert("회원가입 실패", error.message || "알 수 없는 오류가 발생했습니다.")
+			}
 		}
 	}
 

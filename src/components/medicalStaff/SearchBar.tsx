@@ -8,22 +8,22 @@ interface SearchBarProps {
 	onSearch: () => void
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
-	value,
-	onChangeText,
-	onSearch,
-}) => {
+const SearchBar: React.FC<SearchBarProps> = ({ value, onChangeText, onSearch }) => {
 	return (
 		<View style={styles.container}>
 			<Ionicons name="search" size={24} color="#888" style={styles.icon} />
 			<TextInput
 				style={styles.input}
-				placeholder="검색어를 입력하세요"
+				placeholder="환자 이름을 입력하세요"
 				value={value}
 				onChangeText={onChangeText}
 				placeholderTextColor="#aaa"
 				returnKeyType="search"
-				onSubmitEditing={onSearch} // 엔터 키 입력 시 검색
+				onSubmitEditing={onSearch}
+				autoComplete="name"
+				keyboardType="default"
+				autoCapitalize="none"
+				textContentType="name"
 			/>
 		</View>
 	)

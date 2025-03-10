@@ -3,30 +3,44 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
 import SearchBar from "../../../components/medicalStaff/SearchBar"
 import PatientInfoCard from "../../../components/medicalStaff/PatientInfo"
-import { searchPatientByName } from "../../../mock/mock"
+import { searchMemberByName } from "../../../apis/member"
 import { useNavigation } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
-import {
-	SearchScreenNavigationProp,
-	RootStackParamList,
-} from "../../../types/navigation"
+import { SearchScreenNavigationProp, RootStackParamList } from "../../../types/navigation"
 import { PatientInfoType } from "../../../types/patient"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 const SearchInfoScreen: React.FC = () => {
 	const navigation = useNavigation<SearchScreenNavigationProp>()
 	const [searchQuery, setSearchQuery] = useState("")
 	const [patientInfo, setPatientInfo] = useState<PatientInfoType | null>(null)
 
-	const handleSearch = () => {
-		console.log(`Searching for: ${searchQuery}`) // 검색어 확인
+	const handleSearch = async () => {
+		try {
+			if (!searchQuery.trim()) {
+				Alert.alert("검색 오류", "환자 이름을 입력해주세요.")
+				return
+			}
 
-		const result = searchPatientByName(searchQuery)
+			const response = await searchMemberByName(searchQuery)
 
-		if (result) {
-			console.log("Found Patient:", result) // 검색 결과 확인
-			setPatientInfo(result)
-		} else {
-			Alert.alert("검색 실패", "해당 환자를 찾을 수 없습니다.")
+			if (response.status === "SUCCESS" && response.data.length > 0) {
+				const member = response.data[0]
+				const patientData: PatientInfoType = {
+					memberId: member.memberId,
+					name: member.name,
+					phoneNumber: member.phoneNumber,
+					gender: member.gender,
+					// 다른 필요한 필드들도 설정
+				}
+				setPatientInfo(patientData)
+			} else {
+				Alert.alert("검색 실패", "해당 환자를 찾을 수 없습니다.")
+				setPatientInfo(null)
+			}
+		} catch (error) {
+			console.error("API 오류:", error)
+			Alert.alert("오류", "환자 정보 검색 중 오류가 발생했습니다.")
 			setPatientInfo(null)
 		}
 	}
@@ -45,17 +59,10 @@ const SearchInfoScreen: React.FC = () => {
 
 	return (
 		<View style={styles.container}>
-			<SearchBar
-				value={searchQuery}
-				onChangeText={setSearchQuery}
-				onSearch={handleSearch}
-			/>
+			<SearchBar value={searchQuery} onChangeText={setSearchQuery} onSearch={handleSearch} />
 
 			{patientInfo ? (
-				<PatientInfoCard
-					patientInfo={patientInfo}
-					onPrescriptionPress={handlePrescriptionPress}
-				/>
+				<PatientInfoCard patientInfo={patientInfo} onPrescriptionPress={handlePrescriptionPress} />
 			) : (
 				<View style={styles.placeholderContainer}>
 					<Ionicons name="search" size={48} color="#ddd" />
@@ -64,16 +71,11 @@ const SearchInfoScreen: React.FC = () => {
 			)}
 
 			<View style={styles.footerButtons}>
-				<TouchableOpacity
-					style={[styles.footerButton, styles.notificationButton]}
-				>
+				<TouchableOpacity style={[styles.footerButton, styles.notificationButton]}>
 					<Ionicons name="notifications-outline" size={24} color="#fff" />
 					<Text style={styles.footerButtonText}>알림 전송</Text>
 				</TouchableOpacity>
-				<TouchableOpacity
-					style={[styles.footerButton, styles.editButton]}
-					onPress={handleEditPress}
-				>
+				<TouchableOpacity style={[styles.footerButton, styles.editButton]} onPress={handleEditPress}>
 					<Ionicons name="create-outline" size={24} color="#fff" />
 					<Text style={styles.footerButtonText}>정보 수정</Text>
 				</TouchableOpacity>
