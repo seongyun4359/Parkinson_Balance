@@ -99,3 +99,41 @@ export const searchMemberByPhone = async (phoneNumber: string) => {
 		throw error
 	}
 }
+
+export interface UpdateMemberData {
+	phoneNumber?: string
+	name?: string
+	password?: string
+}
+
+export const updateMember = async (originalPhoneNumber: string, updateData: UpdateMemberData) => {
+	try {
+		const accessToken = await AsyncStorage.getItem("accessToken")
+		if (!accessToken) {
+			throw new Error("액세스 토큰이 없습니다.")
+		}
+
+		const response = await fetch(`${API_BASE_URL}/members/${originalPhoneNumber}`, {
+			method: "PATCH",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(updateData),
+		})
+
+		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error("토큰이 만료되었습니다.")
+			}
+			const errorData = await response.json().catch(() => null)
+			throw new Error(errorData?.error || `정보 수정 실패: ${response.status}`)
+		}
+
+		const data = await response.json()
+		return data
+	} catch (error: any) {
+		console.error("회원 정보 수정 오류:", error)
+		throw error
+	}
+}

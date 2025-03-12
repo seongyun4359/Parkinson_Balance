@@ -4,6 +4,7 @@ import Ionicons from "react-native-vector-icons/Ionicons"
 import SearchBar from "../../../components/medicalStaff/SearchBar"
 import PatientInfoCard from "../../../components/medicalStaff/PatientInfo"
 import { searchMemberByPhone } from "../../../apis/member"
+import { sendExerciseCheerNotification } from "../../../apis/notification"
 import { useNavigation, CommonActions } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { SearchScreenNavigationProp, RootStackParamList } from "../../../types/navigation"
@@ -150,6 +151,66 @@ const SearchInfoScreen: React.FC = () => {
 		}
 	}
 
+	const handleNotificationPress = async () => {
+		if (!patientInfo) {
+			Alert.alert("알림", "먼저 환자를 검색해주세요.")
+			return
+		}
+
+		try {
+			// 알림 전송 전에 환자 정보 재확인
+			const recentInfo = await searchMemberByPhone(patientInfo.phoneNumber)
+			if (!recentInfo || recentInfo.status !== "SUCCESS" || !recentInfo.data.length) {
+				Alert.alert("오류", "최신 환자 정보를 찾을 수 없습니다. 다시 검색해주세요.")
+				setPatientInfo(null)
+				return
+			}
+
+			Alert.alert("알림 전송", `${patientInfo.name}님에게 운동 독려 알림을 전송하시겠습니까?`, [
+				{
+					text: "취소",
+					style: "cancel",
+				},
+				{
+					text: "전송",
+					onPress: async () => {
+						try {
+							const result = await sendExerciseCheerNotification([patientInfo.phoneNumber])
+
+							if (result.status === "SUCCESS") {
+								Alert.alert("전송 완료", `${patientInfo.name}님에게 운동 독려 알림이 전송되었습니다.`)
+							} else {
+								throw new Error("알림 전송에 실패했습니다.")
+							}
+						} catch (error: any) {
+							console.error("알림 전송 오류:", error)
+
+							if (error.message?.includes("토큰")) {
+								const tokenRefreshed = await handleTokenError()
+								if (tokenRefreshed) {
+									handleNotificationPress()
+									return
+								}
+							}
+
+							// 에러 메시지 개선
+							let errorMessage = error.message
+							if (error.message?.includes("찾을 수 없습니다")) {
+								errorMessage = "환자 정보가 최신 상태가 아닙니다. 다시 검색해주세요."
+								setPatientInfo(null)
+							}
+
+							Alert.alert("전송 실패", errorMessage)
+						}
+					},
+				},
+			])
+		} catch (error: any) {
+			console.error("알림 전송 처리 오류:", error)
+			Alert.alert("오류", "알림 전송 처리 중 오류가 발생했습니다. 다시 시도해주세요.")
+		}
+	}
+
 	const handleEditPress = () => {
 		if (patientInfo) {
 			navigation.navigate("EditInfo", { patientInfo })
@@ -176,7 +237,7 @@ const SearchInfoScreen: React.FC = () => {
 			)}
 
 			<View style={styles.footerButtons}>
-				<TouchableOpacity style={[styles.footerButton, styles.notificationButton]}>
+				<TouchableOpacity style={[styles.footerButton, styles.notificationButton]} onPress={handleNotificationPress}>
 					<Ionicons name="notifications-outline" size={24} color="#fff" />
 					<Text style={styles.footerButtonText}>알림 전송</Text>
 				</TouchableOpacity>

@@ -1,90 +1,155 @@
-import React, { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import React, { useState, useEffect } from "react"
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Alert } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
-import { getPrescriptions } from "../../../mock/prescriptionMock"
-import { Prescription } from "../../../types/prescription"
-import PrescriptionList from "../../../components/medicalStaff/prescription/PrescriptionList"
-import PrescriptionModal from "../../../components/medicalStaff/prescription/PrescriptionModal"
+import { getExerciseGoals, ExerciseGoal, updateExerciseGoal } from "../../../apis/exercise"
+import { RouteProp, useRoute } from "@react-navigation/native"
+import { RootStackParamList } from "../../../types/navigation"
+
+type PrescriptionScreenRouteProp = RouteProp<RootStackParamList, "Prescription">
 
 const PrescriptionScreen = () => {
-	const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc")
-	const [currentPage, setCurrentPage] = useState(1)
-	const [selectedPrescription, setSelectedPrescription] =
-		useState<Prescription | null>(null)
-	const [modalVisible, setModalVisible] = useState(false)
+	const route = useRoute<PrescriptionScreenRouteProp>()
+	const { patientInfo } = route.params
 
-	const { prescriptions, totalPages } = getPrescriptions(
-		currentPage,
-		5,
-		sortOrder
-	)
+	const [exerciseGoal, setExerciseGoal] = useState<ExerciseGoal | null>(null)
+	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const [editingGoal, setEditingGoal] = useState<{
+		goalId: number
+		repeatCount: number
+		setCount: number
+	} | null>(null)
 
-	const toggleSortOrder = () => {
-		setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))
+	useEffect(() => {
+		loadExerciseGoals()
+	}, [patientInfo.phoneNumber])
+
+	const loadExerciseGoals = async () => {
+		try {
+			setLoading(true)
+			setError(null)
+			const goals = await getExerciseGoals(patientInfo.phoneNumber)
+			setExerciseGoal(goals)
+		} catch (error: any) {
+			console.error("운동 목표 로딩 오류:", error)
+			setError(error.message)
+		} finally {
+			setLoading(false)
+		}
 	}
 
-	const handlePrescriptionPress = (prescription: Prescription) => {
-		setSelectedPrescription(prescription)
-		setModalVisible(true)
+	const handleUpdateGoal = async () => {
+		if (!editingGoal) return
+
+		try {
+			setLoading(true)
+			await updateExerciseGoal(patientInfo.phoneNumber, editingGoal)
+			Alert.alert("성공", "운동 목표가 수정되었습니다.")
+			loadExerciseGoals()
+			setEditingGoal(null)
+		} catch (error: any) {
+			console.error("운동 목표 수정 오류:", error)
+			Alert.alert("오류", error.message || "운동 목표 수정에 실패했습니다.")
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
 		<View style={styles.container}>
 			<View style={styles.header}>
-				<Text style={styles.title}>처방 기록</Text>
-				<TouchableOpacity onPress={toggleSortOrder} style={styles.sortButton}>
-					{sortOrder === "desc" ? (
-						<Ionicons name="arrow-down" size={20} color="#666" />
-					) : (
-						<Ionicons name="arrow-up" size={20} color="#666" />
-					)}
-					<Text style={styles.sortButtonText}>
-						{sortOrder === "desc" ? "최신순" : "오래된순"}
-					</Text>
+				<Text style={styles.title}>운동 목표 관리</Text>
+				<TouchableOpacity onPress={loadExerciseGoals} style={styles.refreshButton}>
+					<Ionicons name="refresh-outline" size={20} color="#666" />
 				</TouchableOpacity>
 			</View>
 
-			<PrescriptionList
-				prescriptions={prescriptions}
-				onPrescriptionPress={handlePrescriptionPress}
-			/>
-
-			<View style={styles.pagination}>
-				<TouchableOpacity
-					onPress={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-					disabled={currentPage === 1}
-				>
-					<Text
-						style={[styles.pageButton, currentPage === 1 && styles.disabled]}
-					>
-						이전
-					</Text>
-				</TouchableOpacity>
-				<Text style={styles.pageText}>
-					{currentPage} / {totalPages}
-				</Text>
-				<TouchableOpacity
-					onPress={() =>
-						setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-					}
-					disabled={currentPage === totalPages}
-				>
-					<Text
-						style={[
-							styles.pageButton,
-							currentPage === totalPages && styles.disabled,
-						]}
-					>
-						다음
-					</Text>
-				</TouchableOpacity>
+			<View style={styles.exerciseGoalsSection}>
+				{loading ? (
+					<View style={styles.centerContent}>
+						<ActivityIndicator size="large" color="#76DABF" />
+					</View>
+				) : error ? (
+					<View style={styles.centerContent}>
+						<Text style={styles.errorText}>{error}</Text>
+						<TouchableOpacity onPress={loadExerciseGoals} style={styles.retryButton}>
+							<Text style={styles.retryText}>다시 시도</Text>
+						</TouchableOpacity>
+					</View>
+				) : exerciseGoal?.goals && exerciseGoal.goals.length > 0 ? (
+					exerciseGoal.goals.map((goal) => (
+						<View key={goal.goalId} style={styles.goalItem}>
+							<View style={styles.goalHeader}>
+								<Text style={styles.goalType}>{goal.type}</Text>
+								<TouchableOpacity
+									style={styles.editButton}
+									onPress={() =>
+										setEditingGoal({
+											goalId: goal.goalId,
+											repeatCount: goal.repeatCount,
+											setCount: goal.setCount,
+										})
+									}
+								>
+									<Ionicons name="create-outline" size={20} color="#fff" />
+									<Text style={styles.editButtonText}>수정</Text>
+								</TouchableOpacity>
+							</View>
+							{editingGoal?.goalId === goal.goalId ? (
+								<View style={styles.editForm}>
+									<View style={styles.inputContainer}>
+										<Text style={styles.label}>반복 횟수</Text>
+										<TextInput
+											style={styles.input}
+											value={editingGoal.repeatCount.toString()}
+											onChangeText={(text) =>
+												setEditingGoal({
+													...editingGoal,
+													repeatCount: parseInt(text) || 0,
+												})
+											}
+											keyboardType="numeric"
+										/>
+									</View>
+									<View style={styles.inputContainer}>
+										<Text style={styles.label}>세트 수</Text>
+										<TextInput
+											style={styles.input}
+											value={editingGoal.setCount.toString()}
+											onChangeText={(text) =>
+												setEditingGoal({
+													...editingGoal,
+													setCount: parseInt(text) || 0,
+												})
+											}
+											keyboardType="numeric"
+										/>
+									</View>
+									<View style={styles.buttonGroup}>
+										<TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setEditingGoal(null)}>
+											<Text style={styles.buttonText}>취소</Text>
+										</TouchableOpacity>
+										<TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleUpdateGoal}>
+											<Text style={styles.buttonText}>저장</Text>
+										</TouchableOpacity>
+									</View>
+								</View>
+							) : (
+								<>
+									<Text style={styles.goalTarget}>
+										{goal.repeatCount}회 × {goal.setCount}세트
+									</Text>
+									<Text style={styles.goalDescription}>{goal.description}</Text>
+								</>
+							)}
+						</View>
+					))
+				) : (
+					<View style={styles.centerContent}>
+						<Text style={styles.noGoalsText}>설정된 운동 목표가 없습니다</Text>
+					</View>
+				)}
 			</View>
-
-			<PrescriptionModal
-				prescription={selectedPrescription}
-				visible={modalVisible}
-				onClose={() => setModalVisible(false)}
-			/>
 		</View>
 	)
 }
@@ -106,33 +171,119 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		color: "#333",
 	},
-	sortButton: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 4,
+	refreshButton: {
+		padding: 8,
 	},
-	sortButtonText: {
-		color: "#666",
-		fontSize: 16,
+	exerciseGoalsSection: {
+		flex: 1,
 	},
-	pagination: {
-		flexDirection: "row",
+	centerContent: {
+		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		gap: 16,
-		paddingVertical: 16,
 	},
-	pageButton: {
-		color: "#76DABF",
-		fontSize: 16,
+	errorText: {
+		color: "#ff6b6b",
+		textAlign: "center",
+		marginBottom: 8,
+	},
+	retryButton: {
+		backgroundColor: "#76DABF",
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 8,
+		marginTop: 8,
+	},
+	retryText: {
+		color: "#fff",
 		fontWeight: "bold",
 	},
-	pageText: {
-		fontSize: 16,
+	noGoalsText: {
+		color: "#999",
+		textAlign: "center",
+	},
+	goalItem: {
+		backgroundColor: "#f8f8f8",
+		borderRadius: 12,
+		padding: 16,
+		marginBottom: 16,
+	},
+	goalHeader: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 8,
+	},
+	goalType: {
+		fontSize: 18,
+		fontWeight: "bold",
 		color: "#333",
 	},
-	disabled: {
-		color: "#ccc",
+	goalTarget: {
+		fontSize: 16,
+		color: "#666",
+		marginBottom: 4,
+	},
+	goalDescription: {
+		fontSize: 14,
+		color: "#666",
+	},
+	editForm: {
+		marginTop: 12,
+		padding: 12,
+		backgroundColor: "#fff",
+		borderRadius: 8,
+	},
+	inputContainer: {
+		marginBottom: 12,
+	},
+	label: {
+		fontSize: 14,
+		color: "#666",
+		marginBottom: 4,
+	},
+	input: {
+		backgroundColor: "#f0f0f0",
+		borderRadius: 8,
+		padding: 8,
+		fontSize: 16,
+	},
+	buttonGroup: {
+		flexDirection: "row",
+		justifyContent: "flex-end",
+		gap: 8,
+		marginTop: 12,
+	},
+	button: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 8,
+		minWidth: 80,
+		alignItems: "center",
+	},
+	cancelButton: {
+		backgroundColor: "#ff6b6b",
+	},
+	saveButton: {
+		backgroundColor: "#76DABF",
+	},
+	buttonText: {
+		color: "#fff",
+		fontWeight: "bold",
+	},
+	editButton: {
+		flexDirection: "row",
+		alignItems: "center",
+		backgroundColor: "#76DABF",
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 8,
+		gap: 4,
+	},
+	editButtonText: {
+		color: "#fff",
+		fontSize: 14,
+		fontWeight: "500",
 	},
 })
 

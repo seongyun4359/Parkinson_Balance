@@ -1,206 +1,93 @@
-import React, { useState } from "react"
-import {
-	View,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-	Modal,
-	Text,
-	FlatList,
-} from "react-native"
+import React from "react"
+import { View, TextInput, StyleSheet, TouchableOpacity, Text } from "react-native"
+import { SearchFilterBarProps, FilterConfig, FilterType } from "../../types/patient"
 import Ionicons from "react-native-vector-icons/Ionicons"
-import { FilterConfig } from "../../types/patient"
 
-interface SearchFilterBarProps {
-	filters: FilterConfig[]
-	onFiltersChange: (filters: FilterConfig[]) => void
-}
-
-const filterOptions: FilterConfig[] = [
-	{ key: "lastLogin", value: "7일 이내" },
-	{ key: "lastLogin", value: "30일 이내" },
-	{ key: "exerciseScore", value: "높은 점수 순" },
-	{ key: "exerciseScore", value: "낮은 점수 순" },
-	{ key: "isFavorite", value: "즐겨찾기만 보기" },
-]
-
-const SearchFilterBar = ({
-	filters,
-	onFiltersChange,
-}: SearchFilterBarProps) => {
-	const [searchQuery, setSearchQuery] = useState("")
-	const [modalVisible, setModalVisible] = useState(false)
-	const [selectedFilters, setSelectedFilters] =
-		useState<FilterConfig[]>(filters)
-
-	const handleSearchChange = (text: string) => {
-		setSearchQuery(text)
+const SearchFilterBar: React.FC<SearchFilterBarProps> = ({ searchValue, onSearchChange, filters, onFiltersChange }) => {
+	const toggleFilter = (type: FilterType) => {
+		const currentFilter = filters.find((f) => f.type === type)
+		if (currentFilter) {
+			onFiltersChange(filters.filter((f) => f.type !== type))
+		} else {
+			onFiltersChange([...filters, { type, value: true }])
+		}
 	}
 
-	const handleFilterPress = () => {
-		setModalVisible(true)
-	}
-
-	const handleApplyFilters = () => {
-		onFiltersChange(selectedFilters)
-		setModalVisible(false)
-	}
-
-	const toggleFilter = (filter: FilterConfig) => {
-		setSelectedFilters((prev) => {
-			const exists = prev.some(
-				(f) => f.key === filter.key && f.value === filter.value
-			)
-			return exists
-				? prev.filter((f) => f.value !== filter.value)
-				: [...prev, filter]
-		})
+	const isFilterActive = (type: FilterType) => {
+		return filters.some((f) => f.type === type)
 	}
 
 	return (
-		<View>
-			<View style={styles.container}>
-				<View style={styles.searchContainer}>
-					<Ionicons name="search" size={20} color="#666" />
-					<TextInput
-						value={searchQuery}
-						onChangeText={handleSearchChange}
-						placeholder="환자 검색"
-						style={styles.input}
-					/>
-				</View>
-				<TouchableOpacity
-					onPress={handleFilterPress}
-					style={styles.filterButton}
-				>
-					<Ionicons name="filter" size={24} color="#666" />
+		<View style={styles.container}>
+			<View style={styles.searchContainer}>
+				<Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+				<TextInput style={styles.searchInput} value={searchValue} onChangeText={onSearchChange} placeholder="환자 이름으로 검색" placeholderTextColor="#999" />
+			</View>
+			<View style={styles.filterContainer}>
+				<TouchableOpacity style={[styles.filterButton, isFilterActive("favorite") && styles.filterButtonActive]} onPress={() => toggleFilter("favorite")}>
+					<Ionicons name={isFilterActive("favorite") ? "star" : "star-outline"} size={20} color={isFilterActive("favorite") ? "#fff" : "#666"} />
+					<Text style={[styles.filterText, isFilterActive("favorite") && styles.filterTextActive]}>즐겨찾기</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={[styles.filterButton, isFilterActive("recentLogin") && styles.filterButtonActive]} onPress={() => toggleFilter("recentLogin")}>
+					<Ionicons name={isFilterActive("recentLogin") ? "time" : "time-outline"} size={20} color={isFilterActive("recentLogin") ? "#fff" : "#666"} />
+					<Text style={[styles.filterText, isFilterActive("recentLogin") && styles.filterTextActive]}>최근 로그인</Text>
 				</TouchableOpacity>
 			</View>
-
-			{/* 필터 모달 */}
-			<Modal visible={modalVisible} animationType="slide" transparent>
-				<View style={styles.modalOverlay}>
-					<View style={styles.modalContainer}>
-						<Text style={styles.modalTitle}>필터 선택</Text>
-						<FlatList
-							data={filterOptions}
-							keyExtractor={(item) => `${item.key}-${item.value}`}
-							renderItem={({ item }) => (
-								<TouchableOpacity
-									style={[
-										styles.filterOption,
-										selectedFilters.some((f) => f.value === item.value)
-											? styles.selectedFilter
-											: null,
-									]}
-									onPress={() => toggleFilter(item)}
-								>
-									<Text style={styles.filterText}>{item.value}</Text>
-								</TouchableOpacity>
-							)}
-						/>
-						<View style={styles.modalActions}>
-							<TouchableOpacity
-								onPress={() => setModalVisible(false)}
-								style={[styles.button, styles.cancelButton]}
-							>
-								<Text style={styles.buttonText}>취소</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								onPress={handleApplyFilters}
-								style={[styles.button, styles.applyButton]}
-							>
-								<Text style={styles.buttonText}>적용</Text>
-							</TouchableOpacity>
-						</View>
-					</View>
-				</View>
-			</Modal>
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
 	container: {
-		flexDirection: "row",
 		gap: 12,
 		marginBottom: 16,
 	},
 	searchContainer: {
-		flex: 1,
 		flexDirection: "row",
 		alignItems: "center",
-		backgroundColor: "#f8f8f8",
-		borderRadius: 8,
-		paddingHorizontal: 12,
-		gap: 8,
-	},
-	input: {
-		flex: 1,
-		height: 40,
-		fontSize: 16,
-	},
-	filterButton: {
-		width: 40,
-		height: 40,
-		backgroundColor: "#f8f8f8",
-		borderRadius: 8,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	modalOverlay: {
-		flex: 1,
-		backgroundColor: "rgba(0, 0, 0, 0.3)",
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	modalContainer: {
-		width: "80%",
 		backgroundColor: "#fff",
 		borderRadius: 12,
-		padding: 20,
+		paddingHorizontal: 12,
+		height: 48,
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.1,
+		shadowRadius: 3,
+		elevation: 3,
 	},
-	modalTitle: {
-		fontSize: 18,
-		fontWeight: "bold",
-		marginBottom: 10,
+	searchIcon: {
+		marginRight: 8,
 	},
-	filterOption: {
-		padding: 12,
-		borderRadius: 8,
-		marginBottom: 10,
-		backgroundColor: "#f8f8f8",
-		alignItems: "center",
-	},
-	selectedFilter: {
-		backgroundColor: "#76DABF",
-	},
-	filterText: {
+	searchInput: {
+		flex: 1,
 		fontSize: 16,
 		color: "#333",
 	},
-	modalActions: {
+	filterContainer: {
 		flexDirection: "row",
-		justifyContent: "space-between",
-		marginTop: 16,
+		gap: 8,
 	},
-	button: {
-		flex: 1,
-		padding: 12,
-		borderRadius: 8,
+	filterButton: {
+		flexDirection: "row",
 		alignItems: "center",
+		backgroundColor: "#f0f0f0",
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderRadius: 8,
+		gap: 4,
 	},
-	cancelButton: {
-		backgroundColor: "#ccc",
-		marginRight: 10,
-	},
-	applyButton: {
+	filterButtonActive: {
 		backgroundColor: "#76DABF",
 	},
-	buttonText: {
+	filterText: {
+		fontSize: 14,
+		color: "#666",
+	},
+	filterTextActive: {
 		color: "#fff",
-		fontSize: 16,
-		fontWeight: "bold",
 	},
 })
 
