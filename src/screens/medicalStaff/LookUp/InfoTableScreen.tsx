@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { View, StyleSheet, TouchableOpacity, Text, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
@@ -116,11 +116,15 @@ const refreshTokenRequest = async (refreshToken: string): Promise<string | null>
 export const InfoTableScreen = () => {
 	const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 	const [patients, setPatients] = useState<Patient[]>([])
+	const [filteredPatients, setFilteredPatients] = useState<Patient[]>([])
 	const [selectedPatients, setSelectedPatients] = useState<Set<string>>(new Set())
 	const [sortConfigs, setSortConfigs] = useState<SortConfig[]>([])
 	const [filterConfigs, setFilterConfigs] = useState<FilterConfig[]>([])
+	const [searchQuery, setSearchQuery] = useState("")
 	const [currentPage, setCurrentPage] = useState(0)
 	const [totalPages, setTotalPages] = useState(1)
+	const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+	const [showRecentLoginOnly, setShowRecentLoginOnly] = useState(false)
 
 	// ✅ 로그아웃 처리 함수
 	const handleLogout = async () => {
@@ -137,23 +141,69 @@ export const InfoTableScreen = () => {
 		}
 	}
 
+	// ✅ 필터 적용 함수
+	const applyFilters = useCallback(() => {
+		let result = [...patients]
+
+		// 검색어 필터링
+		if (searchQuery) {
+			result = result.filter((patient) => patient.name.toLowerCase().includes(searchQuery.toLowerCase()))
+		}
+
+		// 즐겨찾기 필터링
+		if (showFavoritesOnly) {
+			result = result.filter((patient) => patient.isFavorite)
+		}
+
+		// 최근 로그인 필터링 (24시간 이내)
+		if (showRecentLoginOnly) {
+			const oneDayAgo = new Date()
+			oneDayAgo.setDate(oneDayAgo.getDate() - 1)
+			result = result.filter((patient) => {
+				const loginDate = new Date(patient.lastLogin)
+				return loginDate > oneDayAgo
+			})
+		}
+
+		setFilteredPatients(result)
+	}, [patients, searchQuery, showFavoritesOnly, showRecentLoginOnly])
+
+	// ✅ 필터 변경 처리
+	const handleFiltersChange = useCallback((newFilters: FilterConfig[]) => {
+		setFilterConfigs(newFilters)
+		setShowFavoritesOnly(newFilters.some((filter) => filter.type === "favorite"))
+		setShowRecentLoginOnly(newFilters.some((filter) => filter.type === "recentLogin"))
+	}, [])
+
+	// ✅ 검색어 변경 처리
+	const handleSearchChange = useCallback((query: string) => {
+		setSearchQuery(query)
+	}, [])
+
+	// ✅ 즐겨찾기 토글 처리
+	const handleToggleFavorite = useCallback((id: string) => {
+		setPatients((prev) => prev.map((patient) => (patient.id === id ? { ...patient, isFavorite: !patient.isFavorite } : patient)))
+	}, [])
+
+	// ✅ 필터 변경시 자동 적용
+	useEffect(() => {
+		applyFilters()
+	}, [applyFilters, patients, searchQuery, showFavoritesOnly, showRecentLoginOnly])
+
 	// ✅ 환자 데이터 가져오기 (토큰 자동 갱신 포함)
 	const fetchPatients = async (page = 0) => {
 		try {
 			const response = await fetchWithToken(`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`, {}, handleLogout)
 
-			// 응답 상태 코드 확인
 			if (!response.ok) {
 				throw new Error(`서버 응답 오류: ${response.status}`)
 			}
 
-			// 응답 데이터가 비어있는지 확인
 			const text = await response.text()
 			if (!text) {
 				throw new Error("서버로부터 빈 응답을 받았습니다.")
 			}
 
-			// JSON 파싱 시도
 			let result
 			try {
 				result = JSON.parse(text)
@@ -175,6 +225,7 @@ export const InfoTableScreen = () => {
 				}))
 
 				setPatients(formattedPatients)
+				setFilteredPatients(formattedPatients)
 				setTotalPages(result.data.totalPages || 1)
 			} else {
 				console.error("서버 응답 형식 오류:", result)
@@ -184,11 +235,11 @@ export const InfoTableScreen = () => {
 			console.error("API fetch error:", error)
 			Alert.alert("데이터 로딩 오류", error.message || "환자 정보를 불러오는데 실패했습니다.")
 			setPatients([])
+			setFilteredPatients([])
 			setTotalPages(1)
 		}
 	}
 
-	// ✅ 마운트 시 데이터 로드
 	useEffect(() => {
 		fetchPatients(currentPage)
 	}, [])
@@ -196,18 +247,16 @@ export const InfoTableScreen = () => {
 	const handlePageChange = (newPage: number) => {
 		if (newPage >= 0 && newPage < totalPages) {
 			setCurrentPage(newPage)
-			fetchPatients(newPage) // ✅ 페이지 변경 시 데이터 다시 로드
+			fetchPatients(newPage)
 		}
 	}
 
 	return (
 		<View style={styles.container}>
-			<View>
-				<SearchFilterBar onFiltersChange={setFilterConfigs} filters={filterConfigs} />
-			</View>
+			<SearchFilterBar searchValue={searchQuery} onSearchChange={handleSearchChange} filters={filterConfigs} onFiltersChange={handleFiltersChange} />
 
 			<PatientTable
-				data={patients}
+				data={filteredPatients}
 				selectedPatients={selectedPatients}
 				sortConfigs={sortConfigs}
 				onToggleSelect={(id) => {
@@ -218,13 +267,20 @@ export const InfoTableScreen = () => {
 					})
 				}}
 				onToggleSelectAll={() => {
-					setSelectedPatients(new Set(patients.map((p) => p.id)))
+					setSelectedPatients(new Set(filteredPatients.map((p) => p.id)))
 				}}
-				onToggleFavorite={function (id: string): void {
-					throw new Error("Function not implemented.")
-				}}
-				onToggleSort={function (key: keyof Patient): void {
-					throw new Error("Function not implemented.")
+				onToggleFavorite={handleToggleFavorite}
+				onToggleSort={(key: keyof Patient) => {
+					setSortConfigs((prev) => {
+						const newConfigs = [...prev]
+						const existingConfig = newConfigs.find((config) => config.key === key)
+						if (existingConfig) {
+							existingConfig.order = existingConfig.order === "asc" ? "desc" : "asc"
+						} else {
+							newConfigs.push({ key, order: "asc" })
+						}
+						return newConfigs
+					})
 				}}
 			/>
 

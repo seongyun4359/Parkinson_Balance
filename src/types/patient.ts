@@ -27,24 +27,30 @@ export interface PatientTableProps {
 }
 
 export interface Patient {
-	exerciseScore: number
 	id: string
 	name: string
-	lastVisit: string
-	activityLevel: number
-	isFavorite: boolean
-	birthDate: string
-	gender: "male" | "female"
 	phoneNumber: string
+	gender: string
 	lastLogin: string
+	isFavorite: boolean
+	exerciseScore: number
 }
 
 export interface SortConfig {
 	key: keyof Patient
-	direction: "asc" | "desc"
+	order: "asc" | "desc"
 }
 
+export type FilterType = "favorite" | "recentLogin"
+
 export interface FilterConfig {
-	key: keyof Patient
-	value: string | number
+	type: FilterType
+	value: boolean
+}
+
+export interface SearchFilterBarProps {
+	searchValue: string
+	onSearchChange: (value: string) => void
+	filters: FilterConfig[]
+	onFiltersChange: (filters: FilterConfig[]) => void
 }
