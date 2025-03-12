@@ -7,41 +7,63 @@ import PatientTable from "../../../components/medicalStaff/table/PatientTable"
 import SearchFilterBar from "../../../components/medicalStaff/SearchFilterBar"
 import Pagination from "../../../components/medicalStaff/Pagination"
 import { Patient, SortConfig, FilterConfig } from "../../../types/patient"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 const API_URL = "https://kwhcclab.com:20955/api/members"
 const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh"
-let AUTH_TOKEN = "eyJhbGciOiJIUzI1NiJ9..." // 최신 토큰
+let AUTH_TOKEN = ""
 
 // ✅ API 요청 함수 (토큰 만료 시 자동 갱신 후 재요청)
-const fetchWithToken = async (url: string, options: RequestInit = {}) => {
+const fetchWithToken = async (url: string, options: RequestInit = {}, handleLogout: () => void) => {
 	try {
+		// 토큰이 없으면 저장된 토큰 가져오기
+		if (!AUTH_TOKEN) {
+			AUTH_TOKEN = (await AsyncStorage.getItem("accessToken")) || ""
+			if (!AUTH_TOKEN) {
+				handleLogout()
+				throw new Error("토큰이 없습니다.")
+			}
+		}
+
 		let response = await fetch(url, {
 			...options,
 			headers: {
 				...options.headers,
 				Authorization: `Bearer ${AUTH_TOKEN}`,
 				"Content-Type": "application/json",
+				Accept: "application/json",
 			},
 		})
 
 		// 401 Unauthorized → 토큰 만료 시 새 토큰 요청 후 재요청
 		if (response.status === 401) {
 			console.warn("토큰 만료됨. 새 토큰 요청 중...")
-			const newToken = await refreshToken()
+			const refreshToken = await AsyncStorage.getItem("refreshToken")
 
-			if (newToken) {
-				AUTH_TOKEN = newToken
-				response = await fetch(url, {
-					...options,
-					headers: {
-						...options.headers,
-						Authorization: `Bearer ${AUTH_TOKEN}`,
-						"Content-Type": "application/json",
-					},
-				})
-			} else {
-				throw new Error("토큰 갱신 실패")
+			if (!refreshToken) {
+				handleLogout()
+				throw new Error("리프레시 토큰이 없습니다.")
 			}
+
+			const newToken = await refreshTokenRequest(refreshToken)
+			if (!newToken) {
+				handleLogout()
+				throw new Error("토큰 갱신에 실패했습니다.")
+			}
+
+			AUTH_TOKEN = newToken
+			await AsyncStorage.setItem("accessToken", newToken)
+
+			// 새 토큰으로 원래 요청 재시도
+			response = await fetch(url, {
+				...options,
+				headers: {
+					...options.headers,
+					Authorization: `Bearer ${newToken}`,
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+			})
 		}
 
 		return response
@@ -50,48 +72,45 @@ const fetchWithToken = async (url: string, options: RequestInit = {}) => {
 		throw error
 	}
 }
-// ✅ 토큰 갱신 함수 수정 (갱신 실패 시 로그아웃)
-const refreshToken = async () => {
+
+// ✅ 토큰 갱신 요청 함수
+const refreshTokenRequest = async (refreshToken: string): Promise<string | null> => {
 	try {
 		const response = await fetch(REFRESH_URL, {
 			method: "POST",
 			headers: {
-				Authorization: `Bearer ${AUTH_TOKEN}`,
+				Authorization: `Bearer ${refreshToken}`,
 				"Content-Type": "application/json",
+				Accept: "application/json",
 			},
 		})
 
 		if (!response.ok) {
 			console.error("토큰 갱신 실패:", response.status)
-			handleLogout() // 갱신 실패 시 로그아웃 처리
 			return null
 		}
 
-		const data = await response.json()
-		const newToken = data?.token
-
-		if (newToken) {
-			console.log("새로운 토큰 발급 완료:", newToken)
-			return newToken
-		} else {
-			console.error("응답에 토큰 없음")
-			handleLogout() // 응답에 토큰이 없을 경우 로그아웃 처리
+		const text = await response.text()
+		if (!text) {
+			console.error("토큰 갱신 응답이 비어있습니다.")
 			return null
 		}
+
+		try {
+			const data = JSON.parse(text)
+			const newToken = data?.data?.[0]?.accessToken
+			if (newToken) {
+				console.log("새로운 토큰 발급 완료")
+				return newToken
+			}
+		} catch (error) {
+			console.error("토큰 갱신 응답 파싱 실패:", error)
+		}
+		return null
 	} catch (error) {
 		console.error("토큰 갱신 요청 중 오류:", error)
-		handleLogout() // 오류 발생 시 로그아웃 처리
 		return null
 	}
-}
-
-// ✅ 로그아웃 처리 함수
-const handleLogout = () => {
-	// 예시: 토큰 삭제 후 로그인 화면으로 리다이렉트
-	AUTH_TOKEN = "" // 토큰 삭제
-	Alert.alert("알림", "세션이 만료되었습니다. 다시 로그인 해주세요.")
-	// 네비게이션을 통해 로그인 화면으로 이동
-	navigation.replace("Login")
 }
 
 export const InfoTableScreen = () => {
@@ -103,30 +122,69 @@ export const InfoTableScreen = () => {
 	const [currentPage, setCurrentPage] = useState(0)
 	const [totalPages, setTotalPages] = useState(1)
 
+	// ✅ 로그아웃 처리 함수
+	const handleLogout = async () => {
+		try {
+			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
+			AUTH_TOKEN = ""
+			Alert.alert("알림", "세션이 만료되었습니다. 다시 로그인 해주세요.")
+			navigation.reset({
+				index: 0,
+				routes: [{ name: "MedicalStaffAuth" }],
+			})
+		} catch (error) {
+			console.error("로그아웃 처리 중 오류:", error)
+		}
+	}
+
 	// ✅ 환자 데이터 가져오기 (토큰 자동 갱신 포함)
 	const fetchPatients = async (page = 0) => {
 		try {
-			const response = await fetchWithToken(`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`)
-			const result = await response.json()
+			const response = await fetchWithToken(`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`, {}, handleLogout)
 
-			if (result.status === "SUCCESS") {
+			// 응답 상태 코드 확인
+			if (!response.ok) {
+				throw new Error(`서버 응답 오류: ${response.status}`)
+			}
+
+			// 응답 데이터가 비어있는지 확인
+			const text = await response.text()
+			if (!text) {
+				throw new Error("서버로부터 빈 응답을 받았습니다.")
+			}
+
+			// JSON 파싱 시도
+			let result
+			try {
+				result = JSON.parse(text)
+			} catch (parseError) {
+				console.error("JSON 파싱 오류:", parseError)
+				console.error("받은 데이터:", text)
+				throw new Error("서버 응답을 파싱할 수 없습니다.")
+			}
+
+			if (result.status === "SUCCESS" && result.data?.content) {
 				const formattedPatients: Patient[] = result.data.content.map((item: any) => ({
 					id: item.memberId,
 					name: item.name,
 					phoneNumber: item.phoneNumber,
 					gender: item.gender,
 					lastLogin: item.lastLoginAt,
-					isFavorite: false, // 기본값 설정
-					exerciseScore: 0, // 기본값 설정
+					isFavorite: false,
+					exerciseScore: 0,
 				}))
 
 				setPatients(formattedPatients)
-				setTotalPages(result.data.totalPages)
+				setTotalPages(result.data.totalPages || 1)
 			} else {
-				console.error("Error fetching data:", result.error)
+				console.error("서버 응답 형식 오류:", result)
+				throw new Error(result.error || "데이터를 불러오는데 실패했습니다.")
 			}
-		} catch (error) {
+		} catch (error: any) {
 			console.error("API fetch error:", error)
+			Alert.alert("데이터 로딩 오류", error.message || "환자 정보를 불러오는데 실패했습니다.")
+			setPatients([])
+			setTotalPages(1)
 		}
 	}
 
