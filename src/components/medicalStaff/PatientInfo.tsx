@@ -1,12 +1,28 @@
-import React from "react"
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native"
+import React, { useState, useEffect } from "react"
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
 import { PatientInfoProps } from "../../types/patient"
+import { getExerciseGoals, ExerciseGoal } from "../../apis/exercise"
 
-const PatientInfoCard: React.FC<PatientInfoProps> = ({
-	patientInfo,
-	onPrescriptionPress,
-}) => {
+const PatientInfoCard: React.FC<PatientInfoProps> = ({ patientInfo, onPrescriptionPress }) => {
+	const [exerciseGoal, setExerciseGoal] = useState<ExerciseGoal | null>(null)
+	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+
+	const loadExerciseGoals = async () => {
+		try {
+			setLoading(true)
+			setError(null)
+			const goals = await getExerciseGoals(patientInfo.phoneNumber)
+			setExerciseGoal(goals)
+		} catch (error: any) {
+			console.error("운동 목표 로딩 오류:", error)
+			setError(error.message)
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	return (
 		<View style={styles.infoContainer}>
 			<View style={styles.infoBox}>
@@ -29,23 +45,39 @@ const PatientInfoCard: React.FC<PatientInfoProps> = ({
 			</View>
 			<TouchableOpacity
 				style={styles.prescriptionBox}
-				onPress={onPrescriptionPress}
+				onPress={() => {
+					onPrescriptionPress()
+					loadExerciseGoals()
+				}}
 			>
 				<View style={styles.prescriptionHeader}>
 					<Ionicons name="document-text" size={24} color="#76DABF" />
-					<Text style={styles.prescriptionTitle}>받은 처방</Text>
+					<Text style={styles.prescriptionTitle}>운동 목표</Text>
 				</View>
-				{patientInfo.prescriptionImage ? (
-					<Image
-						source={{ uri: patientInfo.prescriptionImage }}
-						style={styles.prescriptionImage}
-					/>
-				) : (
-					<View style={styles.noImageContainer}>
-						<Ionicons name="images-outline" size={48} color="#ddd" />
-						<Text style={styles.noImageText}>처방전 이미지가 없습니다</Text>
-					</View>
-				)}
+				<View style={styles.goalsContainer}>
+					{loading ? (
+						<View style={styles.centerContent}>
+							<ActivityIndicator size="large" color="#76DABF" />
+						</View>
+					) : error ? (
+						<View style={styles.centerContent}>
+							<Text style={styles.errorText}>{error}</Text>
+						</View>
+					) : exerciseGoal?.goals && exerciseGoal.goals.length > 0 ? (
+						exerciseGoal.goals.map((goal, index) => (
+							<View key={index} style={styles.goalItem}>
+								<Text style={styles.goalType}>{goal.type}</Text>
+								<Text style={styles.goalTarget}>{goal.target}</Text>
+								<Text style={styles.goalDescription}>{goal.description}</Text>
+							</View>
+						))
+					) : (
+						<View style={styles.centerContent}>
+							<Ionicons name="fitness-outline" size={48} color="#ddd" />
+							<Text style={styles.noGoalsText}>설정된 운동 목표가 없습니다</Text>
+						</View>
+					)}
+				</View>
 			</TouchableOpacity>
 		</View>
 	)
@@ -136,21 +168,44 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		color: "#333",
 	},
-	prescriptionImage: {
-		width: "100%",
-		height: 200,
-		borderRadius: 12,
+	goalsContainer: {
+		minHeight: 200,
 	},
-	noImageContainer: {
-		height: 200,
+	centerContent: {
+		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		backgroundColor: "#f8f8f8",
-		borderRadius: 12,
+		minHeight: 200,
 	},
-	noImageText: {
+	errorText: {
+		color: "#ff6b6b",
+		textAlign: "center",
+		marginTop: 8,
+	},
+	noGoalsText: {
 		color: "#999",
 		marginTop: 8,
+	},
+	goalItem: {
+		backgroundColor: "#f8f8f8",
+		borderRadius: 8,
+		padding: 16,
+		marginBottom: 12,
+	},
+	goalType: {
+		fontSize: 16,
+		fontWeight: "bold",
+		color: "#333",
+		marginBottom: 4,
+	},
+	goalTarget: {
+		fontSize: 14,
+		color: "#666",
+		marginBottom: 4,
+	},
+	goalDescription: {
+		fontSize: 14,
+		color: "#666",
 	},
 })
 
