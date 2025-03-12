@@ -1,197 +1,186 @@
 import React, { useState } from "react"
-import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-} from "react-native"
-import Ionicons from "react-native-vector-icons/Ionicons"
-import { useNavigation } from "@react-navigation/native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native"
+import { updateMember } from "../../../apis/member"
 import { PatientInfoType } from "../../../types/patient"
 
-const mockPatient: PatientInfoType = {
-	name: "홍길동",
-	gender: "남자",
-	phoneNumber: "010-1234-1234",
-	password: "",
+interface EditInfoScreenProps {
+	route: {
+		params: {
+			patientInfo: PatientInfoType
+		}
+	}
+	navigation: any
 }
 
-const EditInfoScreen: React.FC = () => {
-	const navigation = useNavigation()
-	const [patient, setPatient] = useState(mockPatient)
-	const [passwordConfirm, setPasswordConfirm] = useState("")
-	const [isEditing, setIsEditing] = useState(false) // 수정 모드 토글
+const EditInfoScreen: React.FC<EditInfoScreenProps> = ({ route, navigation }) => {
+	const { patientInfo } = route.params
+	const [name, setName] = useState(patientInfo.name)
+	const [phoneNumber, setPhoneNumber] = useState(patientInfo.phoneNumber)
+	const [password, setPassword] = useState("")
+	const [confirmPassword, setConfirmPassword] = useState("")
 
-	const isPasswordMatch = patient.password === passwordConfirm
+	const handleSave = async () => {
+		try {
+			if (!name.trim()) {
+				Alert.alert("입력 오류", "이름을 입력해주세요.")
+				return
+			}
 
-	const handleSave = () => {
-		setIsEditing(false)
-		// TODO: 저장 로직 추가 가능 (백엔드 연동)
+			if (!phoneNumber.trim()) {
+				Alert.alert("입력 오류", "전화번호를 입력해주세요.")
+				return
+			}
+
+			// 전화번호 형식 검증
+			const phonePattern = /^010-\d{4}-\d{4}$/
+			if (!phonePattern.test(phoneNumber)) {
+				Alert.alert("입력 오류", "올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)")
+				return
+			}
+
+			if (password && password !== confirmPassword) {
+				Alert.alert("비밀번호 오류", "비밀번호가 일치하지 않습니다.")
+				return
+			}
+
+			// 변경된 데이터만 포함
+			const updateData: any = {}
+			if (name !== patientInfo.name) {
+				updateData.name = name
+			}
+			if (phoneNumber !== patientInfo.phoneNumber) {
+				updateData.phoneNumber = phoneNumber
+			}
+			if (password) {
+				updateData.password = password
+			}
+
+			// 변경된 내용이 없는 경우
+			if (Object.keys(updateData).length === 0) {
+				Alert.alert("알림", "변경된 내용이 없습니다.")
+				return
+			}
+
+			await updateMember(patientInfo.phoneNumber, updateData)
+			Alert.alert("수정 완료", "환자 정보가 수정되었습니다.", [
+				{
+					text: "확인",
+					onPress: () => {
+						// 수정된 정보로 이전 화면 업데이트를 위해 파라미터 전달
+						navigation.navigate("SearchInfo", {
+							updatedPatientInfo: {
+								...patientInfo,
+								name: name,
+								phoneNumber: phoneNumber,
+							},
+						})
+					},
+				},
+			])
+		} catch (error: any) {
+			console.error("수정 오류:", error)
+			if (error.message?.includes("이미 사용 중")) {
+				Alert.alert("수정 실패", "해당 전화번호는 이미 다른 사용자가 사용 중입니다.")
+			} else {
+				Alert.alert("수정 실패", error.message || "환자 정보 수정 중 오류가 발생했습니다.")
+			}
+		}
+	}
+
+	const formatPhoneNumber = (text: string) => {
+		// 숫자만 추출
+		const numbers = text.replace(/[^\d]/g, "")
+		// 형식에 맞게 변환
+		if (numbers.length <= 3) {
+			return numbers
+		} else if (numbers.length <= 7) {
+			return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
+		} else {
+			return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
+		}
+	}
+
+	const handlePhoneNumberChange = (text: string) => {
+		const formattedNumber = formatPhoneNumber(text)
+		setPhoneNumber(formattedNumber)
 	}
 
 	return (
-		<View style={styles.container}>
-			{/* 헤더 */}
-			<View style={styles.header}>
-				<TouchableOpacity onPress={() => navigation.goBack()}>
-					<Ionicons name="arrow-back" size={24} color="black" />
-				</TouchableOpacity>
-				<Text style={styles.headerTitle}>회원 정보 수정</Text>
-			</View>
+		<ScrollView style={styles.container}>
+			<Text style={styles.title}>환자 정보 수정</Text>
 
-			{/* 입력 필드 */}
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>이름</Text>
-				<TextInput
-					style={[styles.input, isEditing && styles.inputActive]}
-					value={patient.name}
-					onChangeText={(text) =>
-						setPatient((prev) => ({ ...prev, name: text }))
-					}
-					editable={isEditing}
-				/>
-			</View>
+			<Text style={styles.label}>이름</Text>
+			<TextInput style={styles.input} value={name} onChangeText={setName} placeholder="이름을 입력하세요" />
 
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>성별</Text>
-				<TextInput
-					style={[styles.input, isEditing && styles.inputActive]}
-					value={patient.gender}
-					onChangeText={(text) =>
-						setPatient((prev) => ({ ...prev, gender: text }))
-					}
-					editable={isEditing}
-				/>
-			</View>
+			<Text style={styles.label}>전화번호</Text>
+			<TextInput style={styles.input} value={phoneNumber} onChangeText={handlePhoneNumberChange} placeholder="010-0000-0000" keyboardType="phone-pad" maxLength={13} />
 
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>휴대폰 번호</Text>
-				<TextInput
-					style={[styles.input, isEditing && styles.inputActive]}
-					value={patient.phoneNumber}
-					onChangeText={(text) =>
-						setPatient((prev) => ({ ...prev, phoneNumber: text }))
-					}
-					editable={isEditing}
-					keyboardType="phone-pad"
-				/>
-			</View>
+			<Text style={styles.label}>새 비밀번호 (선택)</Text>
+			<TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="새 비밀번호를 입력하세요" secureTextEntry />
 
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>비밀번호</Text>
-				<TextInput
-					style={[styles.input, isEditing && styles.inputActive]}
-					value={patient.password}
-					onChangeText={(text) =>
-						setPatient((prev) => ({ ...prev, password: text }))
-					}
-					secureTextEntry
-					editable={isEditing}
-				/>
-			</View>
+			<Text style={styles.label}>비밀번호 확인</Text>
+			<TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="비밀번호를 다시 입력하세요" secureTextEntry />
 
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>비밀번호 확인</Text>
-				<View style={[styles.passwordBox, isEditing && styles.inputActive]}>
-					<TextInput
-						style={styles.inputFlex}
-						value={passwordConfirm}
-						onChangeText={setPasswordConfirm}
-						secureTextEntry
-						editable={isEditing}
-					/>
-					{passwordConfirm.length > 0 && (
-						<Ionicons
-							name={isPasswordMatch ? "checkmark-circle" : "alert-circle"}
-							size={24}
-							color={isPasswordMatch ? "green" : "red"}
-						/>
-					)}
-				</View>
-			</View>
-
-			{/* 수정/완료 버튼 */}
-			<TouchableOpacity
-				style={[
-					styles.editButton,
-					!isPasswordMatch && isEditing && styles.disabled,
-				]}
-				onPress={() => (isEditing ? handleSave() : setIsEditing(true))}
-				disabled={isEditing && !isPasswordMatch} // 비밀번호 일치 안 하면 완료 비활성화
-			>
-				<Text style={styles.editButtonText}>{isEditing ? "완료" : "수정"}</Text>
+			<TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+				<Text style={styles.saveButtonText}>저장</Text>
 			</TouchableOpacity>
-		</View>
+
+			<TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+				<Text style={styles.cancelButtonText}>취소</Text>
+			</TouchableOpacity>
+		</ScrollView>
 	)
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: "#fff",
 		padding: 20,
+		backgroundColor: "#f8f8f8",
 	},
-	header: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginBottom: 20,
-	},
-	headerTitle: {
-		fontSize: 20,
+	title: {
+		fontSize: 24,
 		fontWeight: "bold",
-		marginLeft: 10,
-	},
-	inputContainer: {
-		marginBottom: 16,
+		marginBottom: 20,
+		color: "#333",
 	},
 	label: {
 		fontSize: 16,
-		fontWeight: "bold",
-		marginBottom: 4,
+		marginBottom: 8,
 		color: "#333",
 	},
 	input: {
-		backgroundColor: "#f9f9f9",
+		backgroundColor: "#fff",
 		borderRadius: 8,
-		paddingHorizontal: 12,
-		height: 50,
-		borderWidth: 1,
-		borderColor: "#ddd",
-		fontSize: 16,
-	},
-	inputActive: {
-		borderColor: "#333",
-	},
-	passwordBox: {
-		flexDirection: "row",
-		alignItems: "center",
-		backgroundColor: "#f9f9f9",
-		borderRadius: 8,
-		paddingHorizontal: 12,
-		height: 50,
+		padding: 12,
+		marginBottom: 16,
 		borderWidth: 1,
 		borderColor: "#ddd",
 	},
-	inputFlex: {
-		flex: 1,
-		fontSize: 16,
-	},
-	editButton: {
-		backgroundColor: "#333",
-		paddingHorizontal: 16,
-		paddingVertical: 12,
+	saveButton: {
+		backgroundColor: "#76DABF",
+		padding: 16,
 		borderRadius: 8,
 		alignItems: "center",
 		marginTop: 20,
 	},
-	editButtonText: {
+	saveButtonText: {
 		color: "#fff",
+		fontSize: 16,
 		fontWeight: "bold",
-		fontSize: 14,
 	},
-	disabled: {
-		backgroundColor: "#aaa",
+	cancelButton: {
+		backgroundColor: "#fff",
+		padding: 16,
+		borderRadius: 8,
+		alignItems: "center",
+		marginTop: 12,
+		borderWidth: 1,
+		borderColor: "#ddd",
+	},
+	cancelButtonText: {
+		color: "#333",
+		fontSize: 16,
 	},
 })
 
