@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Alert } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Alert, ScrollView } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
-import { getExerciseGoals, ExerciseGoal, updateExerciseGoal } from "../../../apis/exercise"
+import { getExerciseGoals, ExerciseGoalResponse, ExerciseGoalItem, updateExerciseGoal } from "../../../apis/exercise"
 import { RouteProp, useRoute } from "@react-navigation/native"
 import { RootStackParamList } from "../../../types/navigation"
 
@@ -11,7 +11,7 @@ const PrescriptionScreen = () => {
 	const route = useRoute<PrescriptionScreenRouteProp>()
 	const { patientInfo } = route.params
 
-	const [exerciseGoal, setExerciseGoal] = useState<ExerciseGoal | null>(null)
+	const [exerciseGoals, setExerciseGoals] = useState<ExerciseGoalResponse | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [editingGoal, setEditingGoal] = useState<{
@@ -29,7 +29,7 @@ const PrescriptionScreen = () => {
 			setLoading(true)
 			setError(null)
 			const goals = await getExerciseGoals(patientInfo.phoneNumber)
-			setExerciseGoal(goals)
+			setExerciseGoals(goals)
 		} catch (error: any) {
 			console.error("운동 목표 로딩 오류:", error)
 			setError(error.message)
@@ -64,7 +64,7 @@ const PrescriptionScreen = () => {
 				</TouchableOpacity>
 			</View>
 
-			<View style={styles.exerciseGoalsSection}>
+			<ScrollView style={styles.exerciseGoalsSection}>
 				{loading ? (
 					<View style={styles.centerContent}>
 						<ActivityIndicator size="large" color="#76DABF" />
@@ -76,80 +76,87 @@ const PrescriptionScreen = () => {
 							<Text style={styles.retryText}>다시 시도</Text>
 						</TouchableOpacity>
 					</View>
-				) : exerciseGoal?.goals && exerciseGoal.goals.length > 0 ? (
-					exerciseGoal.goals.map((goal) => (
-						<View key={goal.goalId} style={styles.goalItem}>
-							<View style={styles.goalHeader}>
-								<Text style={styles.goalType}>{goal.type}</Text>
-								<TouchableOpacity
-									style={styles.editButton}
-									onPress={() =>
-										setEditingGoal({
-											goalId: goal.goalId,
-											repeatCount: goal.repeatCount,
-											setCount: goal.setCount,
-										})
-									}
-								>
-									<Ionicons name="create-outline" size={20} color="#fff" />
-									<Text style={styles.editButtonText}>수정</Text>
-								</TouchableOpacity>
-							</View>
-							{editingGoal?.goalId === goal.goalId ? (
-								<View style={styles.editForm}>
-									<View style={styles.inputContainer}>
-										<Text style={styles.label}>반복 횟수</Text>
-										<TextInput
-											style={styles.input}
-											value={editingGoal.repeatCount.toString()}
-											onChangeText={(text) =>
-												setEditingGoal({
-													...editingGoal,
-													repeatCount: parseInt(text) || 0,
-												})
-											}
-											keyboardType="numeric"
-										/>
-									</View>
-									<View style={styles.inputContainer}>
-										<Text style={styles.label}>세트 수</Text>
-										<TextInput
-											style={styles.input}
-											value={editingGoal.setCount.toString()}
-											onChangeText={(text) =>
-												setEditingGoal({
-													...editingGoal,
-													setCount: parseInt(text) || 0,
-												})
-											}
-											keyboardType="numeric"
-										/>
-									</View>
-									<View style={styles.buttonGroup}>
-										<TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setEditingGoal(null)}>
-											<Text style={styles.buttonText}>취소</Text>
-										</TouchableOpacity>
-										<TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleUpdateGoal}>
-											<Text style={styles.buttonText}>저장</Text>
-										</TouchableOpacity>
-									</View>
-								</View>
-							) : (
-								<>
-									<Text style={styles.goalTarget}>
-										{goal.repeatCount}회 × {goal.setCount}세트
-									</Text>
-									<Text style={styles.goalDescription}>{goal.description}</Text>
-								</>
-							)}
+				) : exerciseGoals?.content && exerciseGoals.content.length > 0 ? (
+					<>
+						<View style={styles.summaryContainer}>
+							<Text style={styles.summaryText}>
+								총 {exerciseGoals.totalElements}개의 운동 목표 ({exerciseGoals.number + 1}/{exerciseGoals.totalPages} 페이지)
+							</Text>
 						</View>
-					))
+						{exerciseGoals.content.map((goal: ExerciseGoalItem) => (
+							<View key={goal.goalId} style={styles.goalItem}>
+								<View style={styles.goalHeader}>
+									<Text style={styles.goalType}>{goal.exerciseName}</Text>
+									<TouchableOpacity
+										style={styles.editButton}
+										onPress={() =>
+											setEditingGoal({
+												goalId: goal.goalId,
+												repeatCount: goal.repeatCount,
+												setCount: goal.setCount,
+											})
+										}
+									>
+										<Ionicons name="create-outline" size={20} color="#fff" />
+										<Text style={styles.editButtonText}>수정</Text>
+									</TouchableOpacity>
+								</View>
+								{editingGoal?.goalId === goal.goalId ? (
+									<View style={styles.editForm}>
+										<View style={styles.inputContainer}>
+											<Text style={styles.label}>반복 횟수</Text>
+											<TextInput
+												style={styles.input}
+												value={editingGoal.repeatCount.toString()}
+												onChangeText={(text) =>
+													setEditingGoal({
+														...editingGoal,
+														repeatCount: parseInt(text) || 0,
+													})
+												}
+												keyboardType="numeric"
+											/>
+										</View>
+										<View style={styles.inputContainer}>
+											<Text style={styles.label}>세트 수</Text>
+											<TextInput
+												style={styles.input}
+												value={editingGoal.setCount.toString()}
+												onChangeText={(text) =>
+													setEditingGoal({
+														...editingGoal,
+														setCount: parseInt(text) || 0,
+													})
+												}
+												keyboardType="numeric"
+											/>
+										</View>
+										<View style={styles.buttonGroup}>
+											<TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setEditingGoal(null)}>
+												<Text style={styles.buttonText}>취소</Text>
+											</TouchableOpacity>
+											<TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleUpdateGoal}>
+												<Text style={styles.buttonText}>저장</Text>
+											</TouchableOpacity>
+										</View>
+									</View>
+								) : (
+									<>
+										<Text style={styles.goalTarget}>
+											{goal.repeatCount}회 × {goal.setCount}세트
+										</Text>
+										{goal.duration > 0 && <Text style={styles.goalDuration}>유지 시간: {goal.duration}초</Text>}
+									</>
+								)}
+							</View>
+						))}
+					</>
 				) : (
 					<View style={styles.centerContent}>
 						<Text style={styles.noGoalsText}>설정된 운동 목표가 없습니다</Text>
 					</View>
 				)}
-			</View>
+			</ScrollView>
 		</View>
 	)
 }
@@ -177,10 +184,22 @@ const styles = StyleSheet.create({
 	exerciseGoalsSection: {
 		flex: 1,
 	},
+	summaryContainer: {
+		backgroundColor: "#f0f0f0",
+		padding: 12,
+		borderRadius: 8,
+		marginBottom: 16,
+	},
+	summaryText: {
+		fontSize: 14,
+		color: "#666",
+		textAlign: "center",
+	},
 	centerContent: {
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
+		minHeight: 200,
 	},
 	errorText: {
 		color: "#ff6b6b",
@@ -218,15 +237,18 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: "bold",
 		color: "#333",
+		flex: 1,
+		marginRight: 8,
 	},
 	goalTarget: {
 		fontSize: 16,
 		color: "#666",
 		marginBottom: 4,
 	},
-	goalDescription: {
+	goalDuration: {
 		fontSize: 14,
 		color: "#666",
+		fontStyle: "italic",
 	},
 	editForm: {
 		marginTop: 12,

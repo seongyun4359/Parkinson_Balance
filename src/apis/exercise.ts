@@ -1,20 +1,26 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { API_URL } from "../constants/urls"
 
-export interface ExerciseGoal {
+export interface ExerciseGoalItem {
 	memberId: string
 	phoneNumber: string
-	goals?: {
-		goalId: number
-		type: string
-		target: string
-		description: string
-		repeatCount: number
-		setCount: number
-	}[]
+	memberName: string
+	goalId: number
+	exerciseName: string
+	repeatCount: number
+	setCount: number
+	duration: number
 }
 
-export const getExerciseGoals = async (phoneNumber: string): Promise<ExerciseGoal> => {
+export interface ExerciseGoalResponse {
+	content: ExerciseGoalItem[]
+	totalPages: number
+	totalElements: number
+	size: number
+	number: number
+}
+
+export const getExerciseGoals = async (phoneNumber: string): Promise<ExerciseGoalResponse> => {
 	try {
 		const accessToken = await AsyncStorage.getItem("accessToken")
 		if (!accessToken) {
@@ -47,7 +53,7 @@ export const getExerciseGoals = async (phoneNumber: string): Promise<ExerciseGoa
 			throw new Error(data.error || "운동 목표 조회에 실패했습니다.")
 		}
 
-		return data.data.content[0]
+		return data.data
 	} catch (error: any) {
 		console.error("운동 목표 조회 오류:", error)
 		throw error
@@ -67,7 +73,7 @@ export const updateExerciseGoal = async (phoneNumber: string, request: UpdateExe
 			throw new Error("인증 토큰이 없습니다.")
 		}
 
-		const response = await fetch(`https://kwhcclab.com:20955/api/exercises/${phoneNumber}`, {
+		const response = await fetch(`${API_URL}/exercises/${phoneNumber}`, {
 			method: "PATCH",
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
