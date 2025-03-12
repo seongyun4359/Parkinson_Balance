@@ -1,10 +1,10 @@
-import React, { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native"
+import React, { useState, useEffect, useCallback } from "react"
+import { View, Text, TouchableOpacity, StyleSheet, Alert, BackHandler } from "react-native"
 import Ionicons from "react-native-vector-icons/Ionicons"
 import SearchBar from "../../../components/medicalStaff/SearchBar"
 import PatientInfoCard from "../../../components/medicalStaff/PatientInfo"
-import { searchMemberByName } from "../../../apis/member"
-import { useNavigation } from "@react-navigation/native"
+import { searchMemberByPhone } from "../../../apis/member"
+import { useNavigation, CommonActions } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { SearchScreenNavigationProp, RootStackParamList } from "../../../types/navigation"
 import { PatientInfoType } from "../../../types/patient"
@@ -14,15 +14,110 @@ const SearchInfoScreen: React.FC = () => {
 	const navigation = useNavigation<SearchScreenNavigationProp>()
 	const [searchQuery, setSearchQuery] = useState("")
 	const [patientInfo, setPatientInfo] = useState<PatientInfoType | null>(null)
+	const [isProcessingAuth, setIsProcessingAuth] = useState(false)
+
+	const resetToAuth = useCallback(() => {
+		navigation.dispatch(
+			CommonActions.reset({
+				index: 0,
+				routes: [{ name: "MedicalStaffAuth" }],
+			})
+		)
+	}, [navigation])
+
+	const handleTokenError = useCallback(async () => {
+		if (isProcessingAuth) return
+
+		try {
+			setIsProcessingAuth(true)
+			const refreshToken = await AsyncStorage.getItem("refreshToken")
+
+			if (!refreshToken) {
+				throw new Error("리프레시 토큰이 없습니다.")
+			}
+
+			// 리프레시 토큰으로 새 토큰 발급 시도
+			const response = await fetch("https://kwhcclab.com:20955/api/refresh", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${refreshToken}`,
+					"Content-Type": "application/json",
+				},
+			})
+
+			const data = await response.json()
+
+			if (data.status === "SUCCESS" && data.data[0].accessToken) {
+				// 새 토큰 저장
+				await AsyncStorage.setItem("accessToken", data.data[0].accessToken)
+				if (data.data[0].refreshToken !== "cookie") {
+					await AsyncStorage.setItem("refreshToken", data.data[0].refreshToken)
+				}
+				return true // 토큰 갱신 성공
+			} else {
+				throw new Error("토큰 갱신 실패")
+			}
+		} catch (error) {
+			console.error("토큰 갱신 중 오류:", error)
+			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
+			Alert.alert("세션 만료", "로그인이 만료되었습니다. 다시 로그인해주세요.", [
+				{
+					text: "확인",
+					onPress: resetToAuth,
+				},
+			])
+			return false
+		} finally {
+			setIsProcessingAuth(false)
+		}
+	}, [resetToAuth, isProcessingAuth])
+
+	useEffect(() => {
+		let isMounted = true
+
+		const checkToken = async () => {
+			try {
+				const [accessToken, refreshToken] = await Promise.all([AsyncStorage.getItem("accessToken"), AsyncStorage.getItem("refreshToken")])
+
+				if (!accessToken || !refreshToken) {
+					if (isMounted) {
+						handleTokenError()
+					}
+				}
+			} catch (error) {
+				console.error("토큰 확인 중 오류:", error)
+				if (isMounted) {
+					handleTokenError()
+				}
+			}
+		}
+
+		checkToken()
+
+		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+			return true
+		})
+
+		return () => {
+			isMounted = false
+			backHandler.remove()
+		}
+	}, [handleTokenError])
 
 	const handleSearch = async () => {
 		try {
 			if (!searchQuery.trim()) {
-				Alert.alert("검색 오류", "환자 이름을 입력해주세요.")
+				Alert.alert("검색 오류", "환자 전화번호를 입력해주세요.")
 				return
 			}
 
-			const response = await searchMemberByName(searchQuery)
+			const accessToken = await AsyncStorage.getItem("accessToken")
+			if (!accessToken) {
+				const tokenRefreshed = await handleTokenError()
+				if (!tokenRefreshed) return
+			}
+
+			const response = await searchMemberByPhone(searchQuery)
 
 			if (response.status === "SUCCESS" && response.data.length > 0) {
 				const member = response.data[0]
@@ -31,17 +126,27 @@ const SearchInfoScreen: React.FC = () => {
 					name: member.name,
 					phoneNumber: member.phoneNumber,
 					gender: member.gender,
-					// 다른 필요한 필드들도 설정
 				}
 				setPatientInfo(patientData)
 			} else {
-				Alert.alert("검색 실패", "해당 환자를 찾을 수 없습니다.")
 				setPatientInfo(null)
+				Alert.alert("검색 결과 없음", "해당 전화번호로 등록된 환자가 없습니다.")
 			}
-		} catch (error) {
+		} catch (error: any) {
 			console.error("API 오류:", error)
-			Alert.alert("오류", "환자 정보 검색 중 오류가 발생했습니다.")
 			setPatientInfo(null)
+
+			if (error.message?.includes("토큰")) {
+				const tokenRefreshed = await handleTokenError()
+				if (tokenRefreshed) {
+					// 토큰 갱신 성공시 검색 재시도
+					handleSearch()
+				}
+			} else if (error.message?.includes("존재하지 않는 회원")) {
+				Alert.alert("검색 결과 없음", "해당 전화번호로 등록된 환자가 없습니다.")
+			} else {
+				Alert.alert("검색 오류", "환자 정보 검색 중 오류가 발생했습니다.")
+			}
 		}
 	}
 

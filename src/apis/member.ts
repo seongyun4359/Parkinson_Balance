@@ -1,90 +1,101 @@
-import { API_BASE_URL } from "../config/constants"
-import { getAuthToken, setAuthToken } from "../utils/auth"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
-export const refreshAccessToken = async (): Promise<string | null> => {
+const API_BASE_URL = "https://kwhcclab.com:20955/api"
+
+const refreshTokenAndRetry = async () => {
 	try {
-		const token = await getAuthToken()
+		const refreshToken = await AsyncStorage.getItem("refreshToken")
 
-		if (!token) {
-			throw new Error("현재 유효한 토큰이 없습니다.")
+		if (!refreshToken) {
+			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
+			throw new Error("리프레시 토큰이 없습니다.")
 		}
 
-		// 리프레시 토큰을 사용해 새 액세스 토큰을 요청하는 POST 요청
-		const response = await fetch(`${API_BASE_URL}/api/refresh`, {
+		const response = await fetch(`${API_BASE_URL}/refresh`, {
 			method: "POST",
 			headers: {
-				Authorization: `Bearer ${token}`,
+				Authorization: `Bearer ${refreshToken}`,
 				"Content-Type": "application/json",
 			},
 		})
 
 		if (!response.ok) {
-			throw new Error("리프레시 토큰 요청 실패")
+			throw new Error(`토큰 갱신 실패: ${response.status}`)
 		}
 
 		const data = await response.json()
 
-		if (data.status === "SUCCESS" && data.data.length > 0) {
-			const newAccessToken = data.data[0].accessToken
-			await setAuthToken(newAccessToken) // 새로운 액세스 토큰을 로컬에 저장
-			return newAccessToken
+		if (data.status === "SUCCESS" && data.data && data.data[0] && data.data[0].accessToken) {
+			await AsyncStorage.setItem("accessToken", data.data[0].accessToken)
+			if (data.data[0].refreshToken && data.data[0].refreshToken !== "cookie") {
+				await AsyncStorage.setItem("refreshToken", data.data[0].refreshToken)
+			}
+			return data.data[0].accessToken
 		} else {
-			throw new Error("새로운 액세스 토큰을 받지 못했습니다.")
+			throw new Error("토큰 갱신 응답이 올바르지 않습니다.")
 		}
-	} catch (error) {
-		console.error("리프레시 토큰 오류:", error)
-		throw error
+	} catch (error: any) {
+		console.error("리프레시 토큰 오류:", error.message || error)
+		await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
+		throw new Error(error.message || "리프레시 토큰 요청 실패")
 	}
 }
 
-export const searchMemberByPhone = async (phoneNumber: string): Promise<MemberResponse> => {
+export const searchMemberByPhone = async (phoneNumber: string) => {
 	try {
-		let token = await getAuthToken()
+		let accessToken = await AsyncStorage.getItem("accessToken")
 
-		if (!token) {
-			throw new Error("인증 토큰이 없습니다.")
+		if (!accessToken) {
+			throw new Error("액세스 토큰이 없습니다.")
 		}
 
-		const response = await fetch(`${API_BASE_URL}/api/members/${phoneNumber}`, {
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
-		})
+		const makeRequest = async (token: string) => {
+			try {
+				const formattedPhoneNumber = phoneNumber.includes("-") ? phoneNumber : phoneNumber.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
 
-		if (response.status === 401) {
-			console.log("토큰 만료, 리프레시 토큰으로 갱신 시도")
+				const response = await fetch(`${API_BASE_URL}/members/${formattedPhoneNumber}`, {
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+				})
 
-			// 리프레시 토큰을 사용하여 새 액세스 토큰 발급
-			token = await refreshAccessToken()
-			if (!token) {
-				throw new Error("새 토큰을 받을 수 없습니다.")
+				if (!response.ok) {
+					if (response.status === 401) {
+						throw new Error("토큰이 만료되었습니다.")
+					}
+					if (response.status === 404) {
+						throw new Error("사용자를 찾을 수 없습니다.")
+					}
+					const errorData = await response.json().catch(() => null)
+					throw new Error(errorData?.error || `API 요청 실패: ${response.status}`)
+				}
+
+				const data = await response.json()
+				if (!data || !data.status) {
+					throw new Error("잘못된 응답 형식입니다.")
+				}
+				return data
+			} catch (error: any) {
+				throw new Error(error.message || "API 요청 중 오류가 발생했습니다.")
 			}
+		}
 
-			// 갱신된 토큰으로 다시 요청
-			const retryResponse = await fetch(`${API_BASE_URL}/api/members/${phoneNumber}`, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			})
-
-			if (!retryResponse.ok) {
-				throw new Error("API 요청 실패: " + retryResponse.status)
+		try {
+			return await makeRequest(accessToken)
+		} catch (error: any) {
+			if (error.message === "토큰이 만료되었습니다.") {
+				const newToken = await refreshTokenAndRetry()
+				return await makeRequest(newToken)
 			}
-
-			return await retryResponse.json()
+			throw error
 		}
-
-		if (!response.ok) {
-			throw new Error("API 요청 실패")
+	} catch (error: any) {
+		console.error("API 호출 오류:", error.message || error)
+		if (error.message.includes("토큰")) {
+			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
 		}
-
-		return await response.json()
-	} catch (error) {
-		console.error("API 호출 오류:", error)
 		throw error
 	}
 }
