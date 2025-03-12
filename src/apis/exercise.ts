@@ -5,9 +5,12 @@ export interface ExerciseGoal {
 	memberId: string
 	phoneNumber: string
 	goals?: {
+		goalId: number
 		type: string
 		target: string
 		description: string
+		repeatCount: number
+		setCount: number
 	}[]
 }
 
@@ -47,6 +50,45 @@ export const getExerciseGoals = async (phoneNumber: string): Promise<ExerciseGoa
 		return data.data.content[0]
 	} catch (error: any) {
 		console.error("운동 목표 조회 오류:", error)
+		throw error
+	}
+}
+
+export interface UpdateExerciseGoalRequest {
+	goalId: number
+	repeatCount: number
+	setCount: number
+}
+
+export const updateExerciseGoal = async (phoneNumber: string, request: UpdateExerciseGoalRequest): Promise<void> => {
+	try {
+		const accessToken = await AsyncStorage.getItem("accessToken")
+		if (!accessToken) {
+			throw new Error("인증 토큰이 없습니다.")
+		}
+
+		const response = await fetch(`https://kwhcclab.com:20955/api/exercises/${phoneNumber}`, {
+			method: "PATCH",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(request),
+		})
+
+		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.")
+			}
+			throw new Error("운동 목표 수정에 실패했습니다.")
+		}
+
+		const result = await response.json()
+		if (result.status !== "SUCCESS") {
+			throw new Error(result.error || "운동 목표 수정에 실패했습니다.")
+		}
+	} catch (error: any) {
+		console.error("운동 목표 수정 API 오류:", error)
 		throw error
 	}
 }
