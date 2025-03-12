@@ -41,15 +41,31 @@ const PrescriptionScreen = () => {
 	const handleUpdateGoal = async () => {
 		if (!editingGoal) return
 
+		// 입력값 검증
+		if (editingGoal.repeatCount <= 0) {
+			Alert.alert("입력 오류", "반복 횟수는 1 이상이어야 합니다.")
+			return
+		}
+
+		if (editingGoal.setCount <= 0) {
+			Alert.alert("입력 오류", "세트 수는 1 이상이어야 합니다.")
+			return
+		}
+
 		try {
 			setLoading(true)
+			console.log("운동 목표 수정 시도:", {
+				phoneNumber: patientInfo.phoneNumber,
+				...editingGoal,
+			})
+
 			await updateExerciseGoal(patientInfo.phoneNumber, editingGoal)
 			Alert.alert("성공", "운동 목표가 수정되었습니다.")
 			loadExerciseGoals()
 			setEditingGoal(null)
 		} catch (error: any) {
 			console.error("운동 목표 수정 오류:", error)
-			Alert.alert("오류", error.message || "운동 목표 수정에 실패했습니다.")
+			Alert.alert("오류", error.message || "운동 목표 수정에 실패했습니다. 잠시 후 다시 시도해주세요.")
 		} finally {
 			setLoading(false)
 		}
@@ -108,13 +124,16 @@ const PrescriptionScreen = () => {
 											<TextInput
 												style={styles.input}
 												value={editingGoal.repeatCount.toString()}
-												onChangeText={(text) =>
+												onChangeText={(text) => {
+													const value = parseInt(text) || 0
 													setEditingGoal({
 														...editingGoal,
-														repeatCount: parseInt(text) || 0,
+														repeatCount: value,
 													})
-												}
+												}}
 												keyboardType="numeric"
+												maxLength={3}
+												placeholder="1-999"
 											/>
 										</View>
 										<View style={styles.inputContainer}>
@@ -122,13 +141,16 @@ const PrescriptionScreen = () => {
 											<TextInput
 												style={styles.input}
 												value={editingGoal.setCount.toString()}
-												onChangeText={(text) =>
+												onChangeText={(text) => {
+													const value = parseInt(text) || 0
 													setEditingGoal({
 														...editingGoal,
-														setCount: parseInt(text) || 0,
+														setCount: value,
 													})
-												}
+												}}
 												keyboardType="numeric"
+												maxLength={2}
+												placeholder="1-99"
 											/>
 										</View>
 										<View style={styles.buttonGroup}>

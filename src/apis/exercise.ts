@@ -73,28 +73,131 @@ export const updateExerciseGoal = async (phoneNumber: string, request: UpdateExe
 			throw new Error("인증 토큰이 없습니다.")
 		}
 
+		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
+		console.log("운동 목표 수정 요청:", {
+			url: `${API_URL}/exercises/${phoneNumber}`,
+			request,
+		})
+
 		const response = await fetch(`${API_URL}/exercises/${phoneNumber}`, {
 			method: "PATCH",
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				Authorization: `Bearer ${cleanToken}`,
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(request),
 		})
 
+		const responseData = await response.text()
+		console.log("서버 응답:", {
+			status: response.status,
+			statusText: response.statusText,
+			data: responseData,
+		})
+
+		let result
+		try {
+			result = JSON.parse(responseData)
+		} catch (e) {
+			console.error("JSON 파싱 오류:", e)
+			throw new Error(`서버 응답을 파싱할 수 없습니다: ${responseData}`)
+		}
+
 		if (!response.ok) {
 			if (response.status === 401) {
 				throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.")
 			}
-			throw new Error("운동 목표 수정에 실패했습니다.")
+			if (response.status === 404) {
+				throw new Error("해당 환자의 운동 목표를 찾을 수 없습니다.")
+			}
+			if (response.status === 400) {
+				throw new Error(result.error || "잘못된 요청입니다. 입력값을 확인해주세요.")
+			}
+			throw new Error(result.error || `서버 오류 (${response.status}): ${result.message || "알 수 없는 오류가 발생했습니다."}`)
 		}
 
-		const result = await response.json()
 		if (result.status !== "SUCCESS") {
 			throw new Error(result.error || "운동 목표 수정에 실패했습니다.")
 		}
 	} catch (error: any) {
 		console.error("운동 목표 수정 API 오류:", error)
+		throw error
+	}
+}
+
+export interface ExerciseHistoryItem {
+	memberId: string
+	phoneNumber: string
+	memberName: string
+	historyId: number
+	exerciseName: string
+	repeatCount: number
+	setCount: number
+	startTime: string | null
+	duration: number | null
+	status: "PROGRESS" | "COMPLETE" | "INCOMPLETE"
+}
+
+export interface ExerciseHistoryResponse {
+	content: ExerciseHistoryItem[]
+	totalPages: number
+	totalElements: number
+	size: number
+	number: number
+}
+
+export const getExerciseHistory = async (phoneNumber: string): Promise<ExerciseHistoryResponse> => {
+	try {
+		const accessToken = await AsyncStorage.getItem("accessToken")
+		if (!accessToken) {
+			throw new Error("액세스 토큰이 없습니다.")
+		}
+
+		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
+		console.log("운동 기록 조회 요청:", {
+			url: `${API_URL}/exercises/histories/${phoneNumber}`,
+		})
+
+		const response = await fetch(`${API_URL}/exercises/histories/${phoneNumber}`, {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${cleanToken}`,
+				"Content-Type": "application/json",
+			},
+		})
+
+		const responseData = await response.text()
+		console.log("서버 응답:", {
+			status: response.status,
+			statusText: response.statusText,
+			data: responseData,
+		})
+
+		let result
+		try {
+			result = JSON.parse(responseData)
+		} catch (e) {
+			console.error("JSON 파싱 오류:", e)
+			throw new Error(`서버 응답을 파싱할 수 없습니다: ${responseData}`)
+		}
+
+		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.")
+			}
+			if (response.status === 404) {
+				throw new Error("해당 환자의 운동 기록을 찾을 수 없습니다.")
+			}
+			throw new Error(result.error || `서버 오류 (${response.status}): ${result.message || "알 수 없는 오류가 발생했습니다."}`)
+		}
+
+		if (result.status !== "SUCCESS") {
+			throw new Error(result.error || "운동 기록 조회에 실패했습니다.")
+		}
+
+		return result.data
+	} catch (error: any) {
+		console.error("운동 기록 조회 API 오류:", error)
 		throw error
 	}
 }
