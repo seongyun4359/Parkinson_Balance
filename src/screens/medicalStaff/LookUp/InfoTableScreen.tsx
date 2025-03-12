@@ -141,7 +141,51 @@ export const InfoTableScreen = () => {
 		}
 	}
 
-	// ✅ 필터 적용 함수
+	// 정렬 토글 함수 추가
+	const onToggleSort = useCallback((key: keyof Patient) => {
+		setSortConfigs((prevConfigs) => {
+			const existingConfig = prevConfigs.find((config) => config.key === key)
+			if (existingConfig) {
+				// 이미 존재하는 정렬 설정이면 방향을 변경하거나 제거
+				if (existingConfig.direction === "asc") {
+					existingConfig.direction = "desc"
+					return [...prevConfigs]
+				} else {
+					return prevConfigs.filter((config) => config.key !== key)
+				}
+			} else {
+				// 새로운 정렬 설정 추가
+				return [...prevConfigs, { key, direction: "asc" }]
+			}
+		})
+	}, [])
+
+	// 정렬 적용 함수
+	const applySorting = useCallback(
+		(patients: Patient[]) => {
+			let sortedPatients = [...patients]
+			sortConfigs.forEach((config) => {
+				sortedPatients.sort((a, b) => {
+					const aValue = a[config.key]
+					const bValue = b[config.key]
+
+					if (typeof aValue === "string" && typeof bValue === "string") {
+						return config.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+					}
+
+					if (aValue instanceof Date && bValue instanceof Date) {
+						return config.direction === "asc" ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime()
+					}
+
+					return 0
+				})
+			})
+			return sortedPatients
+		},
+		[sortConfigs]
+	)
+
+	// 필터 적용 함수 수정
 	const applyFilters = useCallback(() => {
 		let result = [...patients]
 
@@ -165,8 +209,11 @@ export const InfoTableScreen = () => {
 			})
 		}
 
+		// 정렬 적용
+		result = applySorting(result)
+
 		setFilteredPatients(result)
-	}, [patients, searchQuery, showFavoritesOnly, showRecentLoginOnly])
+	}, [patients, searchQuery, showFavoritesOnly, showRecentLoginOnly, applySorting])
 
 	// ✅ 필터 변경 처리
 	const handleFiltersChange = useCallback((newFilters: FilterConfig[]) => {
@@ -255,36 +302,27 @@ export const InfoTableScreen = () => {
 		<View style={styles.container}>
 			<SearchFilterBar searchValue={searchQuery} onSearchChange={handleSearchChange} filters={filterConfigs} onFiltersChange={handleFiltersChange} />
 
-			<PatientTable
-				data={filteredPatients}
-				selectedPatients={selectedPatients}
-				sortConfigs={sortConfigs}
-				onToggleSelect={(id) => {
-					setSelectedPatients((prev) => {
-						const newSelected = new Set(prev)
-						newSelected.has(id) ? newSelected.delete(id) : newSelected.add(id)
-						return newSelected
-					})
-				}}
-				onToggleSelectAll={() => {
-					setSelectedPatients(new Set(filteredPatients.map((p) => p.id)))
-				}}
-				onToggleFavorite={handleToggleFavorite}
-				onToggleSort={(key: keyof Patient) => {
-					setSortConfigs((prev) => {
-						const newConfigs = [...prev]
-						const existingConfig = newConfigs.find((config) => config.key === key)
-						if (existingConfig) {
-							existingConfig.order = existingConfig.order === "asc" ? "desc" : "asc"
-						} else {
-							newConfigs.push({ key, order: "asc" })
-						}
-						return newConfigs
-					})
-				}}
-			/>
+			<View style={styles.tableContainer}>
+				<PatientTable
+					data={filteredPatients}
+					selectedPatients={selectedPatients}
+					sortConfigs={sortConfigs}
+					onToggleSelect={(id) => {
+						setSelectedPatients((prev) => {
+							const newSelected = new Set(prev)
+							newSelected.has(id) ? newSelected.delete(id) : newSelected.add(id)
+							return newSelected
+						})
+					}}
+					onToggleSelectAll={() => {
+						setSelectedPatients(new Set(filteredPatients.map((p) => p.id)))
+					}}
+					onToggleFavorite={handleToggleFavorite}
+					onToggleSort={onToggleSort}
+				/>
+			</View>
 
-			<View>
+			<View style={styles.footer}>
 				<Pagination
 					currentPage={currentPage}
 					totalPages={totalPages}
@@ -333,23 +371,50 @@ export const InfoTableScreen = () => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		padding: 16,
 		backgroundColor: "#f9f9f9",
+		padding: 16,
+	},
+	tableContainer: {
+		flex: 1,
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		marginBottom: 16,
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.1,
+		shadowRadius: 3,
+		elevation: 3,
+	},
+	footer: {
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		padding: 16,
+		gap: 16,
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.1,
+		shadowRadius: 3,
+		elevation: 3,
 	},
 	buttonContainer: {
 		flexDirection: "row",
 		justifyContent: "space-between",
-		width: "100%",
-		marginTop: 10,
+		gap: 12,
 	},
 	button: {
+		flex: 1,
 		backgroundColor: "#4CAF50",
 		padding: 12,
 		borderRadius: 12,
-		minWidth: 120,
 		alignItems: "center",
-		elevation: 3,
-		marginTop: 10,
+		justifyContent: "center",
+		elevation: 2,
 	},
 	buttonDisabled: {
 		backgroundColor: "#D3D3D3",
