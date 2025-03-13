@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Modal } from "react-native"
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native"
 import { RootStackParamList } from "../../../types/navigation"
 import { Patient } from "../../../types/patient"
-import { getExerciseGoals, ExerciseGoalItem } from "../../../apis/exercise"
+import { getExerciseGoals, ExerciseGoalItem, updateExerciseGoal } from "../../../apis/exercise"
 import { getExerciseHistory, ExerciseHistoryItem } from "../../../apis/exercise"
 import Icon from "react-native-vector-icons/MaterialIcons"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
@@ -22,6 +22,11 @@ const PatientDetailScreen = () => {
 	const [exerciseHistory, setExerciseHistory] = useState<ExerciseHistoryItem[]>([])
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [editingGoal, setEditingGoal] = useState<{
+		goalId: number
+		repeatCount: string
+		setCount: string
+	} | null>(null)
 
 	useEffect(() => {
 		if (activeTab === "goals") {
@@ -65,6 +70,47 @@ const PatientDetailScreen = () => {
 				gender: patient.gender,
 			},
 		})
+	}
+
+	const handleEditGoal = (goal: ExerciseGoalItem) => {
+		setEditingGoal({
+			goalId: goal.goalId,
+			repeatCount: goal.repeatCount.toString(),
+			setCount: goal.setCount.toString(),
+		})
+	}
+
+	const handleSaveGoal = async () => {
+		if (!editingGoal) return
+
+		const repeatCount = parseInt(editingGoal.repeatCount)
+		const setCount = parseInt(editingGoal.setCount)
+
+		if (isNaN(repeatCount) || repeatCount <= 0) {
+			Alert.alert("입력 오류", "반복 횟수는 1 이상의 숫자여야 합니다.")
+			return
+		}
+
+		if (isNaN(setCount) || setCount <= 0) {
+			Alert.alert("입력 오류", "세트 수는 1 이상의 숫자여야 합니다.")
+			return
+		}
+
+		try {
+			console.log("운동 목표 수정 시도:", {
+				phoneNumber: patient.phoneNumber,
+				goalId: editingGoal.goalId,
+				repeatCount,
+				setCount,
+			})
+
+			await updateExerciseGoal(patient.phoneNumber, editingGoal.goalId, repeatCount, setCount)
+			Alert.alert("성공", "운동 목표가 수정되었습니다.")
+			setEditingGoal(null)
+			loadExerciseGoals()
+		} catch (error: any) {
+			Alert.alert("오류", error.message || "운동 목표 수정에 실패했습니다.")
+		}
 	}
 
 	const renderTabContent = () => {
@@ -119,7 +165,13 @@ const PatientDetailScreen = () => {
 					<ScrollView style={styles.tabContent}>
 						{exerciseGoals.map((goal) => (
 							<View key={goal.goalId} style={styles.goalItem}>
-								<Text style={styles.goalTitle}>{goal.exerciseName}</Text>
+								<View style={styles.goalHeader}>
+									<Text style={styles.goalTitle}>{goal.exerciseName}</Text>
+									<TouchableOpacity style={styles.editButton} onPress={() => handleEditGoal(goal)}>
+										<Icon name="edit" size={20} color="#fff" />
+										<Text style={styles.editButtonText}>수정</Text>
+									</TouchableOpacity>
+								</View>
 								<View style={styles.goalDetails}>
 									<Text style={styles.goalText}>반복 횟수: {goal.repeatCount}회</Text>
 									<Text style={styles.goalText}>세트 수: {goal.setCount}세트</Text>
@@ -177,6 +229,41 @@ const PatientDetailScreen = () => {
 			</View>
 
 			{renderTabContent()}
+
+			<Modal visible={editingGoal !== null} transparent={true} animationType="fade" onRequestClose={() => setEditingGoal(null)}>
+				<View style={styles.modalOverlay}>
+					<View style={styles.modalContent}>
+						<Text style={styles.modalTitle}>운동 목표 수정</Text>
+
+						<Text style={styles.modalLabel}>반복 횟수</Text>
+						<TextInput
+							style={styles.modalInput}
+							value={editingGoal?.repeatCount}
+							onChangeText={(text) => setEditingGoal((prev) => (prev ? { ...prev, repeatCount: text } : null))}
+							keyboardType="numeric"
+							placeholder="반복 횟수 입력"
+						/>
+
+						<Text style={styles.modalLabel}>세트 수</Text>
+						<TextInput
+							style={styles.modalInput}
+							value={editingGoal?.setCount}
+							onChangeText={(text) => setEditingGoal((prev) => (prev ? { ...prev, setCount: text } : null))}
+							keyboardType="numeric"
+							placeholder="세트 수 입력"
+						/>
+
+						<View style={styles.modalButtons}>
+							<TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setEditingGoal(null)}>
+								<Text style={styles.cancelButtonText}>취소</Text>
+							</TouchableOpacity>
+							<TouchableOpacity style={[styles.modalButton, styles.saveButton]} onPress={handleSaveGoal}>
+								<Text style={styles.saveButtonText}>저장</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>
+			</Modal>
 		</View>
 	)
 }
@@ -342,6 +429,70 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 14,
 		fontWeight: "500",
+	},
+	goalHeader: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 8,
+	},
+	modalOverlay: {
+		flex: 1,
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	modalContent: {
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		padding: 20,
+		width: "80%",
+		maxWidth: 400,
+	},
+	modalTitle: {
+		fontSize: 18,
+		fontWeight: "bold",
+		marginBottom: 16,
+		color: "#333",
+	},
+	modalLabel: {
+		fontSize: 14,
+		color: "#666",
+		marginBottom: 4,
+	},
+	modalInput: {
+		backgroundColor: "#f8f8f8",
+		borderRadius: 8,
+		padding: 12,
+		marginBottom: 16,
+		borderWidth: 1,
+		borderColor: "#ddd",
+	},
+	modalButtons: {
+		flexDirection: "row",
+		justifyContent: "flex-end",
+		gap: 8,
+	},
+	modalButton: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 8,
+		minWidth: 80,
+		alignItems: "center",
+	},
+	saveButton: {
+		backgroundColor: "#76DABF",
+	},
+	saveButtonText: {
+		color: "#fff",
+		fontWeight: "bold",
+	},
+	cancelButton: {
+		backgroundColor: "#ff6b6b",
+	},
+	cancelButtonText: {
+		color: "#fff",
+		fontWeight: "bold",
 	},
 })
 
