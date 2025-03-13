@@ -5,7 +5,6 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { RootStackParamList } from "../../../types/navigation"
 import PatientTable from "../../../components/medicalStaff/table/PatientTable"
 import SearchFilterBar from "../../../components/medicalStaff/SearchFilterBar"
-import Pagination from "../../../components/medicalStaff/Pagination"
 import { Patient, SortConfig, FilterConfig } from "../../../types/patient"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
@@ -300,7 +299,27 @@ export const InfoTableScreen = () => {
 
 	return (
 		<View style={styles.container}>
-			<SearchFilterBar searchValue={searchQuery} onSearchChange={handleSearchChange} filters={filterConfigs} onFiltersChange={handleFiltersChange} />
+			<SearchFilterBar
+				searchValue={searchQuery}
+				onSearchChange={handleSearchChange}
+				filters={filterConfigs}
+				onFiltersChange={handleFiltersChange}
+				renderExtraButton={() => (
+					<TouchableOpacity
+						style={[styles.notificationButton, selectedPatients.size === 0 && styles.buttonDisabled]}
+						onPress={() => {
+							if (selectedPatients.size === 0) {
+								Alert.alert("알림", "알림을 전송할 환자를 선택하세요.")
+								return
+							}
+							Alert.alert("알림 전송", `${selectedPatients.size}명에게 알림을 전송했습니다.`)
+						}}
+						disabled={selectedPatients.size === 0}
+					>
+						<Text style={styles.notificationButtonText}>{`${selectedPatients.size}명 알림`}</Text>
+					</TouchableOpacity>
+				)}
+			/>
 
 			<View style={styles.tableContainer}>
 				<PatientTable
@@ -319,50 +338,23 @@ export const InfoTableScreen = () => {
 					}}
 					onToggleFavorite={handleToggleFavorite}
 					onToggleSort={onToggleSort}
+					onNamePress={(patient) => {
+						Alert.alert("환자 조회", `${patient.name}님의 운동 기록을 조회하시겠습니까?`, [
+							{
+								text: "취소",
+								style: "cancel",
+							},
+							{
+								text: "예",
+								onPress: () => {
+									navigation.navigate("DetailTable", {
+										patientIds: [patient.phoneNumber],
+									})
+								},
+							},
+						])
+					}}
 				/>
-			</View>
-
-			<View style={styles.footer}>
-				<Pagination
-					currentPage={currentPage}
-					totalPages={totalPages}
-					onPageChange={handlePageChange}
-					hasNextPage={currentPage < totalPages - 1}
-					onPrevPage={() => handlePageChange(currentPage - 1)}
-					onNextPage={() => handlePageChange(currentPage + 1)}
-				/>
-
-				<View style={styles.buttonContainer}>
-					<TouchableOpacity
-						style={[styles.button, selectedPatients.size === 0 && styles.buttonDisabled]}
-						onPress={() => {
-							if (selectedPatients.size === 0) {
-								Alert.alert("알림", "조회할 환자를 선택하세요.")
-								return
-							}
-							navigation.navigate("DetailTable", {
-								patientIds: Array.from(selectedPatients),
-							})
-						}}
-						disabled={selectedPatients.size === 0}
-					>
-						<Text style={styles.buttonText}>{`${selectedPatients.size}명 조회`}</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						style={[styles.button, selectedPatients.size === 0 && styles.buttonDisabled, { backgroundColor: "#FF9800" }]}
-						onPress={() => {
-							if (selectedPatients.size === 0) {
-								Alert.alert("알림", "알림을 전송할 환자를 선택하세요.")
-								return
-							}
-							Alert.alert("알림 전송", `${selectedPatients.size}명에게 알림을 전송했습니다.`)
-						}}
-						disabled={selectedPatients.size === 0}
-					>
-						<Text style={styles.buttonText}>{`${selectedPatients.size}명 알림`}</Text>
-					</TouchableOpacity>
-				</View>
 			</View>
 		</View>
 	)
@@ -374,10 +366,26 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f9f9f9",
 		padding: 16,
 	},
+	notificationButton: {
+		backgroundColor: "#FF9800",
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderRadius: 8,
+		justifyContent: "center",
+		alignItems: "center",
+		elevation: 2,
+		marginLeft: 8,
+	},
+	notificationButtonText: {
+		color: "#fff",
+		fontSize: 12,
+		fontWeight: "bold",
+	},
 	tableContainer: {
 		flex: 1,
 		backgroundColor: "#fff",
 		borderRadius: 12,
+		marginTop: 16,
 		marginBottom: 16,
 		shadowColor: "#000",
 		shadowOffset: {
@@ -392,7 +400,6 @@ const styles = StyleSheet.create({
 		backgroundColor: "#fff",
 		borderRadius: 12,
 		padding: 16,
-		gap: 16,
 		shadowColor: "#000",
 		shadowOffset: {
 			width: 0,
@@ -402,27 +409,8 @@ const styles = StyleSheet.create({
 		shadowRadius: 3,
 		elevation: 3,
 	},
-	buttonContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		gap: 12,
-	},
-	button: {
-		flex: 1,
-		backgroundColor: "#4CAF50",
-		padding: 12,
-		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
-		elevation: 2,
-	},
 	buttonDisabled: {
 		backgroundColor: "#D3D3D3",
-	},
-	buttonText: {
-		color: "#fff",
-		fontSize: 14,
-		fontWeight: "bold",
 	},
 })
 
