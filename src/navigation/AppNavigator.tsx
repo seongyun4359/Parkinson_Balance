@@ -13,25 +13,34 @@ import KidneyExerciseScreen from "../screens/patient/bottomButton/category/kidne
 import StrengthExerciseScreen from "../screens/patient/bottomButton/category/strengthExerciseScreen"
 import BalanceExerciseScreen from "../screens/patient/bottomButton/category/balanceExerciseScreen"
 import OralExerciseScreen from "../screens/patient/bottomButton/category/oralExerciseScreen"
-
 import DayRecordScreen from "../screens/patient/calendar/DayRecordScreen"
 import SignUpScreen from "../screens/auth/SignUpScreen"
-
 import EditInfoScreen from "../screens/medicalStaff/personal/EditInfoScreen"
 import PrescriptionScreen from "../screens/medicalStaff/personal/PrescriptionScreen"
 import SearchInfoScreen from "../screens/medicalStaff/personal/SearchInfoScreen"
-
 import DetailTableScreen from "../screens/medicalStaff/LookUp/DetailTableScreen"
 import { InfoTableScreen } from "../screens/medicalStaff/LookUp/InfoTableScreen"
-import { RootStackParamList } from "./Root"
 import MyInfoScreen from "../screens/patient/bottomButton/myInfo/MyInfoScreen"
+import PatientDetailScreen from "../screens/medicalStaff/personal/PatientDetailScreen"
+import { RootStackParamList } from "./Root"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 const AppNavigator = () => {
 	return (
 		<NavigationContainer>
-			<Stack.Navigator initialRouteName="Login">
+			<Stack.Navigator
+				initialRouteName="Login"
+				screenOptions={{
+					headerStyle: {
+						backgroundColor: "#fff",
+					},
+					headerTintColor: "#333",
+					headerTitleStyle: {
+						fontWeight: "bold",
+					},
+				}}
+			>
 				{/* 기본 스크린 */}
 				<Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
 				<Stack.Screen name="MedicalStaffHome" component={MedicalStaffHome} options={{ title: "관리자 홈" }} />
@@ -52,6 +61,8 @@ const AppNavigator = () => {
 				<Stack.Screen name="InfoTable" component={InfoTableScreen} options={{ title: "전체 기록 테이블" }} />
 				<Stack.Screen name="DetailTable" component={DetailTableScreen} options={{ title: "상세 테이블" }} />
 				<Stack.Screen name="MyInformation" component={MyInfoScreen} options={{ title: "내 정보" }} />
+				<Stack.Screen name="MedicalStaffAuth" component={LoginScreen} options={{ headerShown: false }} />
+				<Stack.Screen name="PatientDetail" component={PatientDetailScreen} options={{ title: "환자 상세 정보" }} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)

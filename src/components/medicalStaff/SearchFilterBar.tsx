@@ -1,37 +1,40 @@
 import React from "react"
 import { View, TextInput, StyleSheet, TouchableOpacity, Text } from "react-native"
-import { SearchFilterBarProps, FilterConfig, FilterType } from "../../types/patient"
-import Ionicons from "react-native-vector-icons/Ionicons"
+import Icon from "react-native-vector-icons/MaterialIcons"
+import { FilterConfig } from "../../types/patient"
 
-const SearchFilterBar: React.FC<SearchFilterBarProps> = ({ searchValue, onSearchChange, filters, onFiltersChange }) => {
-	const toggleFilter = (type: FilterType) => {
-		const currentFilter = filters.find((f) => f.type === type)
-		if (currentFilter) {
-			onFiltersChange(filters.filter((f) => f.type !== type))
-		} else {
-			onFiltersChange([...filters, { type, value: true }])
-		}
-	}
+interface SearchFilterBarProps {
+	searchValue: string
+	onSearchChange: (value: string) => void
+	filters: FilterConfig[]
+	onFiltersChange: (filters: FilterConfig[]) => void
+	renderExtraButton?: () => React.ReactNode
+}
 
-	const isFilterActive = (type: FilterType) => {
-		return filters.some((f) => f.type === type)
+const SearchFilterBar: React.FC<SearchFilterBarProps> = ({ searchValue, onSearchChange, filters, onFiltersChange, renderExtraButton }) => {
+	const toggleFilter = (type: "favorite" | "recentLogin") => {
+		const newFilters = filters.some((f) => f.type === type) ? filters.filter((f) => f.type !== type) : [...filters, { type, value: true }]
+		onFiltersChange(newFilters)
 	}
 
 	return (
 		<View style={styles.container}>
 			<View style={styles.searchContainer}>
-				<Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-				<TextInput style={styles.searchInput} value={searchValue} onChangeText={onSearchChange} placeholder="환자 이름으로 검색" placeholderTextColor="#999" />
+				<Icon name="search" size={24} color="#666" style={styles.searchIcon} />
+				<TextInput style={styles.searchInput} placeholder="환자 이름으로 검색" value={searchValue} onChangeText={onSearchChange} />
 			</View>
 			<View style={styles.filterContainer}>
-				<TouchableOpacity style={[styles.filterButton, isFilterActive("favorite") && styles.filterButtonActive]} onPress={() => toggleFilter("favorite")}>
-					<Ionicons name={isFilterActive("favorite") ? "star" : "star-outline"} size={20} color={isFilterActive("favorite") ? "#fff" : "#666"} />
-					<Text style={[styles.filterText, isFilterActive("favorite") && styles.filterTextActive]}>즐겨찾기</Text>
+				<TouchableOpacity style={[styles.filterButton, filters.some((f) => f.type === "favorite") && styles.filterButtonActive]} onPress={() => toggleFilter("favorite")}>
+					<Icon name="star" size={16} color={filters.some((f) => f.type === "favorite") ? "#fff" : "#666"} />
+					<Text style={[styles.filterButtonText, filters.some((f) => f.type === "favorite") && styles.filterButtonTextActive]}>즐겨찾기</Text>
 				</TouchableOpacity>
-				<TouchableOpacity style={[styles.filterButton, isFilterActive("recentLogin") && styles.filterButtonActive]} onPress={() => toggleFilter("recentLogin")}>
-					<Ionicons name={isFilterActive("recentLogin") ? "time" : "time-outline"} size={20} color={isFilterActive("recentLogin") ? "#fff" : "#666"} />
-					<Text style={[styles.filterText, isFilterActive("recentLogin") && styles.filterTextActive]}>최근 로그인</Text>
+
+				<TouchableOpacity style={[styles.filterButton, filters.some((f) => f.type === "recentLogin") && styles.filterButtonActive]} onPress={() => toggleFilter("recentLogin")}>
+					<Icon name="schedule" size={16} color={filters.some((f) => f.type === "recentLogin") ? "#fff" : "#666"} />
+					<Text style={[styles.filterButtonText, filters.some((f) => f.type === "recentLogin") && styles.filterButtonTextActive]}>최근 로그인</Text>
 				</TouchableOpacity>
+
+				{renderExtraButton && renderExtraButton()}
 			</View>
 		</View>
 	)
@@ -40,14 +43,13 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({ searchValue, onSearch
 const styles = StyleSheet.create({
 	container: {
 		gap: 12,
-		marginBottom: 16,
 	},
 	searchContainer: {
 		flexDirection: "row",
 		alignItems: "center",
 		backgroundColor: "#fff",
 		borderRadius: 12,
-		paddingHorizontal: 12,
+		paddingHorizontal: 16,
 		height: 48,
 		shadowColor: "#000",
 		shadowOffset: {
@@ -82,11 +84,11 @@ const styles = StyleSheet.create({
 	filterButtonActive: {
 		backgroundColor: "#76DABF",
 	},
-	filterText: {
+	filterButtonText: {
 		fontSize: 14,
 		color: "#666",
 	},
-	filterTextActive: {
+	filterButtonTextActive: {
 		color: "#fff",
 	},
 })

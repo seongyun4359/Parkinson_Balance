@@ -2,17 +2,12 @@ import React, { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native"
 import { updateMember } from "../../../apis/member"
 import { PatientInfoType } from "../../../types/patient"
+import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { RootStackParamList } from "../../../navigation/Root"
 
-interface EditInfoScreenProps {
-	route: {
-		params: {
-			patientInfo: PatientInfoType
-		}
-	}
-	navigation: any
-}
+type EditInfoScreenProps = NativeStackScreenProps<RootStackParamList, "EditInfo">
 
-const EditInfoScreen: React.FC<EditInfoScreenProps> = ({ route, navigation }) => {
+const EditInfoScreen = ({ route, navigation }: EditInfoScreenProps) => {
 	const { patientInfo } = route.params
 	const [name, setName] = useState(patientInfo.name)
 	const [phoneNumber, setPhoneNumber] = useState(patientInfo.phoneNumber)
@@ -66,9 +61,9 @@ const EditInfoScreen: React.FC<EditInfoScreenProps> = ({ route, navigation }) =>
 				{
 					text: "확인",
 					onPress: () => {
-						// 수정된 정보로 이전 화면 업데이트를 위해 파라미터 전달
-						navigation.navigate("SearchInfo", {
-							updatedPatientInfo: {
+						// 수정된 정보로 이전 화면들 업데이트
+						navigation.navigate("PatientDetail", {
+							patient: {
 								...patientInfo,
 								name: name,
 								phoneNumber: phoneNumber,
