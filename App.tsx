@@ -19,7 +19,7 @@ const App: React.FC = () => {
         }
 
         // 🔹 포그라운드 메시지 리스너 설정 (Firebase Messaging이 `null`이 아닐 때만 실행)
-        if (firebaseMessaging) {
+        if (firebaseMessaging()) {
           setupNotificationListeners();
           console.log("🔔 Firebase 메시지 리스너가 설정되었습니다.");
         } else {

@@ -7,5 +7,7 @@ export const API_CONFIG = {
 export const CURRENT_ENV = "STAGING"
 
 export const getApiEndpoint = () => {
+	console.log("🔧 API 환경:", CURRENT_ENV)
+	console.log("🌍 API 엔드포인트 반환:", API_CONFIG[CURRENT_ENV])
 	return API_CONFIG[CURRENT_ENV]
 }

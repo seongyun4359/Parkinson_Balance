@@ -1,383 +1,130 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react";
 import {
-	View,
-	StyleSheet,
-	TouchableOpacity,
-	Text,
-	Modal,
-	FlatList,
-	Switch,
-} from "react-native"
-import { useNavigation } from "@react-navigation/native"
-import { StackNavigationProp } from "@react-navigation/stack"
-import DateTimePickerModal from "react-native-modal-datetime-picker"
-import ScreenHeader from "../../../components/patient/ScreenHeader"
-import { RootStackParamList } from "../../../navigation/Root"
-import Icon from "react-native-vector-icons/MaterialIcons"
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import PushNotification from "react-native-push-notification";
+import ScreenHeader from "../../../components/patient/ScreenHeader";
+import { RootStackParamList } from "../../../navigation/Root";
+import { getUserInfo } from "../../../apis/auth"; // ✅ 사용자 정보 가져오는 함수 사용
 
-interface Alarm {
-	id: number
-	time: string
-	period: string
-	days: string[]
-	enabled: boolean
-}
-
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Alarm">
+// 네비게이션 타입 정의
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Alarm">;
 
 const AlarmScreen = () => {
-	const navigation = useNavigation<HomeScreenNavigationProp>()
-	const [modalVisible, setModalVisible] = useState(false)
-	const [isEditing, setIsEditing] = useState(false)
-	const [editingAlarmId, setEditingAlarmId] = useState<number | null>(null) 
-	const [time, setTime] = useState(new Date())
-	const [selectedDays, setSelectedDays] = useState<string[]>([])
-	const [alarms, setAlarms] = useState<Alarm[]>([])
-	const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const [alarmTime, setAlarmTime] = useState<string | null>(null);
 
-	const daysOfWeek = ["월", "화", "수", "목", "금", "토", "일"]
+  // 🔹 운동 시간 가져오기 (로컬 저장된 데이터 사용)
+  const loadUserExerciseTime = async () => {
+    try {
+      const userInfo = await getUserInfo();
+      if (userInfo && userInfo.exerciseNotificationTime) {
+        console.log("✅ 저장된 운동 알람 시간:", userInfo.exerciseNotificationTime);
+        setAlarmTime(userInfo.exerciseNotificationTime);
+        scheduleAlarm(userInfo.exerciseNotificationTime);
+      } else {
+        console.warn("⚠️ 저장된 운동 알람 시간이 없습니다.");
+      }
+    } catch (error) {
+      console.error("❌ 운동 알람 시간 불러오기 실패:", error);
+      Alert.alert("오류", "운동 알람 시간을 불러오지 못했습니다.");
+    }
+  };
 
-	const showDatePicker = () => setDatePickerVisibility(true)
-	const hideDatePicker = () => setDatePickerVisibility(false)
+  // 🔹 운동 시간에 맞춰 알람을 울리도록 설정
+  const scheduleAlarm = (time: string) => {
+    const [hour, minute, second] = time.split(":").map(Number);
+    const now = new Date();
+    const alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, second);
 
-	const handleConfirm = (selectedTime: Date) => {
-		setTime(selectedTime)
-		hideDatePicker()
-	}
+    // 현재 시간보다 이전이면 다음 날로 설정
+    if (alarmTime < now) {
+      alarmTime.setDate(alarmTime.getDate() + 1);
+    }
 
-	const toggleDay = (day: string) => {
-		setSelectedDays((prev) =>
-			prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-		)
-	}
+    PushNotification.localNotificationSchedule({
+      channelId: "exercise-alarm",
+      title: "운동 알람",
+      message: "운동할 시간입니다! 건강을 위해 몸을 움직여 보세요!",
+      date: alarmTime,
+      allowWhileIdle: true,
+      soundName: "default",
+      vibrate: true,
+      repeatType: "day",
+    });
+  };
 
-	const handleSaveAlarm = () => {
-		if (selectedDays.length === 0) return
+  useEffect(() => {
+    loadUserExerciseTime(); // ✅ 로그인한 사용자의 운동 알람 시간 가져오기
+  }, []);
 
-		const hours = time.getHours()
-		const minutes = time.getMinutes()
-		const formattedTime = `${hours % 12 || 12}:${minutes
-			.toString()
-			.padStart(2, "0")}`
-		const period = hours >= 12 ? "오후" : "오전"
+  return (
+    <View style={styles.container}>
+      <ScreenHeader />
 
-		if (isEditing && editingAlarmId !== null) {
-			setAlarms((prev) =>
-				prev.map((alarm) =>
-					alarm.id === editingAlarmId
-						? { ...alarm, time: formattedTime, period, days: selectedDays }
-						: alarm
-				)
-			)
-		} else {
-			const newAlarm: Alarm = {
-				id: Date.now(),
-				time: formattedTime,
-				period: period,
-				days: selectedDays,
-				enabled: true,
-			}
-			setAlarms([...alarms, newAlarm])
-		}
+      {/* 알람 시간 표시 */}
+      {alarmTime ? (
+        <View style={styles.alarmItem}>
+          <Text style={styles.alarmTime}>{alarmTime}</Text>
+        </View>
+      ) : (
+        <Text style={styles.noAlarmText}>설정된 운동 알람이 없습니다.</Text>
+      )}
 
-		setModalVisible(false)
-		setSelectedDays([])
-		setIsEditing(false)
-		setEditingAlarmId(null)
-	}
+      <TouchableOpacity
+        style={styles.completeButton}
+        onPress={() => navigation.navigate("PatientHome")}
+      >
+        <Text style={styles.completeButtonText}>완료</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
-	const handleDeleteAlarm = (id: number) => {
-		setAlarms((prev) => prev.filter((alarm) => alarm.id !== id))
-	}
-
-	const handleEditAlarm = (alarm: Alarm) => {
-		setIsEditing(true)
-		setEditingAlarmId(alarm.id)
-		setTime(new Date()) 
-		setSelectedDays(alarm.days)
-		setModalVisible(true)
-	}
-
-	return (
-		<View style={styles.container}>
-			<ScreenHeader />
-
-			<TouchableOpacity
-				style={styles.addButton}
-				onPress={() => setModalVisible(true)}
-			>
-				<Text style={styles.addButtonText}>알람 추가하기</Text>
-			</TouchableOpacity>
-
-			<FlatList
-				data={alarms}
-				keyExtractor={(item) => item.id.toString()}
-				renderItem={({ item }) => (
-					<View style={styles.alarmItem}>
-						<View style={styles.timeContainer}>
-							<Text style={styles.period}>{item.period}</Text>
-							<Text style={styles.alarmTime}>{item.time}</Text>
-						</View>
-						<View style={styles.alarmOptions}>
-							<Text style={styles.alarmDays}>{item.days.join(" ")}</Text>
-							<Switch
-								value={item.enabled}
-								onValueChange={() =>
-									setAlarms((prev) =>
-										prev.map((alarm) =>
-											alarm.id === item.id
-												? { ...alarm, enabled: !alarm.enabled }
-												: alarm
-										)
-									)
-								}
-							/>
-							<TouchableOpacity onPress={() => handleEditAlarm(item)}>
-								<Icon name="edit" size={24} />
-							</TouchableOpacity>
-							<TouchableOpacity onPress={() => handleDeleteAlarm(item.id)}>
-								<Icon name="delete" size={24} />
-							</TouchableOpacity>
-						</View>
-					</View>
-				)}
-			/>
-
-			<TouchableOpacity
-				style={styles.completeButton}
-				onPress={() => navigation.navigate("PatientHome")}
-			>
-				<Text style={styles.completeButtonText}>완료</Text>
-			</TouchableOpacity>
-			{/* 알람 추가 / 수정 모달 */}
-			<Modal visible={modalVisible} transparent animationType="fade">
-				<View style={styles.modalContainer}>
-					<View style={styles.modalContent}>
-						<View style={styles.modalHeader}>
-							<Text style={styles.modalTitle}>
-								{isEditing ? "알람 수정" : "알람 추가"}
-							</Text>
-							<TouchableOpacity onPress={() => setModalVisible(false)}>
-								<Icon name="close" size={24} color="#666" />
-							</TouchableOpacity>
-						</View>
-
-						{/* 시간 선택 버튼 */}
-						<TouchableOpacity
-							style={styles.timeSelectButton}
-							onPress={showDatePicker}
-						>
-							<Text style={styles.timeSelectText}>
-								{time.toLocaleTimeString("ko-KR", {
-									hour: "2-digit",
-									minute: "2-digit",
-									hour12: true,
-								})}
-							</Text>
-						</TouchableOpacity>
-
-						{/* 시간 선택 모달 */}
-						<DateTimePickerModal
-							isVisible={isDatePickerVisible}
-							mode="time"
-							is24Hour={false}
-							onConfirm={handleConfirm}
-							onCancel={hideDatePicker}
-						/>
-
-						{/* 요일 선택 */}
-						<View style={styles.daysContainer}>
-							{daysOfWeek.map((day) => (
-								<TouchableOpacity
-									key={day}
-									style={[
-										styles.dayButton,
-										selectedDays.includes(day) && styles.selectedDay,
-									]}
-									onPress={() => toggleDay(day)}
-								>
-									<Text
-										style={[
-											styles.dayText,
-											selectedDays.includes(day) && styles.selectedDayText,
-										]}
-									>
-										{day}
-									</Text>
-								</TouchableOpacity>
-							))}
-						</View>
-
-						{/* 추가하기 버튼 */}
-						<TouchableOpacity
-							style={styles.addAlarmButton}
-							onPress={handleSaveAlarm}
-						>
-							<Text style={styles.addAlarmButtonText}>
-								{isEditing ? "수정하기" : "추가하기"}
-							</Text>
-						</TouchableOpacity>
-					</View>
-				</View>
-			</Modal>
-		</View>
-	)
-}
-
-export default AlarmScreen
+export default AlarmScreen;
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#fff",
-		alignItems: "center",
-		paddingTop: 40,
-	},
-	addButton: {
-		backgroundColor: "#76DABF",
-		paddingVertical: 10,
-		paddingHorizontal: 20,
-		borderRadius: 8,
-		marginBottom: 20,
-	},
-	addButtonText: {
-		color: "#fff",
-		fontSize: 16,
-		fontWeight: "bold",
-	},
-	alarmItem: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		width: "95%",
-		padding: 15,
-		borderWidth: 2,
-		borderColor: "#76DABF",
-		borderRadius: 10,
-		marginBottom: 10,
-	},
-	timeContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-	},
-	period: {
-		fontSize: 16,
-		marginRight: 5,
-		color: "#333",
-	},
-	alarmTime: {
-		fontSize: 28,
-		fontWeight: "bold",
-		color: "#000",
-	},
-	alarmOptions: {
-		flexDirection: "row",
-		alignItems: "center",
-	},
-	alarmDays: {
-		fontSize: 14,
-		color: "#666",
-		marginRight: 10,
-	},
-	editButton: {
-		fontSize: 18,
-		color: "#4A90E2",
-		marginLeft: 10,
-	},
-	deleteButton: {
-		fontSize: 18,
-		color: "#E74C3C",
-		marginLeft: 10,
-	},
-	completeButton: {
-		backgroundColor: "#76DABF",
-		paddingVertical: 12,
-		paddingHorizontal: 40,
-		borderRadius: 8,
-		marginBottom: 30,
-	},
-	completeButtonText: {
-		color: "#fff",
-		fontSize: 18,
-		fontWeight: "bold",
-	},
-	modalContainer: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-		backgroundColor: "rgba(0,0,0,0.5)",
-	},
-	modalContent: {
-		backgroundColor: "#fff",
-		padding: 20,
-		borderRadius: 10,
-		width: "80%",
-		alignItems: "center",
-	},
-	modalHeader: {
-		width: "100%",
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 15,
-	},
-	modalTitle: {
-		fontSize: 18,
-		fontWeight: "bold",
-	},
-	timeSelectButton: {
-		backgroundColor: "#F0F0F0",
-		paddingVertical: 12,
-		paddingHorizontal: 20,
-		borderRadius: 8,
-		marginBottom: 15,
-		width: "100%",
-		alignItems: "center",
-	},
-	timeSelectText: {
-		fontSize: 22,
-		fontWeight: "bold",
-		color: "#000",
-	},
-	daysContainer: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		justifyContent: "center",
-		marginVertical: 15,
-	},
-	dayButton: {
-		padding: 10,
-		margin: 5,
-		borderRadius: 8,
-		borderWidth: 1,
-		borderColor: "#76DABF",
-		width: 40,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	selectedDay: {
-		backgroundColor: "#76DABF",
-	},
-	dayText: {
-		fontSize: 16,
-		color: "#333",
-	},
-	selectedDayText: {
-		color: "#fff",
-		fontWeight: "bold",
-	},
-	addAlarmButton: {
-		backgroundColor: "#76DABF",
-		paddingVertical: 12,
-		paddingHorizontal: 20,
-		borderRadius: 8,
-		marginTop: 10,
-		width: "100%",
-		alignItems: "center",
-	},
-	addAlarmButtonText: {
-		color: "#fff",
-		fontSize: 16,
-		fontWeight: "bold",
-	},
-})
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    paddingTop: 40,
+  },
+  alarmItem: {
+    width: "95%",
+    padding: 15,
+    borderWidth: 2,
+    borderColor: "#76DABF",
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  alarmTime: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  noAlarmText: {
+    fontSize: 18,
+    color: "#888",
+    marginTop: 20,
+  },
+  completeButton: {
+    backgroundColor: "#76DABF",
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 8,
+    marginBottom: 30,
+  },
+  completeButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+});

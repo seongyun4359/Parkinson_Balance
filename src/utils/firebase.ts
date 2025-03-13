@@ -113,7 +113,7 @@ export const requestFCMToken = async () => {
 	}
 }
 
-export const setupFCMListener = async () => {
+export const setupNotificationListeners  = async () => {
 	try {
 		// Firebase 앱 초기화 확인
 		const app = getApps().length === 0 ? await initializeFirebase() : getApp()
@@ -143,3 +143,11 @@ export const setupFCMListener = async () => {
 		return null
 	}
 }
+
+export const firebaseMessaging = () => {
+	if (getApps().length === 0) {
+		initializeFirebase();
+	}
+	return messaging();
+};
+
