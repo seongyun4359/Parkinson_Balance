@@ -61,9 +61,9 @@ const EditInfoScreen = ({ route, navigation }: EditInfoScreenProps) => {
 				{
 					text: "확인",
 					onPress: () => {
-						// 수정된 정보로 이전 화면 업데이트를 위해 파라미터 전달
-						navigation.navigate("SearchInfo", {
-							updatedPatientInfo: {
+						// 수정된 정보로 이전 화면들 업데이트
+						navigation.navigate("PatientDetail", {
+							patient: {
 								...patientInfo,
 								name: name,
 								phoneNumber: phoneNumber,

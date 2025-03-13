@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
-import { RouteProp, useRoute } from "@react-navigation/native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native"
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native"
 import { RootStackParamList } from "../../../types/navigation"
 import { Patient } from "../../../types/patient"
 import { getExerciseGoals, ExerciseGoalItem } from "../../../apis/exercise"
 import { getExerciseHistory, ExerciseHistoryItem } from "../../../apis/exercise"
 import Icon from "react-native-vector-icons/MaterialIcons"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 
 type PatientDetailScreenRouteProp = RouteProp<RootStackParamList, "PatientDetail">
+type PatientDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>
 
 type TabType = "info" | "goals" | "history"
 
 const PatientDetailScreen = () => {
 	const route = useRoute<PatientDetailScreenRouteProp>()
+	const navigation = useNavigation<PatientDetailScreenNavigationProp>()
 	const { patient } = route.params
 	const [activeTab, setActiveTab] = useState<TabType>("info")
 	const [exerciseGoals, setExerciseGoals] = useState<ExerciseGoalItem[]>([])
@@ -54,6 +57,16 @@ const PatientDetailScreen = () => {
 		}
 	}
 
+	const handleEditInfo = () => {
+		navigation.navigate("EditInfo", {
+			patientInfo: {
+				name: patient.name,
+				phoneNumber: patient.phoneNumber,
+				gender: patient.gender,
+			},
+		})
+	}
+
 	const renderTabContent = () => {
 		if (loading) {
 			return (
@@ -75,6 +88,13 @@ const PatientDetailScreen = () => {
 			case "info":
 				return (
 					<View style={styles.tabContent}>
+						<View style={styles.infoHeader}>
+							<Text style={styles.infoTitle}>기본 정보</Text>
+							<TouchableOpacity style={styles.editButton} onPress={handleEditInfo}>
+								<Icon name="edit" size={20} color="#fff" />
+								<Text style={styles.editButtonText}>수정</Text>
+							</TouchableOpacity>
+						</View>
 						<View style={styles.infoItem}>
 							<Text style={styles.infoLabel}>이름</Text>
 							<Text style={styles.infoValue}>{patient.name}</Text>
@@ -297,6 +317,31 @@ const styles = StyleSheet.create({
 	historyText: {
 		fontSize: 14,
 		color: "#666",
+	},
+	infoHeader: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 16,
+	},
+	infoTitle: {
+		fontSize: 18,
+		fontWeight: "bold",
+		color: "#333",
+	},
+	editButton: {
+		flexDirection: "row",
+		alignItems: "center",
+		backgroundColor: "#76DABF",
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 8,
+		gap: 4,
+	},
+	editButtonText: {
+		color: "#fff",
+		fontSize: 14,
+		fontWeight: "500",
 	},
 })
 
