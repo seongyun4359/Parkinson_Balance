@@ -297,6 +297,10 @@ export const InfoTableScreen = () => {
 		}
 	}
 
+	const handleNamePress = (patient: Patient) => {
+		navigation.navigate("PatientDetail", { patient })
+	}
+
 	return (
 		<View style={styles.container}>
 			<SearchFilterBar
@@ -338,22 +342,7 @@ export const InfoTableScreen = () => {
 					}}
 					onToggleFavorite={handleToggleFavorite}
 					onToggleSort={onToggleSort}
-					onNamePress={(patient) => {
-						Alert.alert("환자 조회", `${patient.name}님의 운동 기록을 조회하시겠습니까?`, [
-							{
-								text: "취소",
-								style: "cancel",
-							},
-							{
-								text: "예",
-								onPress: () => {
-									navigation.navigate("DetailTable", {
-										patientIds: [patient.phoneNumber],
-									})
-								},
-							},
-						])
-					}}
+					onNamePress={handleNamePress}
 				/>
 			</View>
 		</View>
