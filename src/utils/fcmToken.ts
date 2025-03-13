@@ -14,6 +14,7 @@ export const getFCMToken = async (): Promise<string> => {
 		// FCM 토큰 가져오기
 		const fcmToken = await messaging().getToken()
 		if (fcmToken) {
+			console.log("✅ 가져온 FCM 토큰:", fcmToken)
 			await AsyncStorage.setItem("fcmToken", fcmToken)
 			return fcmToken
 		} else {

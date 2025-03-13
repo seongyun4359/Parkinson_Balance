@@ -1,29 +1,29 @@
 {
-    "project_info": {
-      "project_number": "467216405742",
-      "project_id": "pd-balance",
-      "storage_bucket": "pd-balance.firebasestorage.app"
-    },
-    "client": [
-      {
-        "client_info": {
-          "mobilesdk_app_id": "1:467216405742:android:ad0653fa576396ce8e4fff",
-          "android_client_info": {
-            "package_name": "com.myapp"
-          }
-        },
-        "oauth_client": [],
-        "api_key": [
-          {
-            "current_key": "AIzaSyDvH6U8MTvE8gCu1XsRfCEWKE9vqNeE-oE"
-          }
-        ],
-        "services": {
-          "appinvite_service": {
-            "other_platform_oauth_client": []
-          }
+  "project_info": {
+    "project_number": "842076007560",
+    "project_id": "pd-diary-47917",
+    "storage_bucket": "pd-diary-47917.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842076007560:android:c0ae5730d588ccd360c33d",
+        "android_client_info": {
+          "package_name": "com.idealab.pddiary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAH1b0xuM4e3T3poanxxAhbl7EDQzAh4UQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
-    ],
-    "configuration_version": "1"
-  }
+    }
+  ],
+  "configuration_version": "1"
+}

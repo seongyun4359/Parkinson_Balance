@@ -1,4 +1,4 @@
-package com.myapp
+package com.idealab.pddiary
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

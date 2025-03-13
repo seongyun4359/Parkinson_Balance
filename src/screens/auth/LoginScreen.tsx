@@ -1,119 +1,84 @@
-import React, { useState, useRef } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native"
-import { loginUser } from "../../apis/Login"
+import React, { useState, useRef } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native";
+import { loginUser } from "../../apis/Login";
+import { getFCMToken } from "../../utils/tokenUtils"; // ✅ tokenUtils에서 FCM 토큰 가져오기
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-	const [phoneNumber1, setPhoneNumber1] = useState("")
-	const [phoneNumber2, setPhoneNumber2] = useState("")
-	const [phoneNumber3, setPhoneNumber3] = useState("")
-	const [password, setPassword] = useState("")
+	const [phoneNumber1, setPhoneNumber1] = useState("");
+	const [phoneNumber2, setPhoneNumber2] = useState("");
+	const [phoneNumber3, setPhoneNumber3] = useState("");
+	const [password, setPassword] = useState("");
+
+	const phoneNumber2Ref = useRef<TextInput>(null);
+	const phoneNumber3Ref = useRef<TextInput>(null);
+	const passwordRef = useRef<TextInput>(null);
 
 	// 전화번호 입력 처리
 	const handlePhoneNumber1Change = (text: string) => {
-		const cleaned = text.replace(/[^0-9]/g, "")
-		setPhoneNumber1(cleaned)
+		const cleaned = text.replace(/[^0-9]/g, "");
+		setPhoneNumber1(cleaned);
 		if (cleaned.length === 3) {
-			phoneNumber2Ref.current?.focus()
+			phoneNumber2Ref.current?.focus();
 		}
-	}
+	};
 
 	const handlePhoneNumber2Change = (text: string) => {
-		const cleaned = text.replace(/[^0-9]/g, "")
-		setPhoneNumber2(cleaned)
+		const cleaned = text.replace(/[^0-9]/g, "");
+		setPhoneNumber2(cleaned);
 		if (cleaned.length === 4) {
-			phoneNumber3Ref.current?.focus()
+			phoneNumber3Ref.current?.focus();
 		}
-	}
+	};
 
 	const handlePhoneNumber3Change = (text: string) => {
-		const cleaned = text.replace(/[^0-9]/g, "")
-		setPhoneNumber3(cleaned)
+		const cleaned = text.replace(/[^0-9]/g, "");
+		setPhoneNumber3(cleaned);
 		if (cleaned.length === 4) {
-			passwordRef.current?.focus()
+			passwordRef.current?.focus();
 		}
-	}
-	const phoneNumber2Ref = useRef<TextInput>(null)
-	const phoneNumber3Ref = useRef<TextInput>(null)
-	const passwordRef = useRef<TextInput>(null)
+	};
 
 	const handleLogin = async () => {
 		// 입력값 검증
 		if (!phoneNumber1 || !phoneNumber2 || !phoneNumber3 || !password) {
-			console.log("🚨 입력값 누락:", { phoneNumber1, phoneNumber2, phoneNumber3, password })
-			Alert.alert("입력 오류", "모든 필드를 입력해주세요.")
-			return
+			console.log("🚨 입력값 누락:", { phoneNumber1, phoneNumber2, phoneNumber3, password });
+			Alert.alert("입력 오류", "모든 필드를 입력해주세요.");
+			return;
 		}
 
-		// 전화번호 형식 검증
-		if (phoneNumber1.length !== 3 || phoneNumber2.length !== 4 || phoneNumber3.length !== 4) {
-			console.log("🚨 전화번호 형식 오류:", { phoneNumber1, phoneNumber2, phoneNumber3 })
-			Alert.alert("전화번호 오류", "올바른 전화번호 형식이 아닙니다.")
-			return
-		}
-
-		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
-		console.log("📱 전화번호 형식:", fullPhoneNumber)
+		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`;
+		console.log("📱 전화번호 형식:", fullPhoneNumber);
 
 		try {
-			const loginData = {
-				phoneNumber: fullPhoneNumber,
-				password: password,
-			}
+			const loginData = { phoneNumber: fullPhoneNumber, password };
+			console.log("📤 로그인 시도:", loginData);
 
-			console.log("📤 로그인 시도:", loginData)
-
-			const response = await loginUser(loginData)
-			console.log("📥 로그인 응답:", response)
+			const response = await loginUser(loginData);
+			console.log("📥 로그인 응답:", response);
 
 			if (response.status === "SUCCESS" && response.data[0]) {
-				const { memberInfoResponse } = response.data[0]
-				console.log("✅ 로그인 성공:", memberInfoResponse)
+				const { memberInfoResponse } = response.data[0];
+				console.log("✅ 로그인 성공:", memberInfoResponse);
 
-				if (memberInfoResponse.role === "PATIENT") {
-					console.log("🏥 환자 화면으로 이동")
-					navigation.navigate("PatientHome")
+				// 🔹 로그인 후 저장된 FCM 토큰 사용 (새로 요청하지 않음)
+				const fcmToken = await getFCMToken();
+				if (fcmToken) {
+					console.log("✅ 로그인 후 FCM 토큰 사용:", fcmToken);
 				} else {
-					console.log("👨‍⚕️ 의료진 화면으로 이동")
-					navigation.navigate("MedicalStaffHome")
+					console.warn("⚠️ 로그인 후 저장된 FCM 토큰이 없습니다.");
 				}
+
+				// 🔹 사용자 역할에 따라 화면 이동
+				navigation.navigate(memberInfoResponse.role === "PATIENT" ? "PatientHome" : "MedicalStaffHome");
 			} else {
-				console.log("❌ 응답 데이터 형식 오류:", response)
-				Alert.alert("로그인 실패", "응답 데이터가 올바르지 않습니다.")
+				console.log("❌ 응답 데이터 형식 오류:", response);
+				Alert.alert("로그인 실패", "응답 데이터가 올바르지 않습니다.");
 			}
 		} catch (error) {
-			console.error("🚨 로그인 에러:", error)
-			console.error("🚨 에러 상세:", {
-				message: error.message,
-				stack: error.stack,
-				response: error.response,
-			})
-			Alert.alert("로그인 실패", error.message || "로그인에 실패했습니다. 다시 시도해주세요.")
+			console.error("🚨 로그인 에러:", error);
+			Alert.alert("로그인 실패", error.message || "로그인에 실패했습니다. 다시 시도해주세요.");
 		}
-	}
-
-	// 임시 관리자 로그인 핸들러 추가
-	const handleAdminLogin = async () => {
-		try {
-			const adminLoginData = {
-				phoneNumber: "010-1111-1111",
-				password: "test1234",
-			}
-
-			console.log("📤 관리자 로그인 시도:", adminLoginData)
-
-			const response = await loginUser(adminLoginData)
-			console.log("📥 관리자 로그인 응답:", response)
-
-			if (response.status === "SUCCESS" && response.data[0]) {
-				const { memberInfoResponse } = response.data[0]
-				console.log("✅ 관리자 로그인 성공:", memberInfoResponse)
-				navigation.navigate("MedicalStaffHome")
-			}
-		} catch (error) {
-			console.error("🚨 관리자 로그인 에러:", error)
-			Alert.alert("로그인 실패", "관리자 로그인에 실패했습니다.")
-		}
-	}
+	};
 
 	return (
 		<View style={styles.container}>
@@ -128,8 +93,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					onChangeText={handlePhoneNumber1Change}
 					keyboardType="number-pad"
 					maxLength={3}
-					returnKeyType="next"
-					onSubmitEditing={() => phoneNumber2Ref.current?.focus()}
 				/>
 				<Text style={styles.phoneSeparator}>-</Text>
 				<TextInput
@@ -140,8 +103,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					onChangeText={handlePhoneNumber2Change}
 					keyboardType="number-pad"
 					maxLength={4}
-					returnKeyType="next"
-					onSubmitEditing={() => phoneNumber3Ref.current?.focus()}
 				/>
 				<Text style={styles.phoneSeparator}>-</Text>
 				<TextInput
@@ -152,8 +113,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					onChangeText={handlePhoneNumber3Change}
 					keyboardType="number-pad"
 					maxLength={4}
-					returnKeyType="next"
-					onSubmitEditing={() => passwordRef.current?.focus()}
 				/>
 			</View>
 
@@ -166,20 +125,14 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				secureTextEntry
 				value={password}
 				onChangeText={setPassword}
-				returnKeyType="done"
-				onSubmitEditing={handleLogin}
 			/>
 
 			<TouchableOpacity style={styles.button} onPress={handleLogin}>
 				<Text style={styles.buttonText}>로그인</Text>
 			</TouchableOpacity>
-
-			<TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("SignUp")}>
-				<Text style={styles.signupButtonText}>회원가입</Text>
-			</TouchableOpacity>
 		</View>
-	)
-}
+	);
+};
 
 const styles = StyleSheet.create({
 	container: {
