@@ -4,16 +4,17 @@ import { initializeApp, getApps, getApp } from "@react-native-firebase/app"
 
 // Firebase 설정 정보 (google-services.json 기반)
 const firebaseConfig = {
-	apiKey: "AIzaSyDvH6U8MTvE8gCu1XsRfCEWKE9vqNeE-oE",
-	authDomain: "pd-balance.firebaseapp.com",
-	databaseURL: "https://pd-balance-default-rtdb.firebaseio.com",
-	projectId: "pd-balance",
-	storageBucket: "pd-balance.firebasestorage.app",
-	messagingSenderId: "467216405742",
-	appId: "1:467216405742:android:ad0653fa576396ce8e4fff",
+	apiKey: "AIzaSyAH1b0xuM4e3T3poanxxAhbl7EDQzAh4UQ",
+	authDomain: "pd-diary-47917.firebaseapp.com",
+	projectId: "pd-diary-47917",
+	storageBucket: "pd-diary-47917.firebasestorage.app",
+	messagingSenderId: "842076007560",
+	appId: "1:842076007560:android:c0ae5730d588ccd360c33d",
 	// Android 패키지 이름
-	androidClientId: "com.myapp",
-}
+	androidClientId: "com.idealab.pddiary",
+	databaseURL: "https://pd-diary-47917-default-rtdb.firebaseio.com",
+  };
+  
 
 // Firebase 설정 유효성 검사
 const validateFirebaseConfig = () => {

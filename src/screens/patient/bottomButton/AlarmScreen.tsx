@@ -5,13 +5,15 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  PermissionsAndroid,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import PushNotification from "react-native-push-notification";
 import ScreenHeader from "../../../components/patient/ScreenHeader";
 import { RootStackParamList } from "../../../navigation/Root";
-import { getUserInfo } from "../../../apis/auth"; // ✅ 사용자 정보 가져오는 함수 사용
+import { getUserInfo } from "../../../apis/auth";
 
 // 네비게이션 타입 정의
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Alarm">;
@@ -19,6 +21,23 @@ type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Alarm">
 const AlarmScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const [alarmTime, setAlarmTime] = useState<string | null>(null);
+
+  // 🔹 알림 권한 요청 함수
+  const requestNotifications = async () => {
+    if (Platform.OS === "android") {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+      );
+
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.warn("⚠️ 알림 권한이 거부되었습니다.");
+        return false;
+      }
+    }
+
+    PushNotification.requestPermissions();
+    return true;
+  };
 
   // 🔹 운동 시간 가져오기 (로컬 저장된 데이터 사용)
   const loadUserExerciseTime = async () => {
@@ -38,16 +57,40 @@ const AlarmScreen = () => {
   };
 
   // 🔹 운동 시간에 맞춰 알람을 울리도록 설정
-  const scheduleAlarm = (time: string) => {
-    const [hour, minute, second] = time.split(":").map(Number);
+  const scheduleAlarm = async (time: string) => {
+    if (!time) {
+      console.error("❌ 알람 설정 실패: 시간 값이 없습니다.");
+      return;
+    }
+  
+    // 🔹 알림 권한 확인 후 설정
+    const hasPermission = await requestNotifications();
+    if (!hasPermission) {
+      console.warn("⚠️ 알림 권한이 없어 알람을 설정하지 않습니다.");
+      return;
+    }
+  
+    const timeParts = time.split(":").map(Number);
+    if (timeParts.length !== 3 || timeParts.some(isNaN)) {
+      console.error("❌ 잘못된 시간 형식:", time);
+      return;
+    }
+  
+    const [hour, minute, second] = timeParts;
     const now = new Date();
-    const alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, second);
-
-    // 현재 시간보다 이전이면 다음 날로 설정
+    let alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, second);
+  
     if (alarmTime < now) {
       alarmTime.setDate(alarmTime.getDate() + 1);
     }
-
+  
+    console.log("✅ 알람 설정됨:", alarmTime.toISOString());
+  
+    // 🔥 로그 추가: 알람이 실제로 예약되는지 확인
+    PushNotification.getScheduledLocalNotifications((notifs) => {
+      console.log("🔍 예약된 알람 목록:", notifs);
+    });
+  
     PushNotification.localNotificationSchedule({
       channelId: "exercise-alarm",
       title: "운동 알람",
@@ -59,9 +102,11 @@ const AlarmScreen = () => {
       repeatType: "day",
     });
   };
+  
 
   useEffect(() => {
-    loadUserExerciseTime(); // ✅ 로그인한 사용자의 운동 알람 시간 가져오기
+    requestNotifications();  // ✅ 알림 권한 요청
+    loadUserExerciseTime();  // ✅ 운동 알람 시간 가져오기
   }, []);
 
   return (

@@ -1,5 +1,5 @@
 import { apiRequest } from "../utils/apiUtils";
-import { saveTokens } from "../utils/tokenUtils";
+import { saveTokens, saveFCMToken, getFCMToken } from "../utils/tokenUtils"; // ✅ FCM 토큰 관련 추가
 import { saveUserInfo, getUserInfo } from "./auth";
 import { getExerciseNotificationTime } from "./Alarm"; // ✅ 운동 알람 시간 가져오기 추가
 
@@ -32,12 +32,28 @@ export const loginUser = async (loginData) => {
 				exerciseNotificationTime = await getExerciseNotificationTime(loginData.phoneNumber);
 			}
 
+			// ✅ 기존에 저장된 FCM 토큰 가져오기 (없으면 새로 요청)
+			let fcmToken = await getFCMToken();
+			if (!fcmToken) {
+				console.log("🚀 새로운 FCM 토큰 가져오기...");
+				fcmToken = await getFCMToken();
+				if (fcmToken) {
+					await saveFCMToken(fcmToken);
+					console.log("✅ FCM 토큰 저장 완료:", fcmToken);
+				} else {
+					console.warn("⚠️ FCM 토큰을 가져오지 못했습니다.");
+				}
+			} else {
+				console.log("✅ 기존 FCM 토큰 사용:", fcmToken);
+			}
+
 			// ✅ 최종 사용자 정보 저장
 			const userInfo = {
 				phoneNumber: loginData.phoneNumber,
 				name: response.data[0]?.memberInfoResponse?.name || "Unknown",
 				role: response.data[0]?.memberInfoResponse?.role || "USER",
-				exerciseNotificationTime: exerciseNotificationTime ?? null, // 🔥 업데이트된 값 저장
+				exerciseNotificationTime: exerciseNotificationTime ?? null,
+				fcmToken: fcmToken, // ✅ FCM 토큰 저장
 			};
 
 			await saveUserInfo(userInfo);
