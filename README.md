@@ -137,9 +137,8 @@
 
 ### 🖥 **백엔드(?)**
 
-- `Node.js`
-- `Express.js`
-- `MongoDB / PostgreSQL (데이터베이스)`
+- `Java Spring`
+- `MySQL (데이터베이스)`
 - `Firebase Cloud Messaging (푸시 알림)`
 
 ---
