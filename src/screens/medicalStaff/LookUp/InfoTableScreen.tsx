@@ -141,26 +141,26 @@ export const InfoTableScreen = () => {
 		}
 	}
 
-	// 정렬 토글 함수 추가
+	// 정렬 토글 함수 수정
 	const onToggleSort = useCallback((key: keyof Patient) => {
 		setSortConfigs((prevConfigs) => {
 			const existingConfig = prevConfigs.find((config) => config.key === key)
 			if (existingConfig) {
 				// 이미 존재하는 정렬 설정이면 방향을 변경하거나 제거
-				if (existingConfig.direction === "asc") {
-					existingConfig.direction = "desc"
+				if (existingConfig.order === "asc") {
+					existingConfig.order = "desc"
 					return [...prevConfigs]
 				} else {
 					return prevConfigs.filter((config) => config.key !== key)
 				}
 			} else {
 				// 새로운 정렬 설정 추가
-				return [...prevConfigs, { key, direction: "asc" }]
+				return [...prevConfigs, { key, order: "asc" }]
 			}
 		})
 	}, [])
 
-	// 정렬 적용 함수
+	// 정렬 적용 함수 수정
 	const applySorting = useCallback(
 		(patients: Patient[]) => {
 			let sortedPatients = [...patients]
@@ -170,11 +170,15 @@ export const InfoTableScreen = () => {
 					const bValue = b[config.key]
 
 					if (typeof aValue === "string" && typeof bValue === "string") {
-						return config.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+						return config.order === "asc"
+							? aValue.localeCompare(bValue)
+							: bValue.localeCompare(aValue)
 					}
 
-					if (aValue instanceof Date && bValue instanceof Date) {
-						return config.direction === "asc" ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime()
+					if (config.key === "lastLogin") {
+						const aDate = new Date(aValue as string).getTime()
+						const bDate = new Date(bValue as string).getTime()
+						return config.order === "asc" ? aDate - bDate : bDate - aDate
 					}
 
 					return 0
@@ -185,13 +189,43 @@ export const InfoTableScreen = () => {
 		[sortConfigs]
 	)
 
+	// 최근 접속 시간 포맷 함수 추가
+	const formatLastLogin = (lastLogin: string) => {
+		const loginDate = new Date(lastLogin)
+		const now = new Date()
+		const diffInMinutes = Math.floor((now.getTime() - loginDate.getTime()) / (1000 * 60))
+		const diffInHours = Math.floor(diffInMinutes / 60)
+		const diffInDays = Math.floor(diffInHours / 24)
+
+		if (diffInMinutes < 60) {
+			return `${diffInMinutes}분 전`
+		} else if (diffInHours < 24) {
+			return `${diffInHours}시간 전`
+		} else if (diffInDays < 7) {
+			return `${diffInDays}일 전`
+		} else {
+			return loginDate.toLocaleDateString("ko-KR", {
+				year: "numeric",
+				month: "long",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+			})
+		}
+	}
+
 	// 필터 적용 함수 수정
 	const applyFilters = useCallback(() => {
 		let result = [...patients]
 
-		// 검색어 필터링
+		// 검색어 필터링 (이름, 전화번호)
 		if (searchQuery) {
-			result = result.filter((patient) => patient.name.toLowerCase().includes(searchQuery.toLowerCase()))
+			const query = searchQuery.toLowerCase()
+			result = result.filter(
+				(patient) =>
+					patient.name.toLowerCase().includes(query) ||
+					patient.phoneNumber.toLowerCase().includes(query)
+			)
 		}
 
 		// 즐겨찾기 필터링
@@ -267,7 +301,11 @@ export const InfoTableScreen = () => {
 	const fetchPatients = async (page = 0) => {
 		try {
 			// 환자 목록 가져오기
-			const response = await fetchWithToken(`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`, {}, handleLogout)
+			const response = await fetchWithToken(
+				`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`,
+				{},
+				handleLogout
+			)
 
 			if (!response.ok) {
 				throw new Error(`서버 응답 오류: ${response.status}`)
@@ -304,6 +342,7 @@ export const InfoTableScreen = () => {
 					phoneNumber: item.phoneNumber,
 					gender: item.gender,
 					lastLogin: item.lastLoginAt,
+					lastLoginFormatted: formatLastLogin(item.lastLoginAt),
 					isFavorite: bookmarkedMembers.includes(item.memberId),
 					exerciseScore: 0,
 				}))
@@ -353,7 +392,10 @@ export const InfoTableScreen = () => {
 				onFiltersChange={handleFiltersChange}
 				renderExtraButton={() => (
 					<TouchableOpacity
-						style={[styles.notificationButton, selectedPatients.size === 0 && styles.buttonDisabled]}
+						style={[
+							styles.notificationButton,
+							selectedPatients.size === 0 && styles.buttonDisabled,
+						]}
 						onPress={() => {
 							if (selectedPatients.size === 0) {
 								Alert.alert("알림", "알림을 전송할 환자를 선택하세요.")

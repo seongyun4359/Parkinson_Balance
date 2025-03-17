@@ -32,6 +32,7 @@ export interface Patient {
 	phoneNumber: string
 	gender: string
 	lastLogin: string
+	lastLoginFormatted: string
 	isFavorite: boolean
 	exerciseScore: number
 }
@@ -44,8 +45,8 @@ export interface SortConfig {
 export type FilterType = "favorite" | "recentLogin"
 
 export interface FilterConfig {
-	type: FilterType
-	value: boolean
+	type: string
+	value?: any
 }
 
 export interface SearchFilterBarProps {
