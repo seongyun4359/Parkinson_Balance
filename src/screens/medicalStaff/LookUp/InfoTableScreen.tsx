@@ -7,6 +7,7 @@ import PatientTable from "../../../components/medicalStaff/table/PatientTable"
 import SearchFilterBar from "../../../components/medicalStaff/SearchFilterBar"
 import { Patient, SortConfig, FilterConfig } from "../../../types/patient"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { addBookmark, removeBookmark, getBookmarks } from "../../../apis/bookmark"
 
 const API_URL = "https://kwhcclab.com:20955/api/members"
 const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh"
@@ -226,10 +227,36 @@ export const InfoTableScreen = () => {
 		setSearchQuery(query)
 	}, [])
 
-	// ✅ 즐겨찾기 토글 처리
-	const handleToggleFavorite = useCallback((id: string) => {
-		setPatients((prev) => prev.map((patient) => (patient.id === id ? { ...patient, isFavorite: !patient.isFavorite } : patient)))
-	}, [])
+	// ✅ 즐겨찾기 토글 처리 수정
+	const handleToggleFavorite = useCallback(
+		async (id: string) => {
+			try {
+				const patient = patients.find((p) => p.id === id)
+				if (!patient) return
+
+				if (patient.isFavorite) {
+					await removeBookmark(id)
+					setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: false } : p)))
+				} else {
+					try {
+						await addBookmark(id)
+						setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: true } : p)))
+					} catch (error: any) {
+						if (error.message.includes("이미 북마크한 회원입니다")) {
+							// 이미 즐겨찾기된 상태라면 UI를 업데이트
+							setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: true } : p)))
+						} else {
+							throw error
+						}
+					}
+				}
+			} catch (error: any) {
+				console.error("즐겨찾기 토글 오류:", error)
+				Alert.alert("오류", error.message)
+			}
+		},
+		[patients]
+	)
 
 	// ✅ 필터 변경시 자동 적용
 	useEffect(() => {
@@ -239,6 +266,7 @@ export const InfoTableScreen = () => {
 	// ✅ 환자 데이터 가져오기 (토큰 자동 갱신 포함)
 	const fetchPatients = async (page = 0) => {
 		try {
+			// 환자 목록 가져오기
 			const response = await fetchWithToken(`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`, {}, handleLogout)
 
 			if (!response.ok) {
@@ -259,6 +287,16 @@ export const InfoTableScreen = () => {
 				throw new Error("서버 응답을 파싱할 수 없습니다.")
 			}
 
+			// 즐겨찾기 목록 가져오기
+			let bookmarkedMembers: string[] = []
+			try {
+				const bookmarks = await getBookmarks()
+				bookmarkedMembers = bookmarks.map((bookmark: any) => bookmark.memberId)
+				console.log("즐겨찾기된 회원 ID:", bookmarkedMembers)
+			} catch (error) {
+				console.error("즐겨찾기 목록 조회 실패:", error)
+			}
+
 			if (result.status === "SUCCESS" && result.data?.content) {
 				const formattedPatients: Patient[] = result.data.content.map((item: any) => ({
 					id: item.memberId,
@@ -266,9 +304,14 @@ export const InfoTableScreen = () => {
 					phoneNumber: item.phoneNumber,
 					gender: item.gender,
 					lastLogin: item.lastLoginAt,
-					isFavorite: false,
+					isFavorite: bookmarkedMembers.includes(item.memberId),
 					exerciseScore: 0,
 				}))
+
+				console.log("환자 목록 처리 결과:", {
+					total: formattedPatients.length,
+					bookmarked: formattedPatients.filter((p) => p.isFavorite).length,
+				})
 
 				setPatients(formattedPatients)
 				setFilteredPatients(formattedPatients)
