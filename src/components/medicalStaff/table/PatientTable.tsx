@@ -16,26 +16,49 @@ interface PatientTableProps {
 	onNamePress: (patient: Patient) => void
 }
 
-const PatientTable: React.FC<PatientTableProps> = ({ data, selectedPatients, sortConfigs, onToggleSelect, onToggleSelectAll, onToggleFavorite, onToggleSort, onNamePress }) => {
+const PatientTable: React.FC<PatientTableProps> = ({
+	data,
+	selectedPatients,
+	sortConfigs,
+	onToggleSelect,
+	onToggleSelectAll,
+	onToggleFavorite,
+	onToggleSort,
+	onNamePress,
+}) => {
 	const getSortIcon = (key: keyof Patient) => {
 		const config = sortConfigs.find((config) => config.key === key)
 		if (!config) return null
-		return config.direction === "asc" ? "arrow-upward" : "arrow-downward"
+		return config.order === "asc" ? "arrow-upward" : "arrow-downward"
 	}
 
 	return (
 		<View style={styles.container}>
 			<View style={styles.headerRow}>
 				<TouchableOpacity style={styles.checkboxCell} onPress={onToggleSelectAll}>
-					<Icon name={selectedPatients.size === data.length ? "check-box" : "check-box-outline-blank"} size={24} color="#76DABF" />
+					<Icon
+						name={selectedPatients.size === data.length ? "check-box" : "check-box-outline-blank"}
+						size={24}
+						color="#76DABF"
+					/>
 				</TouchableOpacity>
 				<TouchableOpacity style={styles.headerCell} onPress={() => onToggleSort("name")}>
 					<Text style={styles.headerText}>이름</Text>
-					{getSortIcon("name") && <Icon name={getSortIcon("name")!} size={16} color="#666" />}
+					<Icon
+						name={getSortIcon("name") || "arrow-downward"}
+						size={16}
+						color="#666"
+						style={{ opacity: getSortIcon("name") ? 1 : 0.3 }}
+					/>
 				</TouchableOpacity>
 				<TouchableOpacity style={styles.headerCell} onPress={() => onToggleSort("lastLogin")}>
 					<Text style={styles.headerText}>최근 접속</Text>
-					{getSortIcon("lastLogin") && <Icon name={getSortIcon("lastLogin")!} size={16} color="#666" />}
+					<Icon
+						name={getSortIcon("lastLogin") || "arrow-downward"}
+						size={16}
+						color="#666"
+						style={{ opacity: getSortIcon("lastLogin") ? 1 : 0.3 }}
+					/>
 				</TouchableOpacity>
 				<View style={styles.favoriteCell}>
 					<Icon name="star" size={24} color="#FFB74D" />
@@ -45,8 +68,15 @@ const PatientTable: React.FC<PatientTableProps> = ({ data, selectedPatients, sor
 			<ScrollView style={styles.scrollView}>
 				{data.map((patient) => (
 					<View key={patient.id} style={styles.row}>
-						<TouchableOpacity style={styles.checkboxCell} onPress={() => onToggleSelect(patient.id)}>
-							<Icon name={selectedPatients.has(patient.id) ? "check-box" : "check-box-outline-blank"} size={24} color="#76DABF" />
+						<TouchableOpacity
+							style={styles.checkboxCell}
+							onPress={() => onToggleSelect(patient.id)}
+						>
+							<Icon
+								name={selectedPatients.has(patient.id) ? "check-box" : "check-box-outline-blank"}
+								size={24}
+								color="#76DABF"
+							/>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.cell} onPress={() => onNamePress(patient)}>
 							<Text style={styles.nameText}>{patient.name}</Text>
@@ -55,7 +85,10 @@ const PatientTable: React.FC<PatientTableProps> = ({ data, selectedPatients, sor
 						<View style={styles.cell}>
 							<Text>{new Date(patient.lastLogin).toLocaleDateString()}</Text>
 						</View>
-						<TouchableOpacity style={styles.favoriteCell} onPress={() => onToggleFavorite(patient.id)}>
+						<TouchableOpacity
+							style={styles.favoriteCell}
+							onPress={() => onToggleFavorite(patient.id)}
+						>
 							<Icon name={patient.isFavorite ? "star" : "star-border"} size={24} color="#FFB74D" />
 						</TouchableOpacity>
 					</View>
