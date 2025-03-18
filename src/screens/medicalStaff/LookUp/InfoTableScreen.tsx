@@ -419,7 +419,14 @@ export const InfoTableScreen = () => {
 						})
 					}}
 					onToggleSelectAll={() => {
-						setSelectedPatients(new Set(filteredPatients.map((p) => p.id)))
+						setSelectedPatients((prev) => {
+							// 현재 모든 환자가 선택된 상태라면 전체 해제
+							if (prev.size === filteredPatients.length) {
+								return new Set()
+							}
+							// 그렇지 않다면 전체 선택
+							return new Set(filteredPatients.map((p) => p.id))
+						})
 					}}
 					onToggleFavorite={handleToggleFavorite}
 					onToggleSort={onToggleSort}
