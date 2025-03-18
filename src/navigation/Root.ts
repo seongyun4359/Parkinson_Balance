@@ -1,4 +1,5 @@
 import { Patient } from "../types/patient"
+import { ExercisePrescriptionItem } from "../types/exercisePrescription"
 
 export type RootStackParamList = {
 	Login: undefined
@@ -12,7 +13,11 @@ export type RootStackParamList = {
 	BalanceExercise: undefined
 	OralExercise: undefined
 	DayRecord: undefined
-	RecordScreen: undefined
+	RecordScreen: { 
+		progress: number; 
+		videoProgress: Record<string, number>; 
+		exerciseGoals: ExercisePrescriptionItem[];  
+	  };
 	SignUp: undefined
 	EditInfo: { patientInfo: any }
 	Prescription: { patientInfo: any }
