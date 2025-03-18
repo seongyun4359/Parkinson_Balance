@@ -146,16 +146,12 @@ export const InfoTableScreen = () => {
 		setSortConfigs((prevConfigs) => {
 			const existingConfig = prevConfigs.find((config) => config.key === key)
 			if (existingConfig) {
-				// 이미 존재하는 정렬 설정이면 방향을 변경하거나 제거
-				if (existingConfig.order === "asc") {
-					existingConfig.order = "desc"
-					return [...prevConfigs]
-				} else {
-					return prevConfigs.filter((config) => config.key !== key)
-				}
+				// 이미 존재하는 정렬 설정이면 방향만 변경
+				existingConfig.order = existingConfig.order === "asc" ? "desc" : "asc"
+				return [...prevConfigs]
 			} else {
-				// 새로운 정렬 설정 추가
-				return [...prevConfigs, { key, order: "asc" }]
+				// 새로운 정렬 설정 추가 (기본값: 오름차순)
+				return [{ key, order: "asc" }]
 			}
 		})
 	}, [])
