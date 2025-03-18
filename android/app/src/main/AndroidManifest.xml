@@ -1,10 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.idealab.pddiary">
 
+    <!-- ✅ 필수 권한 추가 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />  <!-- ✅ 기기 깨우기 추가 -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/> <!-- ✅ FCM 권한 추가 -->
 
     <application
         android:name=".MainApplication"
@@ -28,21 +31,25 @@
             </intent-filter>
         </activity>
 
+        <!-- ✅ FCM 서비스 (알림을 수신하는 역할) -->
         <service
             android:name=".MyFirebaseMessagingService"
-            android:exported="false">
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"> <!-- ✅ 권한 추가 -->
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
 
+        <!-- ✅ 푸시 알림 예약 및 전송 관련 설정 -->
         <receiver
             android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationPublisher"
-            android:exported="false" />
+            android:permission="android.permission.BROADCAST_STICKY"  
+            android:exported="true" />
 
         <receiver
             android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationBootEventReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />

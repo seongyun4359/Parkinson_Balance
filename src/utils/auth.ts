@@ -14,3 +14,12 @@ export const getAuthToken = async (): Promise<string> => {
 		return TEMP_TOKEN
 	}
 }
+
+// ✅ setAuthToken 추가
+export const setAuthToken = async (token: string): Promise<void> => {
+	try {
+		await AsyncStorage.setItem("accessToken", token);
+	} catch (error) {
+		console.error("❌ 토큰 저장 오류:", error);
+	}
+};

@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  PermissionsAndroid,
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -14,8 +13,13 @@ import PushNotification from "react-native-push-notification";
 import ScreenHeader from "../../../components/patient/ScreenHeader";
 import { RootStackParamList } from "../../../navigation/Root";
 import { getUserInfo } from "../../../apis/auth";
+import {
+  checkNotifications,
+  requestNotifications,
+  RESULTS,
+  openSettings
+} from "react-native-permissions";
 
-// 네비게이션 타입 정의
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Alarm">;
 
 const AlarmScreen = () => {
@@ -23,23 +27,29 @@ const AlarmScreen = () => {
   const [alarmTime, setAlarmTime] = useState<string | null>(null);
 
   // 🔹 알림 권한 요청 함수
-  const requestNotifications = async () => {
+  const requestNotificationPermission = async () => {
     if (Platform.OS === "android") {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-      );
+      const { status } = await checkNotifications();
+      console.log("🔍 현재 알림 권한 상태:", status);
 
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        console.warn("⚠️ 알림 권한이 거부되었습니다.");
-        return false;
+      if (status !== RESULTS.GRANTED) {
+        const { status: newStatus } = await requestNotifications(["alert", "sound"]);
+
+        if (newStatus !== RESULTS.GRANTED) {
+          console.warn("🚨 알림 권한이 거부됨");
+          Alert.alert(
+            "알림 권한 필요",
+            "운동 알람을 받으려면 알림 권한을 허용해주세요.",
+            [{ text: "설정으로 이동", onPress: () => openSettings() }]
+          );
+          return false;
+        }
       }
     }
-
-    PushNotification.requestPermissions();
     return true;
   };
 
-  // 🔹 운동 시간 가져오기 (로컬 저장된 데이터 사용)
+  // 🔹 운동 시간 가져오기
   const loadUserExerciseTime = async () => {
     try {
       const userInfo = await getUserInfo();
@@ -62,35 +72,36 @@ const AlarmScreen = () => {
       console.error("❌ 알람 설정 실패: 시간 값이 없습니다.");
       return;
     }
-  
-    // 🔹 알림 권한 확인 후 설정
-    const hasPermission = await requestNotifications();
+
+    const hasPermission = await requestNotificationPermission();
     if (!hasPermission) {
       console.warn("⚠️ 알림 권한이 없어 알람을 설정하지 않습니다.");
       return;
     }
-  
+
     const timeParts = time.split(":").map(Number);
     if (timeParts.length !== 3 || timeParts.some(isNaN)) {
       console.error("❌ 잘못된 시간 형식:", time);
       return;
     }
-  
+
     const [hour, minute, second] = timeParts;
     const now = new Date();
-    let alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, second);
-  
+    let alarmTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hour,
+      minute,
+      second
+    );
+
     if (alarmTime < now) {
       alarmTime.setDate(alarmTime.getDate() + 1);
     }
-  
+
     console.log("✅ 알람 설정됨:", alarmTime.toISOString());
-  
-    // 🔥 로그 추가: 알람이 실제로 예약되는지 확인
-    PushNotification.getScheduledLocalNotifications((notifs) => {
-      console.log("🔍 예약된 알람 목록:", notifs);
-    });
-  
+
     PushNotification.localNotificationSchedule({
       channelId: "exercise-alarm",
       title: "운동 알람",
@@ -102,10 +113,9 @@ const AlarmScreen = () => {
       repeatType: "day",
     });
   };
-  
 
   useEffect(() => {
-    requestNotifications();  // ✅ 알림 권한 요청
+    requestNotificationPermission();  // ✅ 알림 권한 요청
     loadUserExerciseTime();  // ✅ 운동 알람 시간 가져오기
   }, []);
 
@@ -113,7 +123,6 @@ const AlarmScreen = () => {
     <View style={styles.container}>
       <ScreenHeader />
 
-      {/* 알람 시간 표시 */}
       {alarmTime ? (
         <View style={styles.alarmItem}>
           <Text style={styles.alarmTime}>{alarmTime}</Text>
