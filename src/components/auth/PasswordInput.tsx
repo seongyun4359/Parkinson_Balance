@@ -18,8 +18,21 @@ const PasswordInput: React.FC<{
 
 	return (
 		<View style={styles.container}>
-			<TextInput style={styles.input} placeholder={placeholder} placeholderTextColor="#999" secureTextEntry={!showPassword} value={value} onChangeText={onChangeText} />
-			<Icon name="eye" size={24} color="#999" style={styles.icon} onPress={togglePasswordVisibility} />
+			<TextInput
+				style={styles.input}
+				placeholder={placeholder}
+				placeholderTextColor="#999"
+				secureTextEntry={!showPassword}
+				value={value}
+				onChangeText={onChangeText}
+			/>
+			<Icon
+				name="eye"
+				size={24}
+				color="#999"
+				style={styles.icon}
+				onPress={togglePasswordVisibility}
+			/>
 		</View>
 	)
 }
@@ -42,8 +55,8 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
+		borderWidth: 1.5,
+		borderColor: "#a0a0a0",
 		paddingRight: 40,
 	},
 	icon: {

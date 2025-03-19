@@ -13,7 +13,13 @@ const NameGenderInput: React.FC<NameGenderInputProps> = ({ name, setName, gender
 		<View style={styles.container}>
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>이름</Text>
-				<TextInput style={styles.input} placeholder="이름" placeholderTextColor="#999" value={name} onChangeText={setName} />
+				<TextInput
+					style={styles.input}
+					placeholder="이름"
+					placeholderTextColor="#999"
+					value={name}
+					onChangeText={setName}
+				/>
 			</View>
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>성별</Text>
@@ -55,8 +61,8 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
+		borderWidth: 1.5,
+		borderColor: "#a0a0a0",
 	},
 	pickerContainer: {
 		width: "100%",
@@ -70,8 +76,8 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
+		borderWidth: 1.5,
+		borderColor: "#a0a0a0",
 	},
 	picker: {
 		width: "100%",
