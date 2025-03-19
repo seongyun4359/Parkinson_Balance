@@ -113,6 +113,7 @@ const refreshTokenRequest = async (refreshToken: string): Promise<string | null>
 	}
 }
 
+// 푸시 알림 전송 함수를 컴포넌트 내부로 이동
 export const InfoTableScreen = () => {
 	const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 	const [patients, setPatients] = useState<Patient[]>([])
@@ -379,6 +380,59 @@ export const InfoTableScreen = () => {
 		navigation.navigate("PatientDetail", { patient })
 	}
 
+	// 푸시 알림 전송 함수
+	const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
+		try {
+			console.log("알림 전송 시도:", { phoneNumbers })
+
+			const response = await fetchWithToken(
+				"https://kwhcclab.com:20955/api/notifications/exercises/cheers",
+				{
+					method: "POST",
+					body: JSON.stringify({
+						phoneNumbers,
+						title: "할 수 있어요!",
+						content: "운동하기 좋은 날입니다. 운동으로 건강한 하루를 시작해볼까요 ?",
+					}),
+				},
+				handleLogout
+			)
+
+			const responseText = await response.text()
+			console.log("서버 응답:", responseText)
+
+			let responseData
+			try {
+				responseData = JSON.parse(responseText)
+			} catch (e) {
+				console.error("JSON 파싱 오류:", e)
+				throw new Error("서버 응답을 처리할 수 없습니다.")
+			}
+
+			if (responseData.status === "ERROR") {
+				throw new Error(responseData.error || "알림 전송에 실패했습니다.")
+			}
+
+			if (!response.ok || responseData.status !== "SUCCESS") {
+				console.error("알림 전송 실패:", responseData)
+				throw new Error(responseData.error || "알림 전송에 실패했습니다.")
+			}
+
+			return true
+		} catch (error: any) {
+			console.error("운동 독려 알림 전송 실패:", error)
+			if (error.message.includes("{")) {
+				try {
+					const errorData = JSON.parse(error.message)
+					throw new Error(errorData.error || "알림 전송에 실패했습니다.")
+				} catch (e) {
+					throw error
+				}
+			}
+			throw error
+		}
+	}
+
 	return (
 		<View style={styles.container}>
 			<SearchFilterBar
@@ -392,12 +446,34 @@ export const InfoTableScreen = () => {
 							styles.notificationButton,
 							selectedPatients.size === 0 && styles.buttonDisabled,
 						]}
-						onPress={() => {
+						onPress={async () => {
 							if (selectedPatients.size === 0) {
 								Alert.alert("알림", "알림을 전송할 환자를 선택하세요.")
 								return
 							}
-							Alert.alert("알림 전송", `${selectedPatients.size}명에게 알림을 전송했습니다.`)
+
+							try {
+								const selectedPhoneNumbers = filteredPatients
+									.filter((patient) => selectedPatients.has(patient.id))
+									.map((patient) => patient.phoneNumber)
+
+								console.log("선택된 환자 전화번호:", selectedPhoneNumbers)
+
+								await sendExerciseCheerNotification(selectedPhoneNumbers)
+								Alert.alert(
+									"알림 전송 성공",
+									`${selectedPatients.size}명에게 운동 독려 알림을 전송했습니다.`
+								)
+								setSelectedPatients(new Set())
+							} catch (error: any) {
+								console.error("알림 전송 중 오류:", error)
+								Alert.alert(
+									"알림 전송 실패",
+									typeof error === "string"
+										? error
+										: error.message || "알림 전송 중 오류가 발생했습니다."
+								)
+							}
 						}}
 						disabled={selectedPatients.size === 0}
 					>
