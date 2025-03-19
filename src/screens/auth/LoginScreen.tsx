@@ -1,13 +1,5 @@
 import React, { useState, useRef } from "react"
-import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-	Image,
-	Alert,
-} from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native"
 import { loginUser } from "../../apis/Login"
 import { getFCMToken } from "../../utils/tokenUtils" // ✅ tokenUtils에서 FCM 토큰 가져오기
 
@@ -82,28 +74,24 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				}
 
 				// 🔹 사용자 역할에 따라 화면 이동
-				navigation.navigate(
-					memberInfoResponse.role === "PATIENT" ? "PatientHome" : "InfoTable"
-				)
+				navigation.navigate(memberInfoResponse.role === "PATIENT" ? "PatientHome" : "InfoTable")
 			} else {
 				console.log("❌ 응답 데이터 형식 오류:", response)
 				Alert.alert("로그인 실패", "응답 데이터가 올바르지 않습니다.")
 			}
 		} catch (error) {
 			console.error("🚨 로그인 에러:", error)
-			Alert.alert(
-				"로그인 실패",
-				error.message || "로그인에 실패했습니다. 다시 시도해주세요."
-			)
+			Alert.alert("로그인 실패", error.message || "로그인에 실패했습니다. 다시 시도해주세요.")
 		}
+	}
+
+	const handleSignup = () => {
+		navigation.navigate("SignUp") // "Signup"에서 "SignUp"으로 수정
 	}
 
 	return (
 		<View style={styles.container}>
-			<Image
-				source={require("../../assets/logo/app-logo.png")}
-				style={styles.logo}
-			/>
+			<Image source={require("../../assets/logo/app-logo.png")} style={styles.logo} />
 
 			<Text style={styles.label}>전화번호</Text>
 			<View style={styles.phoneNumberContainer}>
@@ -150,6 +138,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 			<TouchableOpacity style={styles.button} onPress={handleLogin}>
 				<Text style={styles.buttonText}>로그인</Text>
+			</TouchableOpacity>
+
+			<TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+				<Text style={styles.signupButtonText}>회원가입</Text>
 			</TouchableOpacity>
 		</View>
 	)
@@ -232,7 +224,7 @@ const styles = StyleSheet.create({
 		borderColor: "#fff",
 		justifyContent: "center",
 		alignItems: "center",
-		marginBottom: 20,
+		marginTop: 10,
 	},
 	signupButtonText: {
 		color: "#fff",

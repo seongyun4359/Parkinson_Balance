@@ -32,11 +32,35 @@ const ExerciseTimeInput: React.FC<{
 
 	return (
 		<View style={styles.timeInputContainer}>
-			<TextInput style={styles.timeInput} placeholder="시" placeholderTextColor="#999" keyboardType="numeric" maxLength={2} value={hour} onChangeText={handleHourChange} />
+			<TextInput
+				style={styles.timeInput}
+				placeholder="시"
+				placeholderTextColor="#999"
+				keyboardType="numeric"
+				maxLength={2}
+				value={hour}
+				onChangeText={handleHourChange}
+			/>
 			<Text>:</Text>
-			<TextInput style={styles.timeInput} placeholder="분" placeholderTextColor="#999" keyboardType="numeric" maxLength={2} value={minute} onChangeText={handleMinuteChange} />
+			<TextInput
+				style={styles.timeInput}
+				placeholder="분"
+				placeholderTextColor="#999"
+				keyboardType="numeric"
+				maxLength={2}
+				value={minute}
+				onChangeText={handleMinuteChange}
+			/>
 			<Text>:</Text>
-			<TextInput style={styles.timeInput} placeholder="초" placeholderTextColor="#999" keyboardType="numeric" maxLength={2} value={second} onChangeText={handleSecondChange} />
+			<TextInput
+				style={styles.timeInput}
+				placeholder="초"
+				placeholderTextColor="#999"
+				keyboardType="numeric"
+				maxLength={2}
+				value={second}
+				onChangeText={handleSecondChange}
+			/>
 		</View>
 	)
 }
@@ -60,8 +84,8 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		borderWidth: 1,
-		borderColor: "#808080",
+		borderWidth: 1.5,
+		borderColor: "#a0a0a0",
 	},
 })
 

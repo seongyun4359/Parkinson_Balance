@@ -29,7 +29,10 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		}
 
 		if (!passwordPattern.test(password)) {
-			Alert.alert("비밀번호 조건 미충족", "비밀번호는 4~20자, 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.")
+			Alert.alert(
+				"비밀번호 조건 미충족",
+				"비밀번호는 4~20자, 영문 대소문자, 숫자, 특수문자를 포함해야 합니다."
+			)
 			return
 		}
 
@@ -46,7 +49,9 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
 		let adjustedHour = parseInt(hour)
 
-		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`
+		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(
+			minute
+		).padStart(2, "0")}:${String(second).padStart(2, "0")}`
 
 		try {
 			// FCM 토큰 가져오기
@@ -62,7 +67,9 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			}
 
 			const response = await signupUser(signUpData)
-			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!", [{ text: "확인", onPress: () => navigation.goBack() }])
+			Alert.alert("회원가입 성공", "회원가입이 완료되었습니다!", [
+				{ text: "확인", onPress: () => navigation.goBack() },
+			])
 		} catch (error) {
 			console.error("회원가입 실패:", error)
 
@@ -96,10 +103,21 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			<PasswordInput value={password} onChangeText={setPassword} placeholder="비밀번호" />
 
 			<Text style={styles.label}>비밀번호 확인</Text>
-			<PasswordInput value={confirmPassword} onChangeText={handleConfirmPasswordChange} placeholder="비밀번호 확인" />
+			<PasswordInput
+				value={confirmPassword}
+				onChangeText={handleConfirmPasswordChange}
+				placeholder="비밀번호 확인"
+			/>
 
 			<Text style={styles.label}>고정 운동 알림 시간</Text>
-			<ExerciseTimeInput hour={hour} setHour={setHour} minute={minute} setMinute={setMinute} second={second} setSecond={setSecond} />
+			<ExerciseTimeInput
+				hour={hour}
+				setHour={setHour}
+				minute={minute}
+				setMinute={setMinute}
+				second={second}
+				setSecond={setSecond}
+			/>
 			<TouchableOpacity style={styles.button} onPress={handleSignUp}>
 				<Text style={styles.buttonText}>회원가입</Text>
 			</TouchableOpacity>
@@ -113,16 +131,17 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 const styles = StyleSheet.create({
 	container: {
 		flexGrow: 1,
-		justifyContent: "center",
+		justifyContent: "flex-start",
 		alignItems: "center",
 		padding: 20,
-		backgroundColor: "#F5F5F5",
+		backgroundColor: "#fff",
 	},
 	title: {
-		fontSize: 24,
+		fontSize: 28,
 		fontWeight: "bold",
 		color: "#333",
 		marginBottom: 20,
+		marginTop: 20,
 	},
 	button: {
 		width: "100%",
@@ -131,8 +150,16 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: 10,
-		marginBottom: 20,
+		marginTop: 15,
+		marginBottom: 10,
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.1,
+		shadowRadius: 3,
+		elevation: 3,
 	},
 	buttonText: {
 		color: "#fff",
@@ -140,14 +167,77 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 	},
 	backText: {
-		color: "#555",
+		color: "#76DABF",
 		fontSize: 16,
-		textDecorationLine: "underline",
+		marginBottom: 20,
 	},
 	label: {
 		fontSize: 16,
-		color: "#333",
-		marginBottom: 5,
+		fontWeight: "600",
+		color: "#666",
+		marginBottom: 6,
+		alignSelf: "flex-start",
+		marginTop: 10,
+	},
+	inputContainer: {
+		width: "100%",
+		backgroundColor: "#fff",
+		borderRadius: 10,
+		padding: 12,
+		marginBottom: 8,
+		borderWidth: 1,
+		borderColor: "#f5f5f5",
+	},
+	input: {
+		width: "100%",
+		height: 45,
+		backgroundColor: "#fff",
+		borderRadius: 8,
+		paddingHorizontal: 15,
+		borderWidth: 1,
+		borderColor: "#f5f5f5",
+		fontSize: 16,
+	},
+	genderContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		width: "100%",
+		marginBottom: 10,
+	},
+	genderButton: {
+		flex: 1,
+		height: 45,
+		justifyContent: "center",
+		alignItems: "center",
+		borderRadius: 8,
+		marginHorizontal: 5,
+		borderWidth: 1,
+	},
+	genderButtonActive: {
+		backgroundColor: "#76DABF",
+		borderColor: "#76DABF",
+	},
+	genderButtonInactive: {
+		backgroundColor: "#fff",
+		borderColor: "#e0e0e0",
+	},
+	genderTextActive: {
+		color: "#fff",
+		fontWeight: "bold",
+	},
+	genderTextInactive: {
+		color: "#666",
+	},
+	errorText: {
+		color: "#ff6b6b",
+		fontSize: 14,
+		marginTop: 5,
+		alignSelf: "flex-start",
+	},
+	successText: {
+		color: "#76DABF",
+		fontSize: 14,
+		marginTop: 5,
 		alignSelf: "flex-start",
 	},
 })
