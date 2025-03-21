@@ -68,90 +68,36 @@ export interface UpdateExerciseGoalRequest {
 export const updateExerciseGoal = async (
 	phoneNumber: string,
 	goalId: number,
-	repeatCount: number,
 	setCount: number
-) => {
+): Promise<void> => {
 	try {
-		const accessToken = await AsyncStorage.getItem("accessToken")
-		if (!accessToken) {
-			throw new Error("액세스 토큰이 없습니다.")
-		}
-
-		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
-		const requestBody = {
-			goalId,
-			repeatCount,
-			setCount,
-		}
-
-		console.log("운동 목표 수정 요청:", {
-			url: `${API_URL}/exercises/${phoneNumber}`,
+		const response = await fetchWithToken(`${API_URL}/exercises/${phoneNumber}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${cleanToken}`,
 			},
-			body: requestBody,
+			body: JSON.stringify({
+				goalId,
+				setCount,
+			}),
 		})
 
-		const response = await fetch(`${API_URL}/exercises/${phoneNumber}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${cleanToken}`,
-			},
-			body: JSON.stringify(requestBody),
-		})
-
-		const responseData = await response.text()
-		console.log("서버 응답:", {
-			status: response.status,
-			statusText: response.statusText,
-			data: responseData,
-			requestBody: JSON.stringify(requestBody),
-			url: `${API_URL}/exercises/${phoneNumber}`,
-		})
-
-		let result
-		try {
-			result = JSON.parse(responseData)
-		} catch (e) {
-			console.error("JSON 파싱 오류:", e)
-			throw new Error(`서버 응답을 파싱할 수 없습니다: ${responseData}`)
-		}
+		const responseText = await response.text()
+		console.log("운동 목표 수정 응답:", responseText)
 
 		if (!response.ok) {
-			if (response.status === 401) {
-				throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.")
-			}
-			if (response.status === 404) {
-				throw new Error("해당 운동 목표를 찾을 수 없습니다.")
-			}
-			if (response.status === 400) {
-				throw new Error(result.message || "잘못된 요청입니다.")
-			}
-			if (response.status === 500) {
-				console.error("서버 오류 상세:", {
-					status: response.status,
-					body: requestBody,
-					response: result,
-					url: `${API_URL}/exercises/${phoneNumber}`,
-				})
-				throw new Error("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-			}
-			throw new Error(
-				result.error ||
-					`서버 오류 (${response.status}): ${result.message || "알 수 없는 오류가 발생했습니다."}`
-			)
+			throw new Error("운동 목표 수정에 실패했습니다.")
 		}
 
-		if (result.status !== "SUCCESS") {
-			throw new Error(result.error || "운동 목표 수정에 실패했습니다.")
+		// 응답이 JSON인 경우에만 파싱
+		if (responseText) {
+			const result = JSON.parse(responseText)
+			if (result.status === "ERROR") {
+				throw new Error(result.error || "운동 목표 수정에 실패했습니다.")
+			}
 		}
-
-		return result.data
-	} catch (error: any) {
-		console.error("운동 목표 수정 API 오류:", error)
+	} catch (error) {
+		console.error("운동 목표 수정 중 오류:", error)
 		throw error
 	}
 }
