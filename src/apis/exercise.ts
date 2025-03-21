@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { API_URL } from "../constants/urls"
+import { fetchWithToken } from "../utils/fetchWithToken"
 
 export interface ExerciseGoalItem {
 	memberId: string
@@ -7,7 +8,7 @@ export interface ExerciseGoalItem {
 	memberName: string
 	goalId: number
 	exerciseName: string
-	repeatCount: number
+	exerciseType: string
 	setCount: number
 	duration: number
 }
@@ -20,42 +21,52 @@ export interface ExerciseGoalResponse {
 	number: number
 }
 
-export const getExerciseGoals = async (phoneNumber: string): Promise<ExerciseGoalResponse> => {
+export const getExerciseGoals = async (
+	phoneNumber: string
+): Promise<{ content: ExerciseGoalItem[] }> => {
 	try {
-		const accessToken = await AsyncStorage.getItem("accessToken")
-		if (!accessToken) {
-			throw new Error("액세스 토큰이 없습니다.")
-		}
+		let allContent: ExerciseGoalItem[] = []
+		let currentPage = 0
+		let hasNextPage = true
 
-		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
+		while (hasNextPage) {
+			const response = await fetchWithToken(
+				`${API_URL}/exercises/${phoneNumber}?page=${currentPage}&size=50`,
+				{
+					method: "GET",
+				}
+			)
 
-		const response = await fetch(`${API_URL}/exercises/${phoneNumber}`, {
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${cleanToken}`,
-				"Content-Type": "application/json",
-			},
-		})
+			const responseText = await response.text()
+			console.log(`운동 목표 조회 응답 (페이지 ${currentPage}):`, responseText)
 
-		const data = await response.json()
-
-		if (!response.ok) {
-			if (response.status === 401) {
-				throw new Error("토큰이 만료되었습니다.")
+			let result
+			try {
+				result = JSON.parse(responseText)
+			} catch (e) {
+				console.error("JSON 파싱 오류:", e)
+				throw new Error("서버 응답을 파싱할 수 없습니다.")
 			}
-			if (response.status === 404) {
-				throw new Error("운동 목표 정보를 찾을 수 없습니다.")
+
+			if (result.status === "ERROR") {
+				throw new Error(result.error || "운동 목표 조회에 실패했습니다.")
 			}
-			throw new Error(data.error || "운동 목표 조회 중 오류가 발생했습니다.")
+
+			if (result.status !== "SUCCESS" || !result.data) {
+				throw new Error("운동 목표 조회에 실패했습니다.")
+			}
+
+			const pageContent = result.data.content || []
+			allContent = [...allContent, ...pageContent]
+
+			// 다음 페이지 존재 여부 확인
+			hasNextPage = !result.data.last
+			currentPage++
 		}
 
-		if (data.status !== "SUCCESS") {
-			throw new Error(data.error || "운동 목표 조회에 실패했습니다.")
-		}
-
-		return data.data
-	} catch (error: any) {
-		console.error("운동 목표 조회 오류:", error)
+		return { content: allContent }
+	} catch (error) {
+		console.error("운동 목표 조회 중 오류:", error)
 		throw error
 	}
 }
@@ -66,85 +77,39 @@ export interface UpdateExerciseGoalRequest {
 	setCount: number
 }
 
-export const updateExerciseGoal = async (phoneNumber: string, goalId: number, repeatCount: number, setCount: number) => {
+export const updateExerciseGoal = async (
+	phoneNumber: string,
+	goalId: number,
+	setCount: number
+): Promise<void> => {
 	try {
-		const accessToken = await AsyncStorage.getItem("accessToken")
-		if (!accessToken) {
-			throw new Error("액세스 토큰이 없습니다.")
-		}
-
-		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
-		const requestBody = {
-			goalId,
-			repeatCount,
-			setCount,
-		}
-
-		console.log("운동 목표 수정 요청:", {
-			url: `${API_URL}/exercises/${phoneNumber}`,
+		const response = await fetchWithToken(`${API_URL}/exercises/${phoneNumber}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${cleanToken}`,
 			},
-			body: requestBody,
+			body: JSON.stringify({
+				goalId,
+				setCount,
+			}),
 		})
 
-		const response = await fetch(`${API_URL}/exercises/${phoneNumber}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${cleanToken}`,
-			},
-			body: JSON.stringify(requestBody),
-		})
-
-		const responseData = await response.text()
-		console.log("서버 응답:", {
-			status: response.status,
-			statusText: response.statusText,
-			data: responseData,
-			requestBody: JSON.stringify(requestBody),
-			url: `${API_URL}/exercises/${phoneNumber}`,
-		})
-
-		let result
-		try {
-			result = JSON.parse(responseData)
-		} catch (e) {
-			console.error("JSON 파싱 오류:", e)
-			throw new Error(`서버 응답을 파싱할 수 없습니다: ${responseData}`)
-		}
+		const responseText = await response.text()
+		console.log("운동 목표 수정 응답:", responseText)
 
 		if (!response.ok) {
-			if (response.status === 401) {
-				throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.")
-			}
-			if (response.status === 404) {
-				throw new Error("해당 운동 목표를 찾을 수 없습니다.")
-			}
-			if (response.status === 400) {
-				throw new Error(result.message || "잘못된 요청입니다.")
-			}
-			if (response.status === 500) {
-				console.error("서버 오류 상세:", {
-					status: response.status,
-					body: requestBody,
-					response: result,
-					url: `${API_URL}/exercises/${phoneNumber}`,
-				})
-				throw new Error("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-			}
-			throw new Error(result.error || `서버 오류 (${response.status}): ${result.message || "알 수 없는 오류가 발생했습니다."}`)
+			throw new Error("운동 목표 수정에 실패했습니다.")
 		}
 
-		if (result.status !== "SUCCESS") {
-			throw new Error(result.error || "운동 목표 수정에 실패했습니다.")
+		// 응답이 JSON인 경우에만 파싱
+		if (responseText) {
+			const result = JSON.parse(responseText)
+			if (result.status === "ERROR") {
+				throw new Error(result.error || "운동 목표 수정에 실패했습니다.")
+			}
 		}
-
-		return result.data
-	} catch (error: any) {
-		console.error("운동 목표 수정 API 오류:", error)
+	} catch (error) {
+		console.error("운동 목표 수정 중 오류:", error)
 		throw error
 	}
 }
@@ -155,11 +120,11 @@ export interface ExerciseHistoryItem {
 	memberName: string
 	historyId: number
 	exerciseName: string
-	repeatCount: number
 	setCount: number
 	startTime: string | null
 	duration: number | null
 	status: "PROGRESS" | "COMPLETE" | "INCOMPLETE"
+	createdAt?: string // 생성 날짜 필드 추가
 }
 
 export interface ExerciseHistoryResponse {
@@ -172,56 +137,37 @@ export interface ExerciseHistoryResponse {
 
 export const getExerciseHistory = async (phoneNumber: string): Promise<ExerciseHistoryResponse> => {
 	try {
-		const accessToken = await AsyncStorage.getItem("accessToken")
-		if (!accessToken) {
-			throw new Error("액세스 토큰이 없습니다.")
-		}
-
-		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
-		console.log("운동 기록 조회 요청:", {
-			url: `${API_URL}/exercises/histories/${phoneNumber}`,
-		})
-
-		const response = await fetch(`${API_URL}/exercises/histories/${phoneNumber}`, {
+		const response = await fetchWithToken(`${API_URL}/exercises/histories/${phoneNumber}`, {
 			method: "GET",
-			headers: {
-				Authorization: `Bearer ${cleanToken}`,
-				"Content-Type": "application/json",
-			},
 		})
 
-		const responseData = await response.text()
-		console.log("서버 응답:", {
-			status: response.status,
-			statusText: response.statusText,
-			data: responseData,
-		})
+		const responseText = await response.text()
+		console.log("운동 기록 조회 응답:", responseText)
 
 		let result
 		try {
-			result = JSON.parse(responseData)
+			result = JSON.parse(responseText)
 		} catch (e) {
 			console.error("JSON 파싱 오류:", e)
-			throw new Error(`서버 응답을 파싱할 수 없습니다: ${responseData}`)
+			throw new Error("서버 응답을 파싱할 수 없습니다.")
 		}
 
-		if (!response.ok) {
-			if (response.status === 401) {
-				throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.")
-			}
-			if (response.status === 404) {
-				throw new Error("해당 환자의 운동 기록을 찾을 수 없습니다.")
-			}
-			throw new Error(result.error || `서버 오류 (${response.status}): ${result.message || "알 수 없는 오류가 발생했습니다."}`)
-		}
-
-		if (result.status !== "SUCCESS") {
+		if (!response.ok || result.status !== "SUCCESS") {
 			throw new Error(result.error || "운동 기록 조회에 실패했습니다.")
 		}
 
-		return result.data
-	} catch (error: any) {
-		console.error("운동 기록 조회 API 오류:", error)
+		// startTime을 createdAt으로 사용
+		const content = result.data.content.map((item: any) => ({
+			...item,
+			createdAt: item.startTime || new Date().toISOString(),
+		}))
+
+		return {
+			...result.data,
+			content,
+		}
+	} catch (error) {
+		console.error("운동 기록 조회 중 오류:", error)
 		throw error
 	}
 }
