@@ -25,31 +25,46 @@ export const getExerciseGoals = async (
 	phoneNumber: string
 ): Promise<{ content: ExerciseGoalItem[] }> => {
 	try {
-		const response = await fetchWithToken(`${API_URL}/exercises/${phoneNumber}`, {
-			method: "GET",
-		})
+		let allContent: ExerciseGoalItem[] = []
+		let currentPage = 0
+		let hasNextPage = true
 
-		const responseText = await response.text()
-		console.log("운동 목표 조회 응답:", responseText)
+		while (hasNextPage) {
+			const response = await fetchWithToken(
+				`${API_URL}/exercises/${phoneNumber}?page=${currentPage}&size=50`,
+				{
+					method: "GET",
+				}
+			)
 
-		let result
-		try {
-			result = JSON.parse(responseText)
-		} catch (e) {
-			console.error("JSON 파싱 오류:", e)
-			throw new Error("서버 응답을 파싱할 수 없습니다.")
+			const responseText = await response.text()
+			console.log(`운동 목표 조회 응답 (페이지 ${currentPage}):`, responseText)
+
+			let result
+			try {
+				result = JSON.parse(responseText)
+			} catch (e) {
+				console.error("JSON 파싱 오류:", e)
+				throw new Error("서버 응답을 파싱할 수 없습니다.")
+			}
+
+			if (result.status === "ERROR") {
+				throw new Error(result.error || "운동 목표 조회에 실패했습니다.")
+			}
+
+			if (result.status !== "SUCCESS" || !result.data) {
+				throw new Error("운동 목표 조회에 실패했습니다.")
+			}
+
+			const pageContent = result.data.content || []
+			allContent = [...allContent, ...pageContent]
+
+			// 다음 페이지 존재 여부 확인
+			hasNextPage = !result.data.last
+			currentPage++
 		}
 
-		if (result.status === "ERROR") {
-			throw new Error(result.error || "운동 목표 조회에 실패했습니다.")
-		}
-
-		if (result.status !== "SUCCESS" || !result.data) {
-			throw new Error("운동 목표 조회에 실패했습니다.")
-		}
-
-		const content = result.data.content || []
-		return { content }
+		return { content: allContent }
 	} catch (error) {
 		console.error("운동 목표 조회 중 오류:", error)
 		throw error

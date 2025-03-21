@@ -35,6 +35,7 @@ const PatientDetailScreen = () => {
 		goalId: number
 		setCount: string
 	} | null>(null)
+	const [selectedType, setSelectedType] = useState<string | null>(null)
 
 	useEffect(() => {
 		if (activeTab === "goals") {
@@ -121,6 +122,51 @@ const PatientDetailScreen = () => {
 		}
 	}
 
+	// 운동 유형 목록 추출
+	const exerciseTypes = Array.from(new Set(exerciseGoals.map((goal) => goal.exerciseType))).sort()
+
+	// 필터링된 운동 목표
+	const filteredGoals = selectedType
+		? exerciseGoals.filter((goal) => goal.exerciseType === selectedType)
+		: exerciseGoals
+
+	// 운동 유형 필터 렌더링
+	const renderExerciseTypeFilters = () => (
+		<ScrollView
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			style={styles.filterContainer}
+			contentContainerStyle={styles.filterContent}
+		>
+			<TouchableOpacity
+				style={[styles.filterButton, selectedType === null && styles.filterButtonActive]}
+				onPress={() => setSelectedType(null)}
+			>
+				<Text
+					style={[styles.filterButtonText, selectedType === null && styles.filterButtonTextActive]}
+				>
+					전체
+				</Text>
+			</TouchableOpacity>
+			{exerciseTypes.map((type) => (
+				<TouchableOpacity
+					key={type}
+					style={[styles.filterButton, selectedType === type && styles.filterButtonActive]}
+					onPress={() => setSelectedType(type)}
+				>
+					<Text
+						style={[
+							styles.filterButtonText,
+							selectedType === type && styles.filterButtonTextActive,
+						]}
+					>
+						{type}
+					</Text>
+				</TouchableOpacity>
+			))}
+		</ScrollView>
+	)
+
 	const renderTabContent = () => {
 		if (loading) {
 			return (
@@ -170,28 +216,34 @@ const PatientDetailScreen = () => {
 
 			case "goals":
 				return (
-					<ScrollView style={styles.tabContent}>
-						{exerciseGoals.map((goal) => (
-							<View key={goal.goalId} style={styles.goalItem}>
-								<View style={styles.goalHeader}>
-									<View style={styles.goalInfo}>
-										<Text style={styles.exerciseType}>{goal.exerciseType}</Text>
-										<Text style={styles.goalTitle}>{goal.exerciseName}</Text>
-										<View style={styles.goalDetails}>
-											<Text style={styles.goalText}>세트 수: {goal.setCount}세트</Text>
-											{goal.duration > 0 && (
-												<Text style={styles.goalText}>유지 시간: {goal.duration}초</Text>
-											)}
+					<View style={styles.tabContent}>
+						{renderExerciseTypeFilters()}
+						<ScrollView style={styles.goalsList}>
+							{filteredGoals.map((goal) => (
+								<View key={goal.goalId} style={styles.goalItem}>
+									<View style={styles.goalHeader}>
+										<View style={styles.goalInfo}>
+											<Text style={styles.exerciseType}>{goal.exerciseType}</Text>
+											<Text style={styles.goalTitle}>{goal.exerciseName}</Text>
+											<View style={styles.goalDetails}>
+												<Text style={styles.goalText}>세트 수: {goal.setCount}세트</Text>
+												{goal.duration > 0 && (
+													<Text style={styles.goalText}>유지 시간: {goal.duration}초</Text>
+												)}
+											</View>
 										</View>
+										<TouchableOpacity
+											style={styles.editButton}
+											onPress={() => handleEditGoal(goal)}
+										>
+											<Icon name="edit" size={20} color="#fff" />
+											<Text style={styles.editButtonText}>수정</Text>
+										</TouchableOpacity>
 									</View>
-									<TouchableOpacity style={styles.editButton} onPress={() => handleEditGoal(goal)}>
-										<Icon name="edit" size={20} color="#fff" />
-										<Text style={styles.editButtonText}>수정</Text>
-									</TouchableOpacity>
 								</View>
-							</View>
-						))}
-					</ScrollView>
+							))}
+						</ScrollView>
+					</View>
 				)
 
 			case "history":
@@ -560,6 +612,37 @@ const styles = StyleSheet.create({
 		marginTop: 4,
 		marginBottom: 8,
 		alignSelf: "flex-start",
+	},
+	filterContainer: {
+		marginBottom: 12,
+		maxHeight: 44,
+	},
+	filterContent: {
+		paddingHorizontal: 8,
+		gap: 8,
+	},
+	filterButton: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 20,
+		backgroundColor: "#f0f0f0",
+		borderWidth: 1,
+		borderColor: "#ddd",
+	},
+	filterButtonActive: {
+		backgroundColor: "#76DABF",
+		borderColor: "#76DABF",
+	},
+	filterButtonText: {
+		fontSize: 14,
+		color: "#666",
+	},
+	filterButtonTextActive: {
+		color: "#fff",
+		fontWeight: "600",
+	},
+	goalsList: {
+		flex: 1,
 	},
 })
 
