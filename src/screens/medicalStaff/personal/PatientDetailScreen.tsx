@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Modal } from "react-native"
+import {
+	View,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	ScrollView,
+	Alert,
+	TextInput,
+	Modal,
+} from "react-native"
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native"
 import { RootStackParamList } from "../../../types/navigation"
 import { Patient } from "../../../types/patient"
@@ -24,7 +33,6 @@ const PatientDetailScreen = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [editingGoal, setEditingGoal] = useState<{
 		goalId: number
-		repeatCount: string
 		setCount: string
 	} | null>(null)
 
@@ -75,7 +83,6 @@ const PatientDetailScreen = () => {
 	const handleEditGoal = (goal: ExerciseGoalItem) => {
 		setEditingGoal({
 			goalId: goal.goalId,
-			repeatCount: goal.repeatCount.toString(),
 			setCount: goal.setCount.toString(),
 		})
 	}
@@ -83,13 +90,7 @@ const PatientDetailScreen = () => {
 	const handleSaveGoal = async () => {
 		if (!editingGoal) return
 
-		const repeatCount = parseInt(editingGoal.repeatCount)
 		const setCount = parseInt(editingGoal.setCount)
-
-		if (isNaN(repeatCount) || repeatCount <= 0) {
-			Alert.alert("입력 오류", "반복 횟수는 1 이상의 숫자여야 합니다.")
-			return
-		}
 
 		if (isNaN(setCount) || setCount <= 0) {
 			Alert.alert("입력 오류", "세트 수는 1 이상의 숫자여야 합니다.")
@@ -100,14 +101,21 @@ const PatientDetailScreen = () => {
 			console.log("운동 목표 수정 시도:", {
 				phoneNumber: patient.phoneNumber,
 				goalId: editingGoal.goalId,
-				repeatCount,
 				setCount,
 			})
 
-			await updateExerciseGoal(patient.phoneNumber, editingGoal.goalId, repeatCount, setCount)
+			await updateExerciseGoal(patient.phoneNumber, editingGoal.goalId, setCount)
+
+			// UI 즉시 업데이트
+			setExerciseGoals((prevGoals) =>
+				prevGoals.map((goal) => (goal.goalId === editingGoal.goalId ? { ...goal, setCount } : goal))
+			)
+
 			Alert.alert("성공", "운동 목표가 수정되었습니다.")
 			setEditingGoal(null)
-			loadExerciseGoals()
+
+			// 서버에서 최신 데이터 다시 로드
+			await loadExerciseGoals()
 		} catch (error: any) {
 			Alert.alert("오류", error.message || "운동 목표 수정에 실패했습니다.")
 		}
@@ -166,16 +174,20 @@ const PatientDetailScreen = () => {
 						{exerciseGoals.map((goal) => (
 							<View key={goal.goalId} style={styles.goalItem}>
 								<View style={styles.goalHeader}>
-									<Text style={styles.goalTitle}>{goal.exerciseName}</Text>
+									<View style={styles.goalInfo}>
+										<Text style={styles.exerciseType}>{goal.exerciseType}</Text>
+										<Text style={styles.goalTitle}>{goal.exerciseName}</Text>
+										<View style={styles.goalDetails}>
+											<Text style={styles.goalText}>세트 수: {goal.setCount}세트</Text>
+											{goal.duration > 0 && (
+												<Text style={styles.goalText}>유지 시간: {goal.duration}초</Text>
+											)}
+										</View>
+									</View>
 									<TouchableOpacity style={styles.editButton} onPress={() => handleEditGoal(goal)}>
 										<Icon name="edit" size={20} color="#fff" />
 										<Text style={styles.editButtonText}>수정</Text>
 									</TouchableOpacity>
-								</View>
-								<View style={styles.goalDetails}>
-									<Text style={styles.goalText}>반복 횟수: {goal.repeatCount}회</Text>
-									<Text style={styles.goalText}>세트 수: {goal.setCount}세트</Text>
-									{goal.duration > 0 && <Text style={styles.goalText}>유지 시간: {goal.duration}초</Text>}
 								</View>
 							</View>
 						))}
@@ -188,15 +200,34 @@ const PatientDetailScreen = () => {
 						{exerciseHistory.map((history) => (
 							<View key={history.historyId} style={styles.historyItem}>
 								<View style={styles.historyHeader}>
-									<Text style={styles.historyTitle}>{history.exerciseName}</Text>
-									<Text style={[styles.historyStatus, history.status === "COMPLETE" ? styles.statusComplete : history.status === "PROGRESS" ? styles.statusProgress : styles.statusIncomplete]}>
-										{history.status === "COMPLETE" ? "완료" : history.status === "PROGRESS" ? "진행중" : "미완료"}
+									<View>
+										<Text style={styles.historyTitle}>{history.exerciseName}</Text>
+										<Text style={styles.dateText}>
+											{new Date(history.createdAt).toLocaleDateString()}
+										</Text>
+									</View>
+									<Text
+										style={[
+											styles.historyStatus,
+											history.status === "COMPLETE"
+												? styles.statusComplete
+												: history.status === "PROGRESS"
+												? styles.statusProgress
+												: styles.statusIncomplete,
+										]}
+									>
+										{history.status === "COMPLETE"
+											? "완료"
+											: history.status === "PROGRESS"
+											? "진행중"
+											: "미완료"}
 									</Text>
 								</View>
 								<View style={styles.historyDetails}>
-									<Text style={styles.historyText}>반복 횟수: {history.repeatCount}회</Text>
 									<Text style={styles.historyText}>세트 수: {history.setCount}세트</Text>
-									{history.duration && <Text style={styles.historyText}>수행 시간: {history.duration}초</Text>}
+									{history.duration > 0 && (
+										<Text style={styles.historyText}>수행 시간: {history.duration}초</Text>
+									)}
 								</View>
 							</View>
 						))}
@@ -212,52 +243,66 @@ const PatientDetailScreen = () => {
 			</View>
 
 			<View style={styles.tabBar}>
-				<TouchableOpacity style={[styles.tab, activeTab === "info" && styles.activeTab]} onPress={() => setActiveTab("info")}>
+				<TouchableOpacity
+					style={[styles.tab, activeTab === "info" && styles.activeTab]}
+					onPress={() => setActiveTab("info")}
+				>
 					<Icon name="person" size={20} color={activeTab === "info" ? "#76DABF" : "#666"} />
-					<Text style={[styles.tabText, activeTab === "info" && styles.activeTabText]}>기본 정보</Text>
+					<Text style={[styles.tabText, activeTab === "info" && styles.activeTabText]}>
+						기본 정보
+					</Text>
 				</TouchableOpacity>
 
-				<TouchableOpacity style={[styles.tab, activeTab === "goals" && styles.activeTab]} onPress={() => setActiveTab("goals")}>
+				<TouchableOpacity
+					style={[styles.tab, activeTab === "goals" && styles.activeTab]}
+					onPress={() => setActiveTab("goals")}
+				>
 					<Icon name="flag" size={20} color={activeTab === "goals" ? "#76DABF" : "#666"} />
-					<Text style={[styles.tabText, activeTab === "goals" && styles.activeTabText]}>운동 목표</Text>
+					<Text style={[styles.tabText, activeTab === "goals" && styles.activeTabText]}>
+						운동 목표
+					</Text>
 				</TouchableOpacity>
 
-				<TouchableOpacity style={[styles.tab, activeTab === "history" && styles.activeTab]} onPress={() => setActiveTab("history")}>
+				<TouchableOpacity
+					style={[styles.tab, activeTab === "history" && styles.activeTab]}
+					onPress={() => setActiveTab("history")}
+				>
 					<Icon name="history" size={20} color={activeTab === "history" ? "#76DABF" : "#666"} />
-					<Text style={[styles.tabText, activeTab === "history" && styles.activeTabText]}>운동 기록</Text>
+					<Text style={[styles.tabText, activeTab === "history" && styles.activeTabText]}>
+						운동 기록
+					</Text>
 				</TouchableOpacity>
 			</View>
 
 			{renderTabContent()}
 
-			<Modal visible={editingGoal !== null} transparent={true} animationType="fade" onRequestClose={() => setEditingGoal(null)}>
+			<Modal visible={editingGoal !== null} transparent={true} animationType="fade">
 				<View style={styles.modalOverlay}>
 					<View style={styles.modalContent}>
 						<Text style={styles.modalTitle}>운동 목표 수정</Text>
-
-						<Text style={styles.modalLabel}>반복 횟수</Text>
-						<TextInput
-							style={styles.modalInput}
-							value={editingGoal?.repeatCount}
-							onChangeText={(text) => setEditingGoal((prev) => (prev ? { ...prev, repeatCount: text } : null))}
-							keyboardType="numeric"
-							placeholder="반복 횟수 입력"
-						/>
 
 						<Text style={styles.modalLabel}>세트 수</Text>
 						<TextInput
 							style={styles.modalInput}
 							value={editingGoal?.setCount}
-							onChangeText={(text) => setEditingGoal((prev) => (prev ? { ...prev, setCount: text } : null))}
+							onChangeText={(text) =>
+								setEditingGoal((prev) => (prev ? { ...prev, setCount: text } : null))
+							}
 							keyboardType="numeric"
 							placeholder="세트 수 입력"
 						/>
 
 						<View style={styles.modalButtons}>
-							<TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setEditingGoal(null)}>
+							<TouchableOpacity
+								style={[styles.modalButton, styles.cancelButton]}
+								onPress={() => setEditingGoal(null)}
+							>
 								<Text style={styles.cancelButtonText}>취소</Text>
 							</TouchableOpacity>
-							<TouchableOpacity style={[styles.modalButton, styles.saveButton]} onPress={handleSaveGoal}>
+							<TouchableOpacity
+								style={[styles.modalButton, styles.saveButton]}
+								onPress={handleSaveGoal}
+							>
 								<Text style={styles.saveButtonText}>저장</Text>
 							</TouchableOpacity>
 						</View>
@@ -348,11 +393,22 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		marginBottom: 12,
 	},
+	goalHeader: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		paddingTop: 2,
+	},
+	goalInfo: {
+		flex: 1,
+		marginRight: 12,
+	},
 	goalTitle: {
 		fontSize: 18,
 		fontWeight: "bold",
 		color: "#333",
-		marginBottom: 8,
+		marginBottom: 2,
+		flexShrink: 1,
 	},
 	goalDetails: {
 		gap: 4,
@@ -424,17 +480,12 @@ const styles = StyleSheet.create({
 		paddingVertical: 6,
 		borderRadius: 8,
 		gap: 4,
+		marginTop: 8,
 	},
 	editButtonText: {
 		color: "#fff",
 		fontSize: 14,
 		fontWeight: "500",
-	},
-	goalHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 8,
 	},
 	modalOverlay: {
 		flex: 1,
@@ -493,6 +544,22 @@ const styles = StyleSheet.create({
 	cancelButtonText: {
 		color: "#fff",
 		fontWeight: "bold",
+	},
+	dateText: {
+		fontSize: 12,
+		color: "#666",
+		marginTop: 2,
+	},
+	exerciseType: {
+		fontSize: 12,
+		color: "#666",
+		backgroundColor: "#f0f0f0",
+		paddingHorizontal: 8,
+		paddingVertical: 4,
+		borderRadius: 12,
+		marginTop: 4,
+		marginBottom: 8,
+		alignSelf: "flex-start",
 	},
 })
 
