@@ -49,10 +49,7 @@ export const getExerciseGoals = async (
 		}
 
 		const content = result.data.content || []
-
-		const filteredContent = content.filter((goal) => goal.setCount > 0)
-
-		return { content: filteredContent }
+		return { content }
 	} catch (error) {
 		console.error("운동 목표 조회 중 오류:", error)
 		throw error
