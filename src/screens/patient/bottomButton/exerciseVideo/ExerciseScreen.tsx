@@ -41,28 +41,37 @@ const ExerciseScreen = () => {
       try {
         setLoading(true);
         const goals = await getExercisePrescriptions();
-        setExerciseGoals(goals.content);
-
         const history = await getExerciseHistory();
+
         const progress: Record<number, number> = {};
         const goalHistoryMap: Record<number, number> = {};
 
         history.content.forEach((item) => {
           progress[item.historyId] = item.setCount || 0;
-          const matchingGoal = goals.content.find((goal) => goal.exerciseName === item.exerciseName);
+          const matchingGoal = goals.content.find(
+            (goal) => goal.exerciseName === item.exerciseName
+          );
           if (matchingGoal) {
             goalHistoryMap[matchingGoal.goalId] = item.historyId;
           }
         });
 
+        setExerciseGoals(goals.content);
         setVideoProgress(progress);
         setGoalToHistoryMap(goalHistoryMap);
 
-        if (goals.content.length > 0 && !goalHistoryMap[goals.content[0].goalId]) {
-          const newHistoryId = await startExercise(goals.content[0].goalId);
-          if (newHistoryId) {
-            setGoalToHistoryMap((prev) => ({ ...prev, [goals.content[0].goalId]: newHistoryId }));
+        const firstAvailableIndex = findNextIncompleteIndex(goals.content, goalHistoryMap, progress);
+        if (firstAvailableIndex !== -1) {
+          const firstGoalId = goals.content[firstAvailableIndex].goalId;
+          if (!goalHistoryMap[firstGoalId]) {
+            const newId = await startExercise(firstGoalId);
+            if (newId) {
+              setGoalToHistoryMap((prev) => ({ ...prev, [firstGoalId]: newId }));
+            }
           }
+          setCurrentVideoIndex(firstAvailableIndex);
+        } else {
+          navigateToRecord(goals.content, goalHistoryMap, progress);
         }
       } catch (err) {
         console.error("🚨 데이터 로딩 실패:", err);
@@ -70,8 +79,25 @@ const ExerciseScreen = () => {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
+
+  const findNextIncompleteIndex = (
+    goals: ExercisePrescriptionItem[],
+    historyMap: Record<number, number>,
+    progressMap: Record<number, number>
+  ): number => {
+    for (let i = 0; i < goals.length; i++) {
+      const goal = goals[i];
+      const historyId = historyMap[goal.goalId];
+      const watched = progressMap[historyId] || 0;
+      if (watched < goal.setCount) {
+        return i;
+      }
+    }
+    return -1;
+  };
 
   const handleVideoEnd = async () => {
     const currentExercise = exerciseGoals[currentVideoIndex];
@@ -91,11 +117,13 @@ const ExerciseScreen = () => {
       const success = await completeExerciseSet(historyId);
       if (!success) return;
 
-      setVideoProgress((prev) => ({ ...prev, [historyId]: watched }));
+      const updatedProgress = { ...videoProgress, [historyId]: watched };
+      setVideoProgress(updatedProgress);
 
       if (watched >= currentExercise.setCount) {
-        const nextIndex = currentVideoIndex + 1;
-        if (nextIndex < exerciseGoals.length) {
+        const nextIndex = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, updatedProgress);
+
+        if (nextIndex !== -1) {
           const nextGoalId = exerciseGoals[nextIndex].goalId;
           let nextHistoryId = goalToHistoryMap[nextGoalId];
 
@@ -107,26 +135,33 @@ const ExerciseScreen = () => {
           }
 
           setCurrentVideoIndex(nextIndex);
+          setPaused(false); // 자동 재생
         } else {
-          navigateToRecord();
+          navigateToRecord(exerciseGoals, goalToHistoryMap, updatedProgress);
         }
+      } else {
+        setVideoProgress(updatedProgress);
       }
     } catch (err) {
       console.error("🚨 세트 완료 실패:", err);
     }
   };
 
-  const navigateToRecord = () => {
-    const totalSets = exerciseGoals.reduce((sum, g) => sum + g.setCount, 0);
-    const done = Object.entries(goalToHistoryMap).reduce((sum, [goalId, historyId]) => {
-      return sum + (videoProgress[historyId] || 0);
+  const navigateToRecord = (
+    goals = exerciseGoals,
+    map = goalToHistoryMap,
+    progress = videoProgress
+  ) => {
+    const totalSets = goals.reduce((sum, g) => sum + g.setCount, 0);
+    const done = Object.entries(map).reduce((sum, [goalId, historyId]) => {
+      return sum + (progress[historyId] || 0);
     }, 0);
-    const progress = totalSets ? (done / totalSets) * 100 : 0;
+    const finalProgress = totalSets ? (done / totalSets) * 100 : 0;
 
     navigation.navigate("RecordScreen", {
-      progress: parseFloat(progress.toFixed(1)),
-      videoProgress,
-      exerciseGoals,
+      progress: parseFloat(finalProgress.toFixed(1)),
+      videoProgress: progress,
+      exerciseGoals: goals,
     });
   };
 
