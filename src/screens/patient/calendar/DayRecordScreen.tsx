@@ -34,9 +34,12 @@ const DayRecordScreen = () => {
 
         // ✅ 서버 기록을 { 운동명: 완료된 세트 수 } 형태로 변환
         const historyMap = historyData.content.reduce((acc: Record<string, number>, item) => {
-          acc[item.exerciseName] = item.completedSets || 0;
+          const performedSets = typeof item.setCount === "number" ? item.setCount : 0;
+          acc[item.exerciseName] = performedSets;
           return acc;
         }, {});
+        
+        
 
         setExerciseGoals(goalsData.content);
         setExerciseHistory(historyMap);
