@@ -132,8 +132,7 @@
 
 - `React Native`
 - `React Navigation`
-- `React Query (데이터 캐싱 및 상태 관리)`?
-- `Axios (API 요청)`?
+- `Fetch (API 요청)`?
 
 ### 🖥 **백엔드(?)**
 
@@ -151,4 +150,7 @@
 git clone https://github.com/kw-idea/PD_balance.git
 cd PD_balance
 npm install
+npm start
+npm run android
+npm run ios (미개발 상태)
 ```
