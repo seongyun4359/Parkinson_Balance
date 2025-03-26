@@ -6,6 +6,10 @@ import { RootStackParamList } from '../../navigation/Root';
 import { useNavigation } from '@react-navigation/native';
 import type XDate from 'xdate';
 
+interface CalendarComponentProps {
+  completedDates?: string[];
+}
+
 type DayRecordScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   'DayRecord'
@@ -14,7 +18,7 @@ type DayRecordScreenNavigationProp = StackNavigationProp<
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const FIXED_CALENDAR_HEIGHT = 400;
 
-const CalendarComponent: React.FC = () => {
+const CalendarComponent: React.FC<CalendarComponentProps> = ({ completedDates = [] }) => {
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -41,6 +45,13 @@ const CalendarComponent: React.FC = () => {
             selectedColor: '#76DABF',
             selectedTextColor: '#FFFFFF',
           },
+          ...completedDates.reduce((acc, date) => {
+            acc[date] = {
+              marked: true,
+              dotColor: 'pink',
+            };
+            return acc;
+          }, {} as Record<string, any>),
         }}
         hideExtraDays={true}
         disableArrowLeft={false}
@@ -53,18 +64,7 @@ const CalendarComponent: React.FC = () => {
         renderHeader={(date: XDate | undefined) => {
           if (!date) return null;
           const monthNames = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December',
+            'January','February','March','April','May','June','July','August','September','October','November','December',
           ];
           return (
             <View style={styles.headerContainer}>
@@ -93,6 +93,8 @@ const CalendarComponent: React.FC = () => {
         }}
         dayComponent={({ date }) => {
           const isToday = date?.dateString === selectedDate;
+          const isCompleted = completedDates.includes(date?.dateString || '');
+
           return (
             <TouchableOpacity
               onPress={() => {
@@ -103,9 +105,12 @@ const CalendarComponent: React.FC = () => {
                 isToday ? styles.selectedDay : styles.defaultDay,
               ]}
             >
-              <Text style={[styles.dayText, isToday && styles.selectedDayText]}>
-                {date?.day}
-              </Text>
+              <View style={styles.innerDayContainer}>
+                {isCompleted && <Text style={styles.flowerIcon}>🌸</Text>}
+                <Text style={[styles.dayText, isToday && styles.selectedDayText]}>
+                  {date?.day}
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         }}
@@ -160,6 +165,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,  
     margin: -3,
   },
+  innerDayContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   defaultDay: {
     backgroundColor: '#FFFFFF',
   },
@@ -173,5 +182,10 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     color: '#FFFFFF',
+  },
+  flowerIcon: {
+    fontSize: 12,
+    color: 'pink',
+    lineHeight: 12,
   },
 });

@@ -12,7 +12,7 @@ export type RootStackParamList = {
 	StrengthExercise: undefined
 	BalanceExercise: undefined
 	OralExercise: undefined
-	DayRecord: undefined
+	DayRecord: { date: string }
 	RecordScreen: { 
 		progress: number; 
 		videoProgress: Record<string, number>; 
