@@ -23,6 +23,7 @@ export interface ExerciseHistoryItem {
   exerciseName: string;
   setCount: number;
   date: string;
+  createdAt?: string;
 }
 
 export interface ExerciseHistoryResponse {

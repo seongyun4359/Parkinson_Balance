@@ -1,48 +1,75 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import CalendarComponent from "../../../components/patient/Calendar";
 import ScreenHeader from "../../../components/patient/ScreenHeader";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { RootStackParamList } from "../../../navigation/Root";
-import { getExerciseHistory, getExercisePrescriptions } from "../../../apis/exercisePrescription"; 
+import {
+  getExerciseHistory,
+  getExercisePrescriptions,
+} from "../../../apis/exercisePrescription";
+import type { ExercisePrescriptionItem } from "../../../apis/exercisePrescription";
+
+// ✅ createdAt 필드를 포함한 타입 정의
+interface ExerciseHistoryItem {
+  exerciseName: string;
+  setCount: number;
+  createdAt?: string; // API에서 createdAt이 없을 수도 있으므로 옵셔널 처리
+}
 
 type DayRecordScreenRouteProp = RouteProp<RootStackParamList, "DayRecord">;
 
 const DayRecordScreen = () => {
   const route = useRoute<DayRecordScreenRouteProp>();
-
-  // ✅ `date`가 `undefined`이면 오늘 날짜를 기본값으로 설정
   const today = new Date().toISOString().split("T")[0];
   const date = route.params?.date || today;
 
-  const [exerciseGoals, setExerciseGoals] = useState<any[]>([]);
+  const [exerciseGoals, setExerciseGoals] = useState<ExercisePrescriptionItem[]>([]);
   const [exerciseHistory, setExerciseHistory] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [completedDates, setCompletedDates] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchExerciseData = async () => {
       try {
         setLoading(true);
 
-        // ✅ 1. 운동 목표(처방된 운동) 가져오기
         const goalsData = await getExercisePrescriptions();
-        console.log("📢 운동 목표 데이터:", goalsData.content);
+        const historyData = await getExerciseHistory(); // 전체 운동 기록 가져오기
 
-        // ✅ 2. 해당 날짜의 운동 기록 가져오기
-        const historyData = date ? await getExerciseHistory(date) : await getExerciseHistory();
-        console.log("📢 운동 기록 데이터:", historyData.content);
+        // ✅ 날짜별 운동 기록을 추출
+        const historyMap: Record<string, Record<string, number>> = {};
 
-        // ✅ 서버 기록을 { 운동명: 완료된 세트 수 } 형태로 변환
-        const historyMap = historyData.content.reduce((acc: Record<string, number>, item) => {
-          const performedSets = typeof item.setCount === "number" ? item.setCount : 0;
-          acc[item.exerciseName] = performedSets;
-          return acc;
-        }, {});
-        
-        
+        (historyData.content as ExerciseHistoryItem[]).forEach(item => {
+          const createdDate = item.createdAt?.split("T")[0];
+          if (createdDate) {
+            if (!historyMap[createdDate]) historyMap[createdDate] = {};
+            historyMap[createdDate][item.exerciseName] = item.setCount ?? 0;
+          }
+        });
 
         setExerciseGoals(goalsData.content);
-        setExerciseHistory(historyMap);
+        setExerciseHistory(historyMap[date] || {});
+
+        // ✅ 완료된 운동 날짜 확인
+        const updatedCompletedDates = new Set(completedDates);
+
+        Object.keys(historyMap).forEach(day => {
+          const allDone = goalsData.content.every(goal => {
+            const done = historyMap[day]?.[goal.exerciseName] ?? 0;
+            return done >= goal.setCount;
+          });
+
+          if (allDone) updatedCompletedDates.add(day);
+        });
+
+        setCompletedDates(updatedCompletedDates);
       } catch (error) {
         console.error("🚨 운동 기록 불러오기 오류:", error);
       } finally {
@@ -60,7 +87,9 @@ const DayRecordScreen = () => {
   return (
     <View style={styles.container}>
       <ScreenHeader />
-      <CalendarComponent />
+      
+      {/* ✅ Set을 Array로 변환하여 안전하게 CalendarComponent로 전달 */}
+      <CalendarComponent completedDates={Array.from(completedDates)} />
 
       <ScrollView style={styles.recordContainer}>
         <Text style={styles.dateText}>{date} 기록</Text>
@@ -71,7 +100,10 @@ const DayRecordScreen = () => {
           exerciseGoals.map((exercise) => {
             const completedSets = exerciseHistory[exercise.exerciseName] || 0;
             const totalSets = exercise.setCount || 0;
-            const progress = totalSets > 0 ? parseFloat(((completedSets / totalSets) * 100).toFixed(0)) : 0;
+            const progress =
+              totalSets > 0
+                ? parseFloat(((completedSets / totalSets) * 100).toFixed(0))
+                : 0;
             const isCompleted = completedSets >= totalSets;
 
             return (
