@@ -8,12 +8,13 @@ import SearchFilterBar from "../../../components/medicalStaff/SearchFilterBar"
 import { Patient, SortConfig, FilterConfig } from "../../../types/patient"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { addBookmark, removeBookmark, getBookmarks } from "../../../apis/bookmark"
+import messaging from "@react-native-firebase/messaging"
 
 const API_URL = "https://kwhcclab.com:20955/api/members"
 const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh"
 let AUTH_TOKEN = ""
 
-// ✅ API 요청 함수 (토큰 만료 시 자동 갱신 후 재요청)
+// API 요청 (토큰 만료 시 자동 갱신 후 재요청)
 const fetchWithToken = async (url: string, options: RequestInit = {}, handleLogout: () => void) => {
 	try {
 		// 토큰이 없으면 저장된 토큰 가져오기
@@ -73,7 +74,7 @@ const fetchWithToken = async (url: string, options: RequestInit = {}, handleLogo
 	}
 }
 
-// ✅ 토큰 갱신 요청 함수
+//  토큰 갱신 요청 함수
 const refreshTokenRequest = async (refreshToken: string): Promise<string | null> => {
 	try {
 		const response = await fetch(REFRESH_URL, {
@@ -113,7 +114,6 @@ const refreshTokenRequest = async (refreshToken: string): Promise<string | null>
 	}
 }
 
-// 푸시 알림 전송 함수를 컴포넌트 내부로 이동
 export const InfoTableScreen = () => {
 	const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 	const [patients, setPatients] = useState<Patient[]>([])
@@ -127,7 +127,7 @@ export const InfoTableScreen = () => {
 	const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 	const [showRecentLoginOnly, setShowRecentLoginOnly] = useState(false)
 
-	// ✅ 로그아웃 처리 함수
+	//  로그아웃 처리 함수
 	const handleLogout = async () => {
 		try {
 			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
@@ -142,22 +142,18 @@ export const InfoTableScreen = () => {
 		}
 	}
 
-	// 정렬 토글 함수 수정
 	const onToggleSort = useCallback((key: keyof Patient) => {
 		setSortConfigs((prevConfigs) => {
 			const existingConfig = prevConfigs.find((config) => config.key === key)
 			if (existingConfig) {
-				// 이미 존재하는 정렬 설정이면 방향만 변경
 				existingConfig.order = existingConfig.order === "asc" ? "desc" : "asc"
 				return [...prevConfigs]
 			} else {
-				// 새로운 정렬 설정 추가 (기본값: 오름차순)
 				return [{ key, order: "asc" }]
 			}
 		})
 	}, [])
 
-	// 정렬 적용 함수 수정
 	const applySorting = useCallback(
 		(patients: Patient[]) => {
 			let sortedPatients = [...patients]
@@ -186,7 +182,7 @@ export const InfoTableScreen = () => {
 		[sortConfigs]
 	)
 
-	// 최근 접속 시간 포맷 함수 추가
+	// 최근 접속 시간 포맷 함수
 	const formatLastLogin = (lastLogin: string) => {
 		const loginDate = new Date(lastLogin)
 		const now = new Date()
@@ -246,19 +242,19 @@ export const InfoTableScreen = () => {
 		setFilteredPatients(result)
 	}, [patients, searchQuery, showFavoritesOnly, showRecentLoginOnly, applySorting])
 
-	// ✅ 필터 변경 처리
+	//  필터 변경 처리
 	const handleFiltersChange = useCallback((newFilters: FilterConfig[]) => {
 		setFilterConfigs(newFilters)
 		setShowFavoritesOnly(newFilters.some((filter) => filter.type === "favorite"))
 		setShowRecentLoginOnly(newFilters.some((filter) => filter.type === "recentLogin"))
 	}, [])
 
-	// ✅ 검색어 변경 처리
+	//  검색어 변경 처리
 	const handleSearchChange = useCallback((query: string) => {
 		setSearchQuery(query)
 	}, [])
 
-	// ✅ 즐겨찾기 토글 처리 수정
+	//  즐겨찾기 토글 처리 수정
 	const handleToggleFavorite = useCallback(
 		async (id: string) => {
 			try {
@@ -289,12 +285,12 @@ export const InfoTableScreen = () => {
 		[patients]
 	)
 
-	// ✅ 필터 변경시 자동 적용
+	//  필터 변경시 자동 적용
 	useEffect(() => {
 		applyFilters()
 	}, [applyFilters, patients, searchQuery, showFavoritesOnly, showRecentLoginOnly])
 
-	// ✅ 환자 데이터 가져오기 (토큰 자동 갱신 포함)
+	//  환자 데이터 가져오기 (토큰 자동 갱신 포함)
 	const fetchPatients = async (page = 0) => {
 		try {
 			// 환자 목록 가져오기

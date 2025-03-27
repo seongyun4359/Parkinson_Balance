@@ -13,12 +13,19 @@ const firebaseConfig = {
 	// Android 패키지 이름
 	androidClientId: "com.idealab.pddiary",
 	databaseURL: "https://pd-diary-47917-default-rtdb.firebaseio.com",
-  };
-  
+}
 
 // Firebase 설정 유효성 검사
 const validateFirebaseConfig = () => {
-	const requiredFields = ["apiKey", "authDomain", "databaseURL", "projectId", "storageBucket", "messagingSenderId", "appId"]
+	const requiredFields = [
+		"apiKey",
+		"authDomain",
+		"databaseURL",
+		"projectId",
+		"storageBucket",
+		"messagingSenderId",
+		"appId",
+	]
 
 	const missingFields = requiredFields.filter((field) => !firebaseConfig[field])
 	if (missingFields.length > 0) {
@@ -39,7 +46,7 @@ export const initializeFirebase = async () => {
 			console.log("🔧 Firebase 앱 초기화 시작")
 			console.log("📋 Firebase 설정:", firebaseConfig)
 			app = initializeApp(firebaseConfig)
-			console.log("✅ Firebase 앱 초기화 완료")
+			console.log(" Firebase 앱 초기화 완료")
 		} else {
 			app = getApp()
 			console.log("ℹ️ 이미 초기화된 Firebase 앱 사용")
@@ -47,7 +54,7 @@ export const initializeFirebase = async () => {
 
 		// Messaging 초기화 확인
 		if (messaging().app) {
-			console.log("✅ Firebase Messaging 초기화 완료")
+			console.log(" Firebase Messaging 초기화 완료")
 		}
 
 		return app
@@ -61,11 +68,13 @@ export const initializeFirebase = async () => {
 	}
 }
 
-// ✅ Android 푸시 알림 권한 요청
+//  Android 푸시 알림 권한 요청
 const requestAndroidPermissions = async () => {
 	try {
 		if (Platform.OS === "android") {
-			const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
+			const granted = await PermissionsAndroid.request(
+				PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+			)
 			return granted === PermissionsAndroid.RESULTS.GRANTED
 		}
 		return true
@@ -94,11 +103,13 @@ export const requestFCMToken = async () => {
 			}
 
 			const authStatus = await messaging().requestPermission()
-			const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL
+			const enabled =
+				authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+				authStatus === messaging.AuthorizationStatus.PROVISIONAL
 
 			if (enabled) {
 				const fcmToken = await messaging().getToken()
-				console.log("✅ FCM 토큰 발급 완료:", fcmToken)
+				console.log(" FCM 토큰 발급 완료:", fcmToken)
 				return fcmToken
 			} else {
 				console.warn("⚠️ FCM 권한이 거부되었습니다.")
@@ -114,7 +125,7 @@ export const requestFCMToken = async () => {
 	}
 }
 
-export const setupNotificationListeners  = async () => {
+export const setupNotificationListeners = async () => {
 	try {
 		// Firebase 앱 초기화 확인
 		const app = getApps().length === 0 ? await initializeFirebase() : getApp()
@@ -133,7 +144,7 @@ export const setupNotificationListeners  = async () => {
 				console.log("📬 백그라운드 메시지 수신:", remoteMessage)
 			})
 
-			console.log("✅ FCM 리스너 설정 완료")
+			console.log(" FCM 리스너 설정 완료")
 			return unsubscribe
 		} else {
 			console.warn("⚠️ FCM 리스너는 모바일 플랫폼에서만 지원됩니다.")
@@ -147,8 +158,7 @@ export const setupNotificationListeners  = async () => {
 
 export const firebaseMessaging = () => {
 	if (getApps().length === 0) {
-		initializeFirebase();
+		initializeFirebase()
 	}
-	return messaging();
-};
-
+	return messaging()
+}
