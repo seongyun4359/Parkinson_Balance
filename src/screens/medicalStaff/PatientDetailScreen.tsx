@@ -10,10 +10,9 @@ import {
 	Modal,
 } from "react-native"
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native"
-import { RootStackParamList } from "../../../types/navigation"
-import { Patient } from "../../../types/patient"
-import { getExerciseGoals, ExerciseGoalItem, updateExerciseGoal } from "../../../apis/exercise"
-import { getExerciseHistory, ExerciseHistoryItem } from "../../../apis/exercise"
+import { RootStackParamList } from "../../types/navigation"
+import { getExerciseGoals, ExerciseGoalItem, updateExerciseGoal } from "../../apis/exercise"
+import { getExerciseHistory, ExerciseHistoryItem } from "../../apis/exercise"
 import Icon from "react-native-vector-icons/MaterialIcons"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 
