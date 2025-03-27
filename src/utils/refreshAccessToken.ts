@@ -1,13 +1,12 @@
 import { API_BASE_URL } from "../config/constants"
 import { getAuthToken, setAuthToken } from "../utils/auth"
-import { MemberResponse } from "../types/member"; 
-
+import { MemberResponse } from "../types/member"
 
 export const refreshAccessToken = async (): Promise<string> => {
 	try {
-		const token = await getAuthToken();
+		const token = await getAuthToken()
 		if (!token) {
-			throw new Error("현재 유효한 토큰이 없습니다.");
+			throw new Error("현재 유효한 토큰이 없습니다.")
 		}
 
 		const response = await fetch(`${API_BASE_URL}/api/refresh`, {
@@ -16,26 +15,26 @@ export const refreshAccessToken = async (): Promise<string> => {
 				Authorization: `Bearer ${token}`,
 				"Content-Type": "application/json",
 			},
-		});
+		})
 
 		if (!response.ok) {
-			throw new Error("리프레시 토큰 요청 실패");
+			throw new Error("리프레시 토큰 요청 실패")
 		}
 
-		const data = await response.json();
+		const data = await response.json()
 
 		if (data.status === "SUCCESS" && data.data.length > 0) {
-			const newAccessToken = data.data[0].accessToken;
-			await setAuthToken(newAccessToken);
-			return newAccessToken;
+			const newAccessToken = data.data[0].accessToken
+			await setAuthToken(newAccessToken)
+			return newAccessToken
 		} else {
-			throw new Error("새로운 액세스 토큰을 받지 못했습니다.");
+			throw new Error("새로운 액세스 토큰을 받지 못했습니다.")
 		}
 	} catch (error) {
-		console.error("❌ 리프레시 토큰 오류:", error);
-		throw error; // ✅ 항상 string을 반환하게 수정
+		console.error("❌ 리프레시 토큰 오류:", error)
+		throw error //  항상 string을 반환하게 수정
 	}
-};
+}
 
 export const searchMemberByPhone = async (phoneNumber: string): Promise<MemberResponse> => {
 	try {

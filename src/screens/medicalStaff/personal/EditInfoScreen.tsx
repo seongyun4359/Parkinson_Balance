@@ -1,7 +1,14 @@
 import React, { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native"
+import {
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	StyleSheet,
+	Alert,
+	ScrollView,
+} from "react-native"
 import { updateMember } from "../../../apis/member"
-import { PatientInfoType } from "../../../types/patient"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { RootStackParamList } from "../../../navigation/Root"
 
@@ -105,16 +112,40 @@ const EditInfoScreen = ({ route, navigation }: EditInfoScreenProps) => {
 			<Text style={styles.title}>환자 정보 수정</Text>
 
 			<Text style={styles.label}>이름</Text>
-			<TextInput style={styles.input} value={name} onChangeText={setName} placeholder="이름을 입력하세요" />
+			<TextInput
+				style={styles.input}
+				value={name}
+				onChangeText={setName}
+				placeholder="이름을 입력하세요"
+			/>
 
 			<Text style={styles.label}>전화번호</Text>
-			<TextInput style={styles.input} value={phoneNumber} onChangeText={handlePhoneNumberChange} placeholder="010-0000-0000" keyboardType="phone-pad" maxLength={13} />
+			<TextInput
+				style={styles.input}
+				value={phoneNumber}
+				onChangeText={handlePhoneNumberChange}
+				placeholder="010-0000-0000"
+				keyboardType="phone-pad"
+				maxLength={13}
+			/>
 
 			<Text style={styles.label}>새 비밀번호 (선택)</Text>
-			<TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="새 비밀번호를 입력하세요" secureTextEntry />
+			<TextInput
+				style={styles.input}
+				value={password}
+				onChangeText={setPassword}
+				placeholder="새 비밀번호를 입력하세요"
+				secureTextEntry
+			/>
 
 			<Text style={styles.label}>비밀번호 확인</Text>
-			<TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="비밀번호를 다시 입력하세요" secureTextEntry />
+			<TextInput
+				style={styles.input}
+				value={confirmPassword}
+				onChangeText={setConfirmPassword}
+				placeholder="비밀번호를 다시 입력하세요"
+				secureTextEntry
+			/>
 
 			<TouchableOpacity style={styles.saveButton} onPress={handleSave}>
 				<Text style={styles.saveButtonText}>저장</Text>

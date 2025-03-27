@@ -3,7 +3,7 @@ const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh" // 토큰 갱�
 let AUTH_TOKEN =
 	"eyJhbGciOiJIUzI1NiJ9.eyJwaG9uZU51bWJlciI6IjAxMC0xMjM0LTU2NzgiLCJyb2xlIjoiUEFUSUVOVCIsInN1YiI6IlkxOVN5RnRKZXQzZjNUdGVnMjJldSIsImV4cCI6MTczODgwMzg4M30._kDif0fZ25olnuQQG7nqeV3IGsuqzP9JVVSwu-NcqUU" // 여기에 최신 토큰 입력
 
-// ✅ API 요청 함수 (토큰 만료 시 자동 갱신 후 재요청)
+//  API 요청 함수 (토큰 만료 시 자동 갱신 후 재요청)
 const fetchWithToken = async (url: string, options: RequestInit = {}) => {
 	try {
 		let response = await fetch(url, {
@@ -42,7 +42,7 @@ const fetchWithToken = async (url: string, options: RequestInit = {}) => {
 	}
 }
 
-// ✅ 토큰 갱신 함수
+//  토큰 갱신 함수
 const refreshToken = async () => {
 	try {
 		const response = await fetch(REFRESH_URL, {
@@ -74,7 +74,7 @@ const refreshToken = async () => {
 	}
 }
 
-// ✅ 환자 데이터 가져오기 (토큰 자동 갱신 포함)
+//  환자 데이터 가져오기 (토큰 자동 갱신 포함)
 const fetchPatients = async (page = 0) => {
 	try {
 		const response = await fetchWithToken(`${API_URL}?page=${page}&size=10&sort=lastLoginAt,desc`)

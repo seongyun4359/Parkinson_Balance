@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react"
-import { requestFCMToken, setupNotificationListeners, firebaseMessaging } from "./src/utils/firebase"
+import {
+	requestFCMToken,
+	setupNotificationListeners,
+	firebaseMessaging,
+} from "./src/utils/firebase"
 import AppNavigator from "./src/navigation/AppNavigator"
 
 const App: React.FC = () => {
@@ -8,12 +12,12 @@ const App: React.FC = () => {
 	useEffect(() => {
 		const setupFirebase = async () => {
 			try {
-				console.log("✅ Firebase 앱 설정 시작...")
+				console.log(" Firebase 앱 설정 시작...")
 
 				// 🔹 FCM 토큰 요청 (Firebase 초기화 후 실행)
 				const token = await requestFCMToken()
 				if (token) {
-					console.log("✅ 받은 FCM 토큰:", token)
+					console.log(" 받은 FCM 토큰:", token)
 				} else {
 					console.warn("⚠️ FCM 토큰을 가져오지 못했습니다.")
 				}
@@ -27,7 +31,7 @@ const App: React.FC = () => {
 				}
 
 				setIsFirebaseReady(true)
-				console.log("✅ Firebase 앱 설정 완료")
+				console.log(" Firebase 앱 설정 완료")
 			} catch (error) {
 				console.error("🚨 Firebase 설정 중 오류 발생:", error)
 			}

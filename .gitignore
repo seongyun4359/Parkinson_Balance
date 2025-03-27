@@ -141,3 +141,7 @@ android/app/build.gradle
 ios/Podfile.lock
 
 android/gradle.properties
+
+*.keystore
+*.jks
+android/app/release.keystore

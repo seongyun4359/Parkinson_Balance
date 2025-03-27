@@ -5,7 +5,9 @@ export const getFCMToken = async (): Promise<string> => {
 	try {
 		// FCM 권한 요청
 		const authStatus = await messaging().requestPermission()
-		const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL
+		const enabled =
+			authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+			authStatus === messaging.AuthorizationStatus.PROVISIONAL
 
 		if (!enabled) {
 			throw new Error("FCM 권한이 거부되었습니다.")
@@ -14,7 +16,7 @@ export const getFCMToken = async (): Promise<string> => {
 		// FCM 토큰 가져오기
 		const fcmToken = await messaging().getToken()
 		if (fcmToken) {
-			console.log("✅ 가져온 FCM 토큰:", fcmToken)
+			console.log(" 가져온 FCM 토큰:", fcmToken)
 			await AsyncStorage.setItem("fcmToken", fcmToken)
 			return fcmToken
 		} else {

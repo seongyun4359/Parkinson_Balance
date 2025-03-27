@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native"
 import { loginUser } from "../../apis/Login"
-import { getFCMToken } from "../../utils/tokenUtils" // ✅ tokenUtils에서 FCM 토큰 가져오기
+import { getFCMToken } from "../../utils/tokenUtils" //  tokenUtils에서 FCM 토큰 가져오기
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [phoneNumber1, setPhoneNumber1] = useState("")
@@ -63,12 +63,12 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 			if (response.status === "SUCCESS" && response.data[0]) {
 				const { memberInfoResponse } = response.data[0]
-				console.log("✅ 로그인 성공:", memberInfoResponse)
+				console.log(" 로그인 성공:", memberInfoResponse)
 
 				// 🔹 로그인 후 저장된 FCM 토큰 사용 (새로 요청하지 않음)
 				const fcmToken = await getFCMToken()
 				if (fcmToken) {
-					console.log("✅ 로그인 후 FCM 토큰 사용:", fcmToken)
+					console.log(" 로그인 후 FCM 토큰 사용:", fcmToken)
 				} else {
 					console.warn("⚠️ 로그인 후 저장된 FCM 토큰이 없습니다.")
 				}
