@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native"
 import { loginUser } from "../../apis/Login"
 import { getFCMToken } from "../../utils/tokenUtils" //  tokenUtils에서 FCM 토큰 가져오기
+import { checkLoginStatus } from "../../apis/auth"
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [phoneNumber1, setPhoneNumber1] = useState("")
@@ -88,6 +89,24 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const handleSignup = () => {
 		navigation.navigate("SignUp") // "Signup"에서 "SignUp"으로 수정
 	}
+
+	useEffect(() => {
+		const checkAuth = async () => {
+			const { isLoggedIn, userInfo } = await checkLoginStatus()
+			if (isLoggedIn && userInfo) {
+				navigation.reset({
+					index: 0,
+					routes: [
+						{
+							name: userInfo.role === "PATIENT" ? "PatientHome" : "InfoTable",
+						},
+					],
+				})
+			}
+		}
+
+		checkAuth()
+	}, [navigation])
 
 	return (
 		<View style={styles.container}>

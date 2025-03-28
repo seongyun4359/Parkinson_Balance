@@ -130,15 +130,40 @@ export const InfoTableScreen = () => {
 	//  로그아웃 처리 함수
 	const handleLogout = async () => {
 		try {
-			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
-			AUTH_TOKEN = ""
-			Alert.alert("알림", "로그아웃되었습니다.")
-			navigation.reset({
-				index: 0,
-				routes: [{ name: "MedicalStaffAuth" }],
-			})
+			// 로그아웃 전 확인 다이얼로그 표시
+			Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
+				{
+					text: "취소",
+					style: "cancel",
+				},
+				{
+					text: "로그아웃",
+					onPress: async () => {
+						try {
+							// 모든 저장된 데이터 삭제
+							await AsyncStorage.multiRemove([
+								"accessToken",
+								"refreshToken",
+								"userInfo",
+								"fcmToken",
+							])
+							AUTH_TOKEN = ""
+
+							// 로그인 화면으로 이동
+							navigation.reset({
+								index: 0,
+								routes: [{ name: "MedicalStaffAuth" }],
+							})
+						} catch (error) {
+							console.error("로그아웃 처리 중 오류:", error)
+							Alert.alert("오류", "로그아웃 처리 중 문제가 발생했습니다.")
+						}
+					},
+				},
+			])
 		} catch (error) {
 			console.error("로그아웃 처리 중 오류:", error)
+			Alert.alert("오류", "로그아웃 처리 중 문제가 발생했습니다.")
 		}
 	}
 
