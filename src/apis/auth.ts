@@ -53,6 +53,7 @@ export const saveUserInfo = async (userInfo: any) => {
 
 //  저장된 사용자 정보 가져오기 (운동 알람 시간 포함!)
 export const getUserInfo = async (): Promise<{
+	role: string
 	phoneNumber: string
 	exerciseNotificationTime?: string
 } | null> => {
@@ -67,4 +68,23 @@ export const getUserInfo = async (): Promise<{
 		console.error("❌ 사용자 정보 가져오기 실패:", error)
 	}
 	return null
+}
+
+export const checkLoginStatus = async () => {
+	try {
+		const accessToken = await AsyncStorage.getItem("accessToken")
+		const refreshToken = await AsyncStorage.getItem("refreshToken")
+		const userInfo = await getUserInfo()
+
+		return {
+			isLoggedIn: !!(accessToken && refreshToken && userInfo),
+			userInfo,
+		}
+	} catch (error) {
+		console.error("로그인 상태 확인 중 오류:", error)
+		return {
+			isLoggedIn: false,
+			userInfo: null,
+		}
+	}
 }
