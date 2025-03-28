@@ -132,7 +132,7 @@ export const InfoTableScreen = () => {
 		try {
 			await AsyncStorage.multiRemove(["accessToken", "refreshToken"])
 			AUTH_TOKEN = ""
-			Alert.alert("알림", "세션이 만료되었습니다. 다시 로그인 해주세요.")
+			Alert.alert("알림", "로그아웃되었습니다.")
 			navigation.reset({
 				index: 0,
 				routes: [{ name: "MedicalStaffAuth" }],
@@ -505,6 +505,10 @@ export const InfoTableScreen = () => {
 					onNamePress={handleNamePress}
 				/>
 			</View>
+
+			<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+				<Text style={styles.logoutText}>로그아웃</Text>
+			</TouchableOpacity>
 		</View>
 	)
 }
@@ -560,6 +564,14 @@ const styles = StyleSheet.create({
 	},
 	buttonDisabled: {
 		backgroundColor: "#D3D3D3",
+	},
+	logoutButton: {
+		alignSelf: "center",
+		marginBottom: 4,
+	},
+	logoutText: {
+		color: "#666",
+		fontSize: 12,
 	},
 })
 
