@@ -13,7 +13,7 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import ScreenHeader from "../../components/patient/ScreenHeader"
 import Calendar from "../../components/patient/Calendar"
 import { RootStackParamList } from "../../navigation/Root"
-import { getExerciseHistory } from "../../apis/exercisePrescription"
+import { getExerciseHistory, getExercisePrescriptions } from "../../apis/exercisePrescription"
 import type { ExerciseHistoryItem } from "../../apis/exercisePrescription"
 import { getUserInfo } from "../../apis/auth" // ✅ 사용자 정보 불러오기
 import PushNotification from "react-native-push-notification"
@@ -32,24 +32,40 @@ const HomeScreen = () => {
 		const fetchCompletedDates = async () => {
 			try {
 				setLoading(true)
-
-				const historyData = await getExerciseHistory()
-				const completed = new Set<string>()
-
+		
+				const [historyData, goalsData] = await Promise.all([
+					getExerciseHistory(),
+					getExercisePrescriptions(),
+				])
+		
+				const historyMap: Record<string, Record<string, number>> = {}
+		
 				historyData.content.forEach((item: ExerciseHistoryItem) => {
 					const date = item.createdAt?.split("T")[0]
-					if (date && item.setCount > 0) {
-						completed.add(date)
+					if (date) {
+						if (!historyMap[date]) historyMap[date] = {}
+						historyMap[date][item.exerciseName] = item.setCount ?? 0
 					}
 				})
-
-				setCompletedDates(Array.from(completed))
+		
+				const completed: string[] = []
+		
+				Object.entries(historyMap).forEach(([date, records]) => {
+					const allDone = goalsData.content.every((goal) => {
+						const doneCount = records[goal.exerciseName] ?? 0
+						return doneCount >= goal.setCount
+					})
+					if (allDone) completed.push(date)
+				})
+		
+				setCompletedDates(completed)
 			} catch (error) {
 				console.error("🚨 운동 기록 불러오기 오류:", error)
 			} finally {
 				setLoading(false)
 			}
 		}
+		
 
 		const scheduleAlarm = async () => {
 			try {
