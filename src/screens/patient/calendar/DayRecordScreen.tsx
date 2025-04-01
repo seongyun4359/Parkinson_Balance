@@ -4,7 +4,7 @@ import CalendarComponent from "../../../components/patient/Calendar"
 import ScreenHeader from "../../../components/patient/ScreenHeader"
 import { RouteProp, useRoute } from "@react-navigation/native"
 import { RootStackParamList } from "../../../navigation/Root"
-import { getExerciseHistory, getExercisePrescriptions } from "../../../apis/exercisePrescription"
+import { getExerciseHistory, getAllExercisePrescriptions } from "../../../apis/exercisePrescription"
 import type { ExercisePrescriptionItem } from "../../../apis/exercisePrescription"
 
 //  createdAt 필드를 포함한 타입 정의
@@ -31,10 +31,9 @@ const DayRecordScreen = () => {
 			try {
 				setLoading(true)
 
-				const goalsData = await getExercisePrescriptions()
-				const historyData = await getExerciseHistory() // 전체 운동 기록 가져오기
+				const goalsData = await getAllExercisePrescriptions()
+				const historyData = await getExerciseHistory()
 
-				//  날짜별 운동 기록을 추출
 				const historyMap: Record<string, Record<string, number>> = {}
 
 				;(historyData.content as ExerciseHistoryItem[]).forEach((item) => {
@@ -45,14 +44,13 @@ const DayRecordScreen = () => {
 					}
 				})
 
-				setExerciseGoals(goalsData.content)
+				setExerciseGoals(goalsData)
 				setExerciseHistory(historyMap[date] || {})
 
-				//  완료된 운동 날짜 확인
 				const updatedCompletedDates = new Set(completedDates)
 
 				Object.keys(historyMap).forEach((day) => {
-					const allDone = goalsData.content.every((goal) => {
+					const allDone = goalsData.every((goal) => {
 						const done = historyMap[day]?.[goal.exerciseName] ?? 0
 						return done >= goal.setCount
 					})
@@ -67,7 +65,6 @@ const DayRecordScreen = () => {
 				setLoading(false)
 			}
 		}
-
 		fetchExerciseData()
 	}, [date])
 

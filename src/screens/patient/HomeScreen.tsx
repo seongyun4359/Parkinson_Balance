@@ -13,9 +13,9 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import ScreenHeader from "../../components/patient/ScreenHeader"
 import Calendar from "../../components/patient/Calendar"
 import { RootStackParamList } from "../../navigation/Root"
-import { getExerciseHistory, getExercisePrescriptions } from "../../apis/exercisePrescription"
+import { getExerciseHistory, getAllExercisePrescriptions } from "../../apis/exercisePrescription"
 import type { ExerciseHistoryItem } from "../../apis/exercisePrescription"
-import { getUserInfo } from "../../apis/auth" // ✅ 사용자 정보 불러오기
+import { getUserInfo } from "../../apis/auth"
 import PushNotification from "react-native-push-notification"
 import dayjs from "dayjs"
 import AsyncStorage from "@react-native-async-storage/async-storage"
@@ -32,14 +32,14 @@ const HomeScreen = () => {
 		const fetchCompletedDates = async () => {
 			try {
 				setLoading(true)
-		
+
 				const [historyData, goalsData] = await Promise.all([
 					getExerciseHistory(),
-					getExercisePrescriptions(),
+					getAllExercisePrescriptions(), // ✅ 교체됨
 				])
-		
+
 				const historyMap: Record<string, Record<string, number>> = {}
-		
+
 				historyData.content.forEach((item: ExerciseHistoryItem) => {
 					const date = item.createdAt?.split("T")[0]
 					if (date) {
@@ -47,17 +47,17 @@ const HomeScreen = () => {
 						historyMap[date][item.exerciseName] = item.setCount ?? 0
 					}
 				})
-		
+
 				const completed: string[] = []
-		
+
 				Object.entries(historyMap).forEach(([date, records]) => {
-					const allDone = goalsData.content.every((goal) => {
+					const allDone = goalsData.every((goal) => {
 						const doneCount = records[goal.exerciseName] ?? 0
 						return doneCount >= goal.setCount
 					})
 					if (allDone) completed.push(date)
 				})
-		
+
 				setCompletedDates(completed)
 			} catch (error) {
 				console.error("🚨 운동 기록 불러오기 오류:", error)
@@ -65,7 +65,6 @@ const HomeScreen = () => {
 				setLoading(false)
 			}
 		}
-		
 
 		const scheduleAlarm = async () => {
 			try {
@@ -110,7 +109,7 @@ const HomeScreen = () => {
 		}
 
 		fetchCompletedDates()
-		scheduleAlarm() // ✅ 알람 예약 호출
+		scheduleAlarm()
 	}, [])
 
 	const handleLogout = async () => {
@@ -124,7 +123,6 @@ const HomeScreen = () => {
 					text: "로그아웃",
 					onPress: async () => {
 						try {
-							// 모든 저장된 데이터 삭제
 							await AsyncStorage.multiRemove([
 								"accessToken",
 								"refreshToken",
@@ -132,7 +130,6 @@ const HomeScreen = () => {
 								"fcmToken",
 							])
 
-							// 로그인 화면으로 이동
 							navigation.reset({
 								index: 0,
 								routes: [{ name: "Login" }],
@@ -184,7 +181,6 @@ const HomeScreen = () => {
 	)
 }
 
-// 메뉴 버튼 컴포넌트
 const MenuButton = ({
 	source,
 	label,

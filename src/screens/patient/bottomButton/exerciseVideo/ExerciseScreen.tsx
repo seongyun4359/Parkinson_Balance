@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RootStackParamList } from "../../../../navigation/Root"
 import {
-	getExercisePrescriptions,
+	getAllExercisePrescriptions,
 	ExercisePrescriptionItem,
 	getExerciseHistory,
 	startExercise,
@@ -31,27 +31,28 @@ const ExerciseScreen = () => {
 		const fetchData = async () => {
 			try {
 				setLoading(true)
-				const goals = await getExercisePrescriptions()
+	
+				const goals = await getAllExercisePrescriptions() // ✅ 변경된 부분
 				const history = await getExerciseHistory()
-
+	
 				const progress: Record<number, number> = {}
 				const goalHistoryMap: Record<number, number> = {}
-
+	
 				history.content.forEach((item) => {
 					progress[item.historyId] = item.setCount || 0
-					const matchingGoal = goals.content.find((goal) => goal.exerciseName === item.exerciseName)
+					const matchingGoal = goals.find((goal) => goal.exerciseName === item.exerciseName)
 					if (matchingGoal) {
 						goalHistoryMap[matchingGoal.goalId] = item.historyId
 					}
 				})
-
-				setExerciseGoals(goals.content)
+	
+				setExerciseGoals(goals)
 				setVideoProgress(progress)
 				setGoalToHistoryMap(goalHistoryMap)
-
-				const firstAvailableIndex = findNextIncompleteIndex(goals.content, goalHistoryMap, progress)
+	
+				const firstAvailableIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
 				if (firstAvailableIndex !== -1) {
-					const firstGoalId = goals.content[firstAvailableIndex].goalId
+					const firstGoalId = goals[firstAvailableIndex].goalId
 					if (!goalHistoryMap[firstGoalId]) {
 						const newId = await startExercise(firstGoalId)
 						if (newId) {
@@ -60,7 +61,7 @@ const ExerciseScreen = () => {
 					}
 					setCurrentVideoIndex(firstAvailableIndex)
 				} else {
-					navigateToRecord(goals.content, goalHistoryMap, progress)
+					navigateToRecord(goals, goalHistoryMap, progress)
 				}
 			} catch (err) {
 				console.error("🚨 데이터 로딩 실패:", err)
@@ -68,10 +69,10 @@ const ExerciseScreen = () => {
 				setLoading(false)
 			}
 		}
-
+	
 		fetchData()
 	}, [])
-
+	
 	const findNextIncompleteIndex = (
 		goals: ExercisePrescriptionItem[],
 		historyMap: Record<number, number>,
