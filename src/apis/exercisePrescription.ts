@@ -8,6 +8,7 @@ export interface ExercisePrescriptionItem {
 	setCount: number
 	repeatCount: number
 	duration: number
+	createdAt: string 
 }
 
 export interface ExercisePrescriptionResponse {
@@ -24,6 +25,7 @@ export interface ExerciseHistoryItem {
 	setCount: number
 	date: string
 	createdAt?: string
+	goalId?: number;
 }
 
 export interface ExerciseHistoryResponse {
@@ -34,14 +36,17 @@ export interface ExerciseHistoryResponse {
 	number: number
 }
 
-//  운동 처방 조회 API
-export const getExercisePrescriptions = async (): Promise<ExercisePrescriptionResponse> => {
+// ✅ 운동 처방 조회 API (페이지 인자 추가됨)
+export const getExercisePrescriptions = async (
+	page = 0,
+	size = 10
+): Promise<ExercisePrescriptionResponse> => {
 	try {
 		let accessToken = await AsyncStorage.getItem("accessToken")
 		if (!accessToken) throw new Error("🚨 액세스 토큰이 없습니다.")
 
 		const cleanToken = accessToken.replace(/^Bearer\s+/i, "")
-		const url = `${API_URL}/exercises?page=0&size=10`
+		const url = `${API_URL}/exercises?page=${page}&size=${size}`
 
 		console.log("📢 운동 처방 API 요청:", url)
 
@@ -81,7 +86,7 @@ export const getExercisePrescriptions = async (): Promise<ExercisePrescriptionRe
 	}
 }
 
-//  운동 기록 조회 API
+// 🧠 운동 기록 조회 API
 export const getExerciseHistory = async (date?: string): Promise<ExerciseHistoryResponse> => {
 	try {
 		let accessToken = await AsyncStorage.getItem("accessToken")
@@ -116,8 +121,7 @@ export const getExerciseHistory = async (date?: string): Promise<ExerciseHistory
 	}
 }
 
-//  운동 시작 API (goalId 기준)
-// startExercise 함수 수정
+// 🚀 운동 시작 API
 export const startExercise = async (goalId: number): Promise<number | null> => {
 	try {
 		const accessToken = await AsyncStorage.getItem("accessToken")
@@ -136,7 +140,7 @@ export const startExercise = async (goalId: number): Promise<number | null> => {
 		console.log("🚀 운동 시작 응답:", result)
 
 		if (response.ok && result.status === "SUCCESS" && result.data?.historyId) {
-			return result.data.historyId //  historyId 반환
+			return result.data.historyId
 		}
 
 		return null
@@ -146,7 +150,7 @@ export const startExercise = async (goalId: number): Promise<number | null> => {
 	}
 }
 
-//  세트 완료 API (historyId 기준)
+// ✅ 세트 완료 API
 export const completeExerciseSet = async (historyId: number): Promise<boolean> => {
 	try {
 		let accessToken = await AsyncStorage.getItem("accessToken")
@@ -164,11 +168,35 @@ export const completeExerciseSet = async (historyId: number): Promise<boolean> =
 		})
 
 		const result = await response.json()
-		console.log(" 세트 완료 응답:", result)
+		console.log("✅ 세트 완료 응답:", result)
 
 		return response.ok && result.status === "SUCCESS"
 	} catch (error) {
 		console.error("🚨 세트 완료 오류:", error)
 		return false
 	}
+}
+
+// 🔁 모든 페이지에서 운동 처방 데이터를 가져오는 함수
+export const getAllExercisePrescriptions = async (): Promise<ExercisePrescriptionItem[]> => {
+	const allGoals: ExercisePrescriptionItem[] = []
+	let page = 0
+	let isLastPage = false
+
+	try {
+		while (!isLastPage) {
+			const response = await getExercisePrescriptions(page, 10)
+			const content = response.content || []
+
+			allGoals.push(...content)
+
+			// 마지막 페이지 도달 여부 확인
+			isLastPage = page + 1 >= response.totalPages
+			page++
+		}
+	} catch (err) {
+		console.error("🚨 전체 운동 처방 조회 실패:", err)
+	}
+
+	return allGoals
 }
