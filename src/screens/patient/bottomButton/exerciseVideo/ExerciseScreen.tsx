@@ -1,3 +1,4 @@
+// 기존 import 구문 그대로 유지
 import React, { useState, useEffect, useRef } from "react"
 import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator } from "react-native"
 import Video from "react-native-video"
@@ -10,11 +11,11 @@ import {
   getExercisePrescriptionsByDate,
   ExercisePrescriptionItem,
   getExerciseHistory,
-  startExercise,
   completeExerciseSet,
   completeAerobicExercise,
 } from "../../../../apis/exercisePrescription"
 import { getVideoSource } from "../../../../components/patient/prescription/ExerciseMapping"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 type ExerciseScreenNavigationProp = StackNavigationProp<RootStackParamList, "ExerciseScreen">
 
@@ -46,8 +47,12 @@ const ExerciseScreen = () => {
         const goalHistoryMap: Record<number, number> = {}
 
         historyData.content.forEach((item) => {
-          if (typeof item.goalId === "number") {
-            existingMap[item.goalId] = item.historyId
+          const createdDate = item.createdAt?.split("T")[0]
+          const matchGoal = goals.find(
+            (g) => g.exerciseName === item.exerciseName && g.createdAt === createdDate
+          )
+          if (matchGoal) {
+            existingMap[matchGoal.goalId] = item.historyId
             progress[item.historyId] = item.completedCount ?? 0
           }
         })
@@ -56,41 +61,31 @@ const ExerciseScreen = () => {
           let historyId = existingMap[goal.goalId]
           const isDone = historyId && (progress[historyId] ?? 0) >= goal.setCount
 
-          if (!historyId || isDone) {
-            try {
-              const started = await startExercise(goal.goalId)
-              if (typeof started === "number") {
-                historyId = started
-                progress[historyId] = 0
-              } else {
-                console.warn("🚨 historyId가 유효하지 않음:", started)
-                continue
-              }
-            } catch (e: any) {
-              if (e?.response?.status === 409) {
-                console.warn("⚠️ 이미 존재하는 운동 기록", goal.goalId)
-                continue
-              } else {
-                console.error("❌ startExercise 실패:", e)
-                continue
-              }
+          if (!historyId) {
+            const match = historyData.content.find(
+              (h) => h.exerciseName === goal.exerciseName
+            )
+            if (match) {
+              historyId = match.historyId
+              progress[historyId] = match.completedCount ?? 0
             }
           }
 
-          if (typeof historyId === "number") {
-            goalHistoryMap[goal.goalId] = historyId
-          } else {
-            console.warn("❌ historyId 생성 실패", goal)
-          }
-        }
+          if (!historyId || isDone) continue
 
-        const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
-        if (firstIndex !== -1) setCurrentVideoIndex(firstIndex)
-        else navigateToRecord(goals, goalHistoryMap, progress)
+          goalHistoryMap[goal.goalId] = historyId
+        }
 
         setExerciseGoals(goals)
         setVideoProgress(progress)
         setGoalToHistoryMap(goalHistoryMap)
+
+        const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
+        if (firstIndex !== -1 && goals[firstIndex]) {
+          setCurrentVideoIndex(firstIndex)
+        } else {
+          navigateToRecord(goals, goalHistoryMap, progress)
+        }
       } catch (err) {
         console.error("🚨 데이터 로딩 실패:", err)
       } finally {
@@ -116,6 +111,28 @@ const ExerciseScreen = () => {
     return () => clearInterval(timer)
   }, [isAerobicActive, aerobicSecondsLeft])
 
+  useEffect(() => {
+    const seekToSavedPosition = async () => {
+      const current = exerciseGoals[currentVideoIndex]
+      if (!current) return
+      const key = `video-position-${current.goalId}`
+      const saved = await AsyncStorage.getItem(key)
+      const seconds = saved ? parseFloat(saved) : 0
+      if (playerRef.current && seconds > 0) {
+        playerRef.current.seek(seconds)
+      }
+    }
+
+    seekToSavedPosition()
+  }, [currentVideoIndex])
+
+  const handleVideoProgress = async (data: { currentTime: number }) => {
+    const current = exerciseGoals[currentVideoIndex]
+    if (!current) return
+    const key = `video-position-${current.goalId}`
+    await AsyncStorage.setItem(key, String(data.currentTime))
+  }
+
   const findNextIncompleteIndex = (
     goals: ExercisePrescriptionItem[],
     historyMap: Record<number, number>,
@@ -130,7 +147,8 @@ const ExerciseScreen = () => {
     return -1
   }
 
-  const isAerobicExercise = (name: string) => name.includes("걷기") || name.includes("자전거 타기")
+  const isAerobicExercise = (name: string) =>
+    name.includes("걷기") || name.includes("자전거 타기")
 
   const handleVideoEnd = async () => {
     const current = exerciseGoals[currentVideoIndex]
@@ -188,8 +206,12 @@ const ExerciseScreen = () => {
     progress = videoProgress
   ) => {
     const totalSets = goals.reduce((sum, g) => sum + g.setCount, 0)
-    const done = Object.entries(map).reduce((sum, [_, historyId]) => sum + (progress[historyId] || 0), 0)
+    const done = Object.entries(map).reduce(
+      (sum, [_, historyId]) => sum + (progress[historyId] || 0),
+      0
+    )
     const percent = totalSets ? (done / totalSets) * 100 : 0
+
     navigation.navigate("RecordScreen", {
       progress: parseFloat(percent.toFixed(1)),
       videoProgress: progress,
@@ -227,6 +249,7 @@ const ExerciseScreen = () => {
             controls
             paused={paused}
             onEnd={handleVideoEnd}
+            onProgress={handleVideoProgress} // ✅ 추가
           />
         ) : (
           <Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
