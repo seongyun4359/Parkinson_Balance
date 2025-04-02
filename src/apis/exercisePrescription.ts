@@ -27,6 +27,7 @@ export interface ExerciseHistoryItem {
   createdAt?: string
   goalId?: number
   completedCount?: number
+  status: "PROGRESS" | "COMPLETE" 
 }
 
 export interface ExerciseHistoryResponse {
