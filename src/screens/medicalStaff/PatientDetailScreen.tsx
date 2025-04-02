@@ -12,7 +12,7 @@ import {
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native"
 import { RootStackParamList } from "../../types/navigation"
 import { getExerciseGoals, ExerciseGoalItem, updateExerciseGoal } from "../../apis/exercise"
-import { getExerciseHistory, ExerciseHistoryItem } from "../../apis/exercise"
+import { getPatientExerciseHistory } from "../../apis/exercise"
 import Icon from "react-native-vector-icons/MaterialIcons"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 
@@ -48,10 +48,15 @@ const PatientDetailScreen = () => {
 		try {
 			setLoading(true)
 			setError(null)
+
+			console.log("운동 목표 로딩 시작...")
 			const response = await getExerciseGoals(patient.phoneNumber)
+			console.log(`총 ${response.content.length}개의 운동 목표를 불러왔습니다.`)
+
 			setExerciseGoals(response.content)
 		} catch (error: any) {
-			setError(error.message)
+			console.error("운동 목표 조회 중 오류:", error)
+			setError(error.message || "운동 목표를 불러오는데 실패했습니다.")
 		} finally {
 			setLoading(false)
 		}
@@ -61,10 +66,12 @@ const PatientDetailScreen = () => {
 		try {
 			setLoading(true)
 			setError(null)
-			const response = await getExerciseHistory(patient.phoneNumber)
+			const today = new Date().toISOString().split("T")[0]
+			const response = await getPatientExerciseHistory(patient.phoneNumber, today)
 			setExerciseHistory(response.content)
 		} catch (error: any) {
-			setError(error.message)
+			console.error("운동 기록 조회 중 오류:", error)
+			setError(error.message || "운동 기록을 불러오는데 실패했습니다.")
 		} finally {
 			setLoading(false)
 		}
