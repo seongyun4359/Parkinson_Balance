@@ -16,6 +16,7 @@ import {
   getExerciseHistory,
   ExerciseHistoryItem,
   ExercisePrescriptionItem,
+  getExercisePrescriptionsByDate,
 } from "../../../../apis/exercisePrescription";
 
 type RecordScreenNavigationProp = StackNavigationProp<RootStackParamList, "RecordScreen">;
@@ -36,25 +37,28 @@ const RecordScreen = () => {
     const fetchExerciseHistory = async () => {
       try {
         setLoading(true);
-        const today = new Date().toISOString().split("T")[0];  // YYYY-MM-DD
-        const historyData = await getExerciseHistory(today); // ✅ 날짜 넘겨주기
-  
-        console.log("📢 서버에서 가져온 운동 기록:", historyData.content);
-  
+        const today = new Date().toISOString().split("T")[0];
+        const [historyData, prescriptionData] = await Promise.all([
+          getExerciseHistory(today),
+          getExercisePrescriptionsByDate(today),
+        ]);
+
+        const goalMap: Record<string, ExercisePrescriptionItem> = {};
+        prescriptionData.content.forEach((goal) => {
+          goalMap[goal.exerciseName + goal.createdAt] = goal;
+        });
+
         const historyMap: Record<number, number> = {};
-  
-        exerciseGoals.forEach((goal) => {
-          const match = historyData.content.find(
-            (history: ExerciseHistoryItem) =>
-              history.exerciseName === goal.exerciseName &&
-              history.createdAt?.startsWith(today)
-          );
-  
-          if (match) {
-            historyMap[goal.goalId] = match.setCount || 0;
+
+        historyData.content.forEach((history: ExerciseHistoryItem) => {
+          const createdDate = history.createdAt?.split("T")[0];
+          const key = history.exerciseName + createdDate;
+          const matchedGoal = goalMap[key];
+          if (matchedGoal) {
+            historyMap[matchedGoal.goalId] = history.setCount || 0;
           }
         });
-  
+
         setExerciseHistory(historyMap);
       } catch (error) {
         console.error("🚨 운동 기록 불러오기 오류:", error);
@@ -62,10 +66,9 @@ const RecordScreen = () => {
         setLoading(false);
       }
     };
-  
+
     fetchExerciseHistory();
   }, [exerciseGoals]);
-  
 
   if (loading) {
     return <ActivityIndicator size="large" color="#76DABF" />;
