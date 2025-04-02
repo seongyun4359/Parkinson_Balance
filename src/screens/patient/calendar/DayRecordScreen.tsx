@@ -4,7 +4,8 @@ import CalendarComponent from "../../../components/patient/Calendar"
 import ScreenHeader from "../../../components/patient/ScreenHeader"
 import { RouteProp, useRoute } from "@react-navigation/native"
 import { RootStackParamList } from "../../../navigation/Root"
-import { getExerciseHistory, getAllExercisePrescriptions } from "../../../apis/exercisePrescription"
+import { getExerciseHistory, getExercisePrescriptionsByDate } from "../../../apis/exercisePrescription"
+
 import type { ExercisePrescriptionItem } from "../../../apis/exercisePrescription"
 
 //  createdAt 필드를 포함한 타입 정의
@@ -30,12 +31,14 @@ const DayRecordScreen = () => {
 		const fetchExerciseData = async () => {
 			try {
 				setLoading(true)
-
-				const goalsData = await getAllExercisePrescriptions()
-				const historyData = await getExerciseHistory()
-
+	
+				const goalsResponse = await getExercisePrescriptionsByDate(date)
+				const goalsData = goalsResponse.content || []
+	
+				const historyData = await getExerciseHistory(date)
+	
 				const historyMap: Record<string, Record<string, number>> = {}
-
+	
 				;(historyData.content as ExerciseHistoryItem[]).forEach((item) => {
 					const createdDate = item.createdAt?.split("T")[0]
 					if (createdDate) {
@@ -43,21 +46,21 @@ const DayRecordScreen = () => {
 						historyMap[createdDate][item.exerciseName] = item.setCount ?? 0
 					}
 				})
-
+	
 				setExerciseGoals(goalsData)
 				setExerciseHistory(historyMap[date] || {})
-
+	
 				const updatedCompletedDates = new Set(completedDates)
-
+	
 				Object.keys(historyMap).forEach((day) => {
 					const allDone = goalsData.every((goal) => {
 						const done = historyMap[day]?.[goal.exerciseName] ?? 0
 						return done >= goal.setCount
 					})
-
+	
 					if (allDone) updatedCompletedDates.add(day)
 				})
-
+	
 				setCompletedDates(updatedCompletedDates)
 			} catch (error) {
 				console.error("🚨 운동 기록 불러오기 오류:", error)
@@ -67,7 +70,7 @@ const DayRecordScreen = () => {
 		}
 		fetchExerciseData()
 	}, [date])
-
+	
 	if (loading) {
 		return <ActivityIndicator size="large" color="#76DABF" />
 	}
