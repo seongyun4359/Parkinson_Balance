@@ -32,35 +32,35 @@ const HomeScreen = () => {
 		const fetchCompletedDates = async () => {
 			try {
 				setLoading(true)
-	
+
 				const completed: string[] = []
-	
+
 				// 최근 14일 기준으로 조회
 				const recentDates = Array.from({ length: 14 }, (_, i) =>
 					dayjs().subtract(i, "day").format("YYYY-MM-DD")
 				)
-	
+
 				for (const date of recentDates) {
 					try {
 						const historyData = await getExerciseHistory(date)
 						const goalsData = await getExercisePrescriptionsByDate(date)
 						const goals = goalsData.content
-	
+
 						const recordMap = historyData.content.reduce((acc, item) => {
-							acc[item.exerciseName] = item.setCount ?? 0 // ⚠️ 여기도 백엔드에서 setCount가 아니라면 수정 필요
+							acc[item.exerciseName] = item.setCount ?? 0
 							return acc
 						}, {} as Record<string, number>)
-	
+
 						const allDone = goals.every(
 							(goal) => (recordMap[goal.exerciseName] ?? 0) >= goal.setCount
 						)
-	
+
 						if (allDone) completed.push(date)
 					} catch (e) {
 						console.warn(`⚠️ ${date} 운동 데이터 불러오기 실패`, e)
 					}
 				}
-	
+
 				setCompletedDates(completed)
 			} catch (error) {
 				console.error("🚨 운동 기록 불러오기 오류:", error)
@@ -68,15 +68,53 @@ const HomeScreen = () => {
 				setLoading(false)
 			}
 		}
-	
+
 		const scheduleAlarm = async () => {
-			// 알람 설정 로직은 기존 코드 그대로 유지
+			try {
+				const userInfo = await getUserInfo()
+				const rawTime = userInfo?.exerciseNotificationTime
+
+				if (!rawTime || typeof rawTime !== "string") {
+					console.log("⏭️ 운동 알람 시간이 없어 예약하지 않음")
+					return
+				}
+
+				const today = dayjs().format("YYYY-MM-DD")
+				const fullDateTime = `${today} ${rawTime}`
+				const alarmTime = dayjs(fullDateTime, "YYYY-MM-DD HH:mm:ss", true)
+
+				if (!alarmTime.isValid()) {
+					console.warn("❌ 유효하지 않은 알람 시간:", rawTime)
+					return
+				}
+
+				if (alarmTime.isBefore(dayjs())) {
+					console.log("⏭️ 현재 시각보다 이전 알람은 예약하지 않음")
+					return
+				}
+
+				console.log("🔔 운동 알람 예약 시작...")
+				PushNotification.localNotificationSchedule({
+					channelId: "exercise-alarm",
+					title: "운동 알람",
+					message: "운동할 시간입니다! 건강을 위해 몸을 움직여 보세요!",
+					date: alarmTime.toDate(),
+					allowWhileIdle: true,
+					soundName: "default",
+					vibrate: true,
+					repeatType: "day",
+				})
+
+				console.log(`✅ 알람 예약 완료: ${alarmTime.format("YYYY-MM-DD HH:mm:ss")}`)
+			} catch (error) {
+				console.error("🚨 알람 예약 중 오류:", error)
+			}
 		}
-	
+
 		fetchCompletedDates()
 		scheduleAlarm()
 	}, [])
-	
+
 	const handleLogout = async () => {
 		try {
 			Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
