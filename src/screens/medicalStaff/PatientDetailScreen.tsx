@@ -48,10 +48,15 @@ const PatientDetailScreen = () => {
 		try {
 			setLoading(true)
 			setError(null)
+
+			console.log("운동 목표 로딩 시작...")
 			const response = await getExerciseGoals(patient.phoneNumber)
+			console.log(`총 ${response.content.length}개의 운동 목표를 불러왔습니다.`)
+
 			setExerciseGoals(response.content)
 		} catch (error: any) {
-			setError(error.message)
+			console.error("운동 목표 조회 중 오류:", error)
+			setError(error.message || "운동 목표를 불러오는데 실패했습니다.")
 		} finally {
 			setLoading(false)
 		}
@@ -61,11 +66,7 @@ const PatientDetailScreen = () => {
 		try {
 			setLoading(true)
 			setError(null)
-
-			// 오늘 날짜 가져오기
 			const today = new Date().toISOString().split("T")[0]
-
-			// getExerciseHistory 대신 getPatientExerciseHistory 사용
 			const response = await getPatientExerciseHistory(patient.phoneNumber, today)
 			setExerciseHistory(response.content)
 		} catch (error: any) {
