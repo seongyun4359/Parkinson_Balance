@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { fetchWithToken } from "../utils/fetchWithToken"
 
 const API_BASE_URL = "https://kwhcclab.com:20955/api"
 
@@ -51,7 +52,9 @@ export const searchMemberByPhone = async (phoneNumber: string) => {
 
 		const makeRequest = async (token: string) => {
 			try {
-				const formattedPhoneNumber = phoneNumber.includes("-") ? phoneNumber : phoneNumber.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
+				const formattedPhoneNumber = phoneNumber.includes("-")
+					? phoneNumber
+					: phoneNumber.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
 
 				const response = await fetch(`${API_BASE_URL}/members/${formattedPhoneNumber}`, {
 					method: "GET",
@@ -106,9 +109,16 @@ export interface UpdateMemberData {
 	password?: string
 }
 
-export const updateMember = async (originalPhoneNumber: string, updateData: UpdateMemberData) => {
+export const updateMember = async (
+	originalPhoneNumber: string,
+	updateData: {
+		phoneNumber?: string
+		name?: string
+		password?: string
+	}
+): Promise<void> => {
 	try {
-		const accessToken = await AsyncStorage.getItem("accessToken")
+		let accessToken = await AsyncStorage.getItem("accessToken")
 		if (!accessToken) {
 			throw new Error("액세스 토큰이 없습니다.")
 		}
@@ -116,24 +126,28 @@ export const updateMember = async (originalPhoneNumber: string, updateData: Upda
 		const response = await fetch(`${API_BASE_URL}/members/${originalPhoneNumber}`, {
 			method: "PATCH",
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${accessToken}`,
 			},
 			body: JSON.stringify(updateData),
 		})
 
-		if (!response.ok) {
-			if (response.status === 401) {
-				throw new Error("토큰이 만료되었습니다.")
-			}
-			const errorData = await response.json().catch(() => null)
-			throw new Error(errorData?.error || `정보 수정 실패: ${response.status}`)
+		const responseText = await response.text()
+		console.log("회원 정보 수정 응답:", responseText)
+
+		let result
+		try {
+			result = JSON.parse(responseText)
+		} catch (e) {
+			console.error("JSON 파싱 오류:", e)
+			throw new Error("서버 응답을 파싱할 수 없습니다.")
 		}
 
-		const data = await response.json()
-		return data
-	} catch (error: any) {
-		console.error("회원 정보 수정 오류:", error)
+		if (result.status !== "SUCCESS") {
+			throw new Error(result.error || "회원 정보 수정에 실패했습니다.")
+		}
+	} catch (error) {
+		console.error("회원 정보 수정 중 오류:", error)
 		throw error
 	}
 }

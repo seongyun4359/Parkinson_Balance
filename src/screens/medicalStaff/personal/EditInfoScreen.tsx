@@ -45,8 +45,14 @@ const EditInfoScreen = ({ route, navigation }: EditInfoScreenProps) => {
 				return
 			}
 
+			// 수정할 데이터 객체 생성
+			const updateData: {
+				phoneNumber?: string
+				name?: string
+				password?: string
+			} = {}
+
 			// 변경된 데이터만 포함
-			const updateData: any = {}
 			if (name !== patientInfo.name) {
 				updateData.name = name
 			}
@@ -63,12 +69,13 @@ const EditInfoScreen = ({ route, navigation }: EditInfoScreenProps) => {
 				return
 			}
 
+			// API 호출
 			await updateMember(patientInfo.phoneNumber, updateData)
+
 			Alert.alert("수정 완료", "환자 정보가 수정되었습니다.", [
 				{
 					text: "확인",
 					onPress: () => {
-						// 수정된 정보로 이전 화면들 업데이트
 						navigation.navigate("PatientDetail", {
 							patient: {
 								...patientInfo,
@@ -81,11 +88,7 @@ const EditInfoScreen = ({ route, navigation }: EditInfoScreenProps) => {
 			])
 		} catch (error: any) {
 			console.error("수정 오류:", error)
-			if (error.message?.includes("이미 사용 중")) {
-				Alert.alert("수정 실패", "해당 전화번호는 이미 다른 사용자가 사용 중입니다.")
-			} else {
-				Alert.alert("수정 실패", error.message || "환자 정보 수정 중 오류가 발생했습니다.")
-			}
+			Alert.alert("수정 실패", error.message || "환자 정보 수정 중 오류가 발생했습니다.")
 		}
 	}
 
