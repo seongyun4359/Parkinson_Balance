@@ -12,12 +12,13 @@ import ScreenHeader from "../../../../components/patient/ScreenHeader";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../../navigation/Root";
-import { getExerciseHistory, ExerciseHistoryItem, ExercisePrescriptionItem } from "../../../../apis/exercisePrescription";
+import {
+  getExerciseHistory,
+  ExerciseHistoryItem,
+  ExercisePrescriptionItem,
+} from "../../../../apis/exercisePrescription";
 
-type RecordScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "RecordScreen"
->;
+type RecordScreenNavigationProp = StackNavigationProp<RootStackParamList, "RecordScreen">;
 type RecordScreenRouteProp = RouteProp<RootStackParamList, "RecordScreen">;
 
 const RecordScreen = () => {
@@ -28,21 +29,32 @@ const RecordScreen = () => {
     exerciseGoals: [] as ExercisePrescriptionItem[],
   };
 
-  const [exerciseHistory, setExerciseHistory] = useState<Record<string, number>>({});
+  const [exerciseHistory, setExerciseHistory] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchExerciseHistory = async () => {
       try {
         setLoading(true);
-        const historyData = await getExerciseHistory();
+        const today = new Date().toISOString().split("T")[0];  // YYYY-MM-DD
+        const historyData = await getExerciseHistory(today); // ✅ 날짜 넘겨주기
+  
         console.log("📢 서버에서 가져온 운동 기록:", historyData.content);
-
-        const historyMap: Record<string, number> = {};
-        historyData.content.forEach((item) => {
-          historyMap[item.exerciseName] = item.setCount || 0;
+  
+        const historyMap: Record<number, number> = {};
+  
+        exerciseGoals.forEach((goal) => {
+          const match = historyData.content.find(
+            (history: ExerciseHistoryItem) =>
+              history.exerciseName === goal.exerciseName &&
+              history.createdAt?.startsWith(today)
+          );
+  
+          if (match) {
+            historyMap[goal.goalId] = match.setCount || 0;
+          }
         });
-
+  
         setExerciseHistory(historyMap);
       } catch (error) {
         console.error("🚨 운동 기록 불러오기 오류:", error);
@@ -50,9 +62,10 @@ const RecordScreen = () => {
         setLoading(false);
       }
     };
-
+  
     fetchExerciseHistory();
-  }, []);
+  }, [exerciseGoals]);
+  
 
   if (loading) {
     return <ActivityIndicator size="large" color="#76DABF" />;
@@ -64,7 +77,7 @@ const RecordScreen = () => {
 
       <ScrollView style={styles.scrollContainer}>
         {exerciseGoals.map((exercise) => {
-          const completedSets = exerciseHistory[exercise.exerciseName] || 0;
+          const completedSets = exerciseHistory[exercise.goalId] || 0;
           const totalSets = exercise.setCount;
           const progressPercentage =
             totalSets > 0 ? ((completedSets / totalSets) * 100).toFixed(0) : "0";
@@ -72,7 +85,7 @@ const RecordScreen = () => {
 
           return (
             <View
-              key={exercise.exerciseName}
+              key={exercise.goalId}
               style={[
                 styles.exerciseItem,
                 isCompleted ? styles.completedExercise : styles.notStartedExercise,
@@ -80,7 +93,7 @@ const RecordScreen = () => {
             >
               <Text style={styles.exerciseText}>{exercise.exerciseName}</Text>
               <Text style={styles.progressTextSmall}>
-                {completedSets}/{totalSets} (세트) | {progressPercentage}%
+                {completedSets}/{totalSets} 세트 | {progressPercentage}%
               </Text>
             </View>
           );
