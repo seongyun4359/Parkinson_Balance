@@ -42,23 +42,31 @@ const RecordScreen = () => {
           getExerciseHistory(today),
           getExercisePrescriptionsByDate(today),
         ]);
-
+  
         const goalMap: Record<string, ExercisePrescriptionItem> = {};
         prescriptionData.content.forEach((goal) => {
           goalMap[goal.exerciseName + goal.createdAt] = goal;
         });
-
+  
+        const aerobicNames = ["걷기", "자전거 타기"];
         const historyMap: Record<number, number> = {};
-
+  
         historyData.content.forEach((history: ExerciseHistoryItem) => {
           const createdDate = history.createdAt?.split("T")[0];
           const key = history.exerciseName + createdDate;
           const matchedGoal = goalMap[key];
-          if (matchedGoal) {
-            historyMap[matchedGoal.goalId] = history.setCount || 0;
-          }
+          if (!matchedGoal) return;
+  
+          const isAerobic = aerobicNames.includes(history.exerciseName);
+          const isCompleted = history.status === "COMPLETE";
+  
+          const completedSets = isAerobic
+            ? isCompleted ? 1 : 0
+            : history.setCount ?? 0;
+  
+          historyMap[matchedGoal.goalId] = completedSets;
         });
-
+  
         setExerciseHistory(historyMap);
       } catch (error) {
         console.error("🚨 운동 기록 불러오기 오류:", error);
@@ -66,7 +74,7 @@ const RecordScreen = () => {
         setLoading(false);
       }
     };
-
+  
     fetchExerciseHistory();
   }, [exerciseGoals]);
 
