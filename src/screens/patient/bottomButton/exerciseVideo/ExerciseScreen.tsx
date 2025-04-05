@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator } from "react-native"
+import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, AppState } from "react-native"
 import Video from "react-native-video"
 import type { VideoRef } from "react-native-video"
 import ScreenHeader from "../../../../components/patient/ScreenHeader"
@@ -18,6 +18,7 @@ import {
 import { getVideoSource } from "../../../../components/patient/prescription/ExerciseMapping"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getUserInfo } from "../../../../apis/auth"
+import Ionicons from "react-native-vector-icons/Ionicons"
 
 type ExerciseScreenNavigationProp = StackNavigationProp<RootStackParamList, "ExerciseScreen">
 
@@ -111,6 +112,27 @@ const ExerciseScreen = () => {
 				setVideoProgress(progress)
 				setGoalToHistoryMap(goalHistoryMap)
 
+				// aerobicStartTime 복원
+				const aerobicKey = `${storagePrefix}-aerobicStartTime`
+				const storedStartTime = await AsyncStorage.getItem(aerobicKey)
+				if (storedStartTime) {
+					const elapsed = Math.floor((Date.now() - Number(storedStartTime)) / 1000)
+					const goal = goals.find((g) => isAerobicExercise(g.exerciseName))
+					if (goal) {
+						const totalSeconds = goal.duration
+						const remaining = totalSeconds - elapsed
+						if (remaining > 0) {
+							setPaused(true)
+							setIsAerobicActive(true)
+							setAerobicSecondsLeft(remaining)
+						} else {
+							const historyId = goalHistoryMap[goal.goalId]
+							if (historyId) await completeAerobicExercise(historyId)
+							await AsyncStorage.removeItem(aerobicKey)
+						}
+					}
+				}
+
 				const savedIndex = await AsyncStorage.getItem(`${storagePrefix}-currentVideoIndex`)
 				const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
 
@@ -146,6 +168,49 @@ const ExerciseScreen = () => {
 		fetchData()
 	}, [storagePrefix])
 
+	useEffect(() => {
+		if (!isAerobicActive || aerobicSecondsLeft <= 0 || paused) return
+
+		const timer = setInterval(() => {
+			setAerobicSecondsLeft((prev) => {
+				if (prev <= 1) {
+					clearInterval(timer)
+					handleAerobicComplete()
+					return 0
+				}
+				return prev - 1
+			})
+		}, 1000)
+
+		return () => clearInterval(timer)
+	}, [isAerobicActive, aerobicSecondsLeft, paused])
+
+	useEffect(() => {
+		const subscription = AppState.addEventListener("change", async (nextAppState) => {
+			if (!isAerobicActive || !storagePrefix) return
+
+			const key = `${storagePrefix}-aerobicPausedTime`
+
+			if (nextAppState === "background") {
+				const now = Date.now()
+				await AsyncStorage.setItem(key, String(now))
+			} else if (nextAppState === "active") {
+				const pausedTimeStr = await AsyncStorage.getItem(key)
+				if (pausedTimeStr) {
+					const pausedTime = parseInt(pausedTimeStr, 10)
+					const now = Date.now()
+					const diff = Math.floor((now - pausedTime) / 1000)
+					setAerobicSecondsLeft((prev) => Math.max(prev - diff, 0))
+					await AsyncStorage.removeItem(key)
+				}
+			}
+		})
+
+		return () => {
+			subscription.remove()
+		}
+	}, [isAerobicActive, storagePrefix])
+
 	const saveVideoProgress = async (progress: Record<number, number>) => {
 		if (!storagePrefix) return
 		await AsyncStorage.setItem(`${storagePrefix}-videoProgress`, JSON.stringify(progress))
@@ -172,7 +237,10 @@ const ExerciseScreen = () => {
 		return -1
 	}
 
-	const isAerobicExercise = (name: string) => name.includes("걷기") || name.includes("자전거 타기")
+	const isAerobicExercise = (name: string) => {
+		const aerobicNames = ["걷기", "자전거 타기"]
+		return aerobicNames.includes(name)
+	}
 
 	const handleVideoEnd = async () => {
 		const current = exerciseGoals[currentVideoIndex]
@@ -201,7 +269,10 @@ const ExerciseScreen = () => {
 		if (isAerobicExercise(current.exerciseName)) {
 			setPaused(true)
 			setIsAerobicActive(true)
-			setAerobicSecondsLeft(current.duration * 60)
+			const seconds = currentExercise.duration * 60
+			const now = Math.floor(Date.now() / 1000)
+			await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
+			setAerobicSecondsLeft(seconds)
 			return
 		}
 
@@ -232,6 +303,7 @@ const ExerciseScreen = () => {
 	const handleAerobicComplete = async () => {
 		const current = exerciseGoals[currentVideoIndex]
 		if (!current) return
+
 		const goalId = current.goalId
 		const historyId = goalToHistoryMap[goalId]
 		if (typeof historyId !== "number") return
@@ -239,11 +311,15 @@ const ExerciseScreen = () => {
 		const success = await completeAerobicExercise(historyId)
 		if (!success) return
 
+		// 운동 완료 후 상태 저장
 		const updated = { ...videoProgress, [historyId]: 1 }
 		setVideoProgress(updated)
 		await saveVideoProgress(updated)
 		setIsAerobicActive(false)
+		await AsyncStorage.removeItem(`${storagePrefix}-aerobicStartTime`)
 
+		// 현재 상태 저장
+		await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(currentVideoIndex))
 		const next = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, updated)
 		if (next !== -1) {
 			setCurrentVideoIndex(next)
@@ -293,11 +369,35 @@ const ExerciseScreen = () => {
 		<View style={styles.container}>
 			<ScreenHeader />
 			<View style={styles.videoContainer}>
-				{isAerobicActive ? (
-					<Text style={styles.timerText}>
-						유산소 운동 중... 남은 시간: {Math.floor(aerobicSecondsLeft / 60)}:
-						{String(aerobicSecondsLeft % 60).padStart(2, "0")}
-					</Text>
+				{isAerobicExercise(currentExercise.exerciseName) ? (
+					isAerobicActive ? (
+						<View style={styles.videoContainer}>
+							<Text style={styles.timerText}>
+								남은 시간 {String(Math.floor(aerobicSecondsLeft / 60)).padStart(2, "0")}:
+								{String(aerobicSecondsLeft % 60).padStart(2, "0")}
+							</Text>
+							<TouchableOpacity onPress={() => setPaused((prev) => !prev)}>
+								<Ionicons
+									name={paused ? "play-circle-outline" : "pause-circle-outline"}
+									size={56}
+									color="#76DABF"
+								/>
+							</TouchableOpacity>
+						</View>
+					) : (
+						<TouchableOpacity
+							onPress={async () => {
+								setPaused(false)
+								setIsAerobicActive(true)
+								const seconds = currentExercise.duration * 60
+								const now = Date.now()
+								await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
+								setAerobicSecondsLeft(seconds)
+							}}
+						>
+							<Ionicons name="play-circle-outline" size={56} color="#76DABF" />
+						</TouchableOpacity>
+					)
 				) : videoSource ? (
 					<Video
 						ref={playerRef}
@@ -313,6 +413,7 @@ const ExerciseScreen = () => {
 					<Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
 				)}
 			</View>
+
 			<View style={styles.exerciseInfo}>
 				<Text style={styles.exerciseText}>{currentExercise.exerciseName}</Text>
 				<Text style={styles.progressText}>
