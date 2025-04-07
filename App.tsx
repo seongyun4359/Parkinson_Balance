@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import {
 	requestFCMToken,
 	setupNotificationListeners,
@@ -7,6 +7,7 @@ import {
 import AppNavigator from "./src/navigation/AppNavigator"
 import PushNotification from "react-native-push-notification"
 import * as Clarity from "@microsoft/react-native-clarity"
+import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native"
 
 // Clarity 초기화
 Clarity.initialize("qzwbyrzpvk", {
@@ -18,6 +19,8 @@ const App: React.FC = () => {
 	const [unsubscribeNotificationListener, setUnsubscribeNotificationListener] = useState<
 		(() => void) | null
 	>(null)
+	const navigationRef = useNavigationContainerRef()
+	const routeNameRef = useRef<string>()
 
 	useEffect(() => {
 		const setupFirebase = async () => {
@@ -83,7 +86,34 @@ const App: React.FC = () => {
 		return null
 	}
 
-	return <AppNavigator />
+	return (
+		<NavigationContainer
+			ref={navigationRef}
+			onReady={() => {
+				routeNameRef.current = navigationRef.getCurrentRoute()?.name
+				if (routeNameRef.current) {
+					Clarity.setCurrentScreenName(routeNameRef.current)
+				}
+				Clarity.setOnSessionStartedCallback((sessionId) => {
+					console.log("🔍 Clarity 세션 시작:", sessionId)
+				})
+			}}
+			onStateChange={async () => {
+				const previousRouteName = routeNameRef.current
+				const currentRouteName = navigationRef.getCurrentRoute()?.name
+
+				if (previousRouteName !== currentRouteName) {
+					routeNameRef.current = currentRouteName
+					if (currentRouteName) {
+						Clarity.setCurrentScreenName(currentRouteName)
+						Clarity.sendCustomEvent(`Screen_${currentRouteName}`)
+					}
+				}
+			}}
+		>
+			<AppNavigator />
+		</NavigationContainer>
+	)
 }
 
 export default App
