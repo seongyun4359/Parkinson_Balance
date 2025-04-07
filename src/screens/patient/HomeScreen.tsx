@@ -13,8 +13,10 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import ScreenHeader from "../../components/patient/ScreenHeader"
 import Calendar from "../../components/patient/Calendar"
 import { RootStackParamList } from "../../navigation/Root"
-import { getExerciseHistory, getExercisePrescriptionsByDate } from "../../apis/exercisePrescription"
-import type { ExerciseHistoryItem } from "../../apis/exercisePrescription"
+import {
+	getExerciseHistory,
+	getExercisePrescriptionsByDate,
+} from "../../apis/exercisePrescription"
 import { getUserInfo } from "../../apis/auth"
 import PushNotification from "react-native-push-notification"
 import dayjs from "dayjs"
@@ -24,7 +26,6 @@ type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>
 
 const HomeScreen = () => {
 	const navigation = useNavigation<HomeScreenNavigationProp>()
-
 	const [completedDates, setCompletedDates] = useState<string[]>([])
 	const [loading, setLoading] = useState(true)
 
@@ -33,44 +34,88 @@ const HomeScreen = () => {
 			try {
 				setLoading(true)
 
-				const completed: string[] = []
-
-				// 최근 14일 기준으로 조회
+				const aerobicNames = ["걷기", "자전거 타기"]
 				const recentDates = Array.from({ length: 14 }, (_, i) =>
 					dayjs().subtract(i, "day").format("YYYY-MM-DD")
 				)
 
-				for (const date of recentDates) {
-					try {
-						const historyData = await getExerciseHistory(date)
-						const goalsData = await getExercisePrescriptionsByDate(date)
-						const goals = goalsData.content
+				const checks = await Promise.all(
+					recentDates.map(async (date) => {
+						try {
+							const [historyData, goalsData] = await Promise.all([
+								getExerciseHistory(date),
+								getExercisePrescriptionsByDate(date),
+							])
 
-						const recordMap = historyData.content.reduce((acc, item) => {
-							acc[item.exerciseName] = item.setCount ?? 0 // ⚠️ 여기도 백엔드에서 setCount가 아니라면 수정 필요
-							return acc
-						}, {} as Record<string, number>)
+							const goals = goalsData.content
+							if (goals.length === 0) return null
 
-						const allDone = goals.every(
-							(goal) => (recordMap[goal.exerciseName] ?? 0) >= goal.setCount
-						)
+							const historyMap: Record<string, number> = {}
 
-						if (allDone) completed.push(date)
-					} catch (e) {
-						console.warn(`⚠️ ${date} 운동 데이터 불러오기 실패`, e)
-					}
-				}
+							historyData.content.forEach((item) => {
+								const createdDate = item.createdAt?.split("T")[0]
+								if (createdDate !== date) return
 
+								const isAerobic = aerobicNames.includes(item.exerciseName)
+								const isCompleted = item.status === "COMPLETE"
+								const completedSets = isAerobic
+									? isCompleted
+										? 1
+										: 0
+									: item.setCount ?? 0
+
+								historyMap[item.exerciseName] = completedSets
+							})
+
+							const allDone = goals.every((goal) => {
+								const required = goal.setCount ?? 1
+								const done = historyMap[goal.exerciseName] ?? 0
+								return done >= required
+							})
+
+							return allDone ? date : null
+						} catch (e) {
+							console.warn(`⚠️ ${date} 데이터 오류`, e)
+							return null
+						}
+					})
+				)
+
+				const completed = checks.filter((d): d is string => !!d)
 				setCompletedDates(completed)
 			} catch (error) {
-				console.error("🚨 운동 기록 불러오기 오류:", error)
+				console.error("🚨 운동 완료 날짜 불러오기 실패:", error)
 			} finally {
 				setLoading(false)
 			}
 		}
 
 		const scheduleAlarm = async () => {
-			// 알람 설정 로직은 기존 코드 그대로 유지
+			try {
+				const userInfo = await getUserInfo()
+				if (!userInfo) return
+
+				const rawTime = userInfo.exerciseNotificationTime
+				if (!rawTime || typeof rawTime !== "string") return
+
+				const fullDateTime = `${dayjs().format("YYYY-MM-DD")} ${rawTime}`
+				const alarmTime = dayjs(fullDateTime, "YYYY-MM-DD HH:mm:ss", true)
+
+				if (!alarmTime.isValid() || alarmTime.isBefore(dayjs())) return
+
+				PushNotification.localNotificationSchedule({
+					channelId: "exercise-alarm",
+					title: "운동 알람",
+					message: "운동할 시간입니다! 건강을 위해 몸을 움직여 보세요!",
+					date: alarmTime.toDate(),
+					allowWhileIdle: true,
+					soundName: "default",
+					vibrate: true,
+					repeatType: "day",
+				})
+			} catch (error) {
+				console.error("🚨 알람 예약 실패:", error)
+			}
 		}
 
 		fetchCompletedDates()
@@ -78,38 +123,29 @@ const HomeScreen = () => {
 	}, [])
 
 	const handleLogout = async () => {
-		try {
-			Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
-				{
-					text: "취소",
-					style: "cancel",
+		Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
+			{ text: "취소", style: "cancel" },
+			{
+				text: "로그아웃",
+				onPress: async () => {
+					try {
+						await AsyncStorage.multiRemove([
+							"accessToken",
+							"refreshToken",
+							"userInfo",
+							"fcmToken",
+						])
+						navigation.reset({
+							index: 0,
+							routes: [{ name: "Login" }],
+						})
+					} catch (error) {
+						console.error("로그아웃 오류:", error)
+						Alert.alert("오류", "로그아웃 중 문제가 발생했습니다.")
+					}
 				},
-				{
-					text: "로그아웃",
-					onPress: async () => {
-						try {
-							await AsyncStorage.multiRemove([
-								"accessToken",
-								"refreshToken",
-								"userInfo",
-								"fcmToken",
-							])
-
-							navigation.reset({
-								index: 0,
-								routes: [{ name: "Login" }],
-							})
-						} catch (error) {
-							console.error("로그아웃 처리 중 오류:", error)
-							Alert.alert("오류", "로그아웃 처리 중 문제가 발생했습니다.")
-						}
-					},
-				},
-			])
-		} catch (error) {
-			console.error("로그아웃 처리 중 오류:", error)
-			Alert.alert("오류", "로그아웃 처리 중 문제가 발생했습니다.")
-		}
+			},
+		])
 	}
 
 	if (loading) {
@@ -149,7 +185,7 @@ const HomeScreen = () => {
 const MenuButton = ({
 	source,
 	label,
-	onPress = () => console.log(`${label} 클릭됨`),
+	onPress = () => {},
 }: {
 	source: any
 	label: string

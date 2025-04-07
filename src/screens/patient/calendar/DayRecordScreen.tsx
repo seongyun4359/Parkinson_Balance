@@ -12,7 +12,8 @@ import type { ExercisePrescriptionItem } from "../../../apis/exercisePrescriptio
 interface ExerciseHistoryItem {
 	exerciseName: string
 	setCount: number
-	createdAt?: string // API에서 createdAt이 없을 수도 있으므로 옵셔널 처리
+	createdAt?: string
+	status: "PROGRESS" | "COMPLETE"
 }
 
 type DayRecordScreenRouteProp = RouteProp<RootStackParamList, "DayRecord">
@@ -36,15 +37,27 @@ const DayRecordScreen = () => {
 				const goalsData = goalsResponse.content || []
 	
 				const historyData = await getExerciseHistory(date)
+
+				const aerobicNames = ["걷기", "자전거 타기"]
 	
 				const historyMap: Record<string, Record<string, number>> = {}
 	
 				;(historyData.content as ExerciseHistoryItem[]).forEach((item) => {
 					const createdDate = item.createdAt?.split("T")[0]
-					if (createdDate) {
-						if (!historyMap[createdDate]) historyMap[createdDate] = {}
-						historyMap[createdDate][item.exerciseName] = item.setCount ?? 0
-					}
+					if (!createdDate) return
+				
+					if (!historyMap[createdDate]) historyMap[createdDate] = {}
+				
+					const isAerobic = aerobicNames.includes(item.exerciseName)
+					const isCompleted = item.status === "COMPLETE"
+				
+					// 유산소 운동: 완료되었으면 1세트, 아니면 0
+					// 일반 운동: setCount가 null이면 0, 아니면 그대로
+					const completedSets = isAerobic
+						? (isCompleted ? 1 : 0)
+						: item.setCount ?? 0
+				
+					historyMap[createdDate][item.exerciseName] = completedSets
 				})
 	
 				setExerciseGoals(goalsData)

@@ -1,6 +1,5 @@
-// 기존 import 구문 그대로 유지
 import React, { useState, useEffect, useRef } from "react"
-import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator } from "react-native"
+import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, AppState } from "react-native"
 import Video from "react-native-video"
 import type { VideoRef } from "react-native-video"
 import ScreenHeader from "../../../../components/patient/ScreenHeader"
@@ -8,325 +7,485 @@ import { useNavigation } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RootStackParamList } from "../../../../navigation/Root"
 import {
-  getExercisePrescriptionsByDate,
-  ExercisePrescriptionItem,
-  getExerciseHistory,
-  completeExerciseSet,
-  completeAerobicExercise,
+	getExercisePrescriptionsByDate,
+	ExercisePrescriptionItem,
+	getExerciseHistory,
+	completeExerciseSet,
+	completeAerobicExercise,
+	startExercise,
+	ExerciseHistoryItem,
 } from "../../../../apis/exercisePrescription"
 import { getVideoSource } from "../../../../components/patient/prescription/ExerciseMapping"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { getUserInfo } from "../../../../apis/auth"
+import Ionicons from "react-native-vector-icons/Ionicons"
 
 type ExerciseScreenNavigationProp = StackNavigationProp<RootStackParamList, "ExerciseScreen">
 
+const isValidHistory = (item: ExerciseHistoryItem): boolean =>
+	item.status === "PROGRESS" || item.status === "COMPLETE"
+
 const ExerciseScreen = () => {
-  const navigation = useNavigation<ExerciseScreenNavigationProp>()
-  const [exerciseGoals, setExerciseGoals] = useState<ExercisePrescriptionItem[]>([])
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [videoProgress, setVideoProgress] = useState<Record<number, number>>({})
-  const [goalToHistoryMap, setGoalToHistoryMap] = useState<Record<number, number>>({})
-  const [paused, setPaused] = useState(false)
-  const [isAerobicActive, setIsAerobicActive] = useState(false)
-  const [aerobicSecondsLeft, setAerobicSecondsLeft] = useState(0)
-  const playerRef = useRef<VideoRef>(null)
+	const navigation = useNavigation<ExerciseScreenNavigationProp>()
+	const [exerciseGoals, setExerciseGoals] = useState<ExercisePrescriptionItem[]>([])
+	const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
+	const [loading, setLoading] = useState(true)
+	const [videoProgress, setVideoProgress] = useState<Record<number, number>>({})
+	const [goalToHistoryMap, setGoalToHistoryMap] = useState<Record<number, number>>({})
+	const [paused, setPaused] = useState(false)
+	const [isAerobicActive, setIsAerobicActive] = useState(false)
+	const [aerobicSecondsLeft, setAerobicSecondsLeft] = useState(0)
+	const playerRef = useRef<VideoRef>(null)
 
-  const todayDate = new Date().toISOString().split("T")[0]
+	const todayDate = new Date().toISOString().split("T")[0]
+	const [storagePrefix, setStoragePrefix] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
+	useEffect(() => {
+		const prepare = async () => {
+			const user = await getUserInfo()
+			if (!user?.phoneNumber) return
+			setStoragePrefix(user.phoneNumber)
+		}
+		prepare()
+	}, [])
 
-        const response = await getExercisePrescriptionsByDate(todayDate)
-        const goals = response.content || []
+	useEffect(() => {
+		if (!storagePrefix) return
 
-        const historyData = await getExerciseHistory(todayDate)
-        const existingMap: Record<number, number> = {}
-        const progress: Record<number, number> = {}
-        const goalHistoryMap: Record<number, number> = {}
+		const fetchData = async () => {
+			try {
+				setLoading(true)
+				const response = await getExercisePrescriptionsByDate(todayDate)
+				const goals = response.content || []
 
-        historyData.content.forEach((item) => {
-          const createdDate = item.createdAt?.split("T")[0]
-          const matchGoal = goals.find(
-            (g) => g.exerciseName === item.exerciseName && g.createdAt === createdDate
-          )
-          if (matchGoal) {
-            existingMap[matchGoal.goalId] = item.historyId
-            progress[item.historyId] = item.completedCount ?? 0
-          }
-        })
+				const historyData = await getExerciseHistory(todayDate)
+				const existingMap: Record<number, number> = {}
+				const progress: Record<number, number> = {}
+				const goalHistoryMap: Record<number, number> = {}
 
-        for (const goal of goals) {
-          let historyId = existingMap[goal.goalId]
-          const isDone = historyId && (progress[historyId] ?? 0) >= goal.setCount
+				const storedProgress = await AsyncStorage.getItem(`${storagePrefix}-videoProgress`)
+				const restoredProgress: Record<number, number> = storedProgress
+					? JSON.parse(storedProgress)
+					: {}
 
-          if (!historyId) {
-            const match = historyData.content.find(
-              (h) => h.exerciseName === goal.exerciseName
-            )
-            if (match) {
-              historyId = match.historyId
-              progress[historyId] = match.completedCount ?? 0
-            }
-          }
+				historyData.content.forEach((item: ExerciseHistoryItem) => {
+					const createdDate = item.createdAt?.split("T")[0]
+					if (!isValidHistory(item)) return
+					const matchGoal = goals.find(
+						(g) => g.exerciseName === item.exerciseName && g.createdAt === createdDate
+					)
+					if (matchGoal) {
+						existingMap[matchGoal.goalId] = item.historyId
+						progress[item.historyId] = restoredProgress[item.historyId] ?? item.completedCount ?? 0
+					}
+				})
 
-          if (!historyId || isDone) continue
+				for (const goal of goals) {
+					let historyId = existingMap[goal.goalId]
+					const isDone = historyId && (progress[historyId] ?? 0) >= goal.setCount
 
-          goalHistoryMap[goal.goalId] = historyId
-        }
+					if (isDone) {
+						goalHistoryMap[goal.goalId] = historyId
+						continue
+					}
 
-        setExerciseGoals(goals)
-        setVideoProgress(progress)
-        setGoalToHistoryMap(goalHistoryMap)
+					const progressHistory = historyData.content.find(
+						(h) => h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
+					)
+					if (progressHistory) {
+						historyId = progressHistory.historyId
+						progress[historyId] = restoredProgress[historyId] ?? progressHistory.completedCount ?? 0
+					} else if (!historyId) {
+						const newHistory = await startExercise(goal.goalId)
+						if (newHistory && typeof newHistory === "object" && "historyId" in newHistory) {
+							historyId = (newHistory as { historyId: number }).historyId
+							progress[historyId] = 0
+						} else {
+							continue
+						}
+					}
 
-        const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
-        if (firstIndex !== -1 && goals[firstIndex]) {
-          setCurrentVideoIndex(firstIndex)
-        } else {
-          navigateToRecord(goals, goalHistoryMap, progress)
-        }
-      } catch (err) {
-        console.error("🚨 데이터 로딩 실패:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
+					goalHistoryMap[goal.goalId] = historyId
+				}
 
-    fetchData()
-  }, [])
+				setExerciseGoals(goals)
+				setVideoProgress(progress)
+				setGoalToHistoryMap(goalHistoryMap)
 
-  useEffect(() => {
-    if (!isAerobicActive || aerobicSecondsLeft <= 0) return
-    const timer = setInterval(() => {
-      setAerobicSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          handleAerobicComplete()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [isAerobicActive, aerobicSecondsLeft])
+				// aerobicStartTime 복원
+				const aerobicKey = `${storagePrefix}-aerobicStartTime`
+				const storedStartTime = await AsyncStorage.getItem(aerobicKey)
+				if (storedStartTime) {
+					const elapsed = Math.floor((Date.now() - Number(storedStartTime)) / 1000)
+					const goal = goals.find((g) => isAerobicExercise(g.exerciseName))
+					if (goal) {
+						const totalSeconds = goal.duration
+						const remaining = totalSeconds - elapsed
+						if (remaining > 0) {
+							setPaused(true)
+							setIsAerobicActive(true)
+							setAerobicSecondsLeft(remaining)
+						} else {
+							const historyId = goalHistoryMap[goal.goalId]
+							if (historyId) await completeAerobicExercise(historyId)
+							await AsyncStorage.removeItem(aerobicKey)
+						}
+					}
+				}
 
-  useEffect(() => {
-    const seekToSavedPosition = async () => {
-      const current = exerciseGoals[currentVideoIndex]
-      if (!current) return
-      const key = `video-position-${current.goalId}`
-      const saved = await AsyncStorage.getItem(key)
-      const seconds = saved ? parseFloat(saved) : 0
-      if (playerRef.current && seconds > 0) {
-        playerRef.current.seek(seconds)
-      }
-    }
+				const savedIndex = await AsyncStorage.getItem(`${storagePrefix}-currentVideoIndex`)
+				const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
 
-    seekToSavedPosition()
-  }, [currentVideoIndex])
+				if (savedIndex !== null) {
+					const restoredIndex = parseInt(savedIndex, 10)
+					const restoredGoal = goals[restoredIndex]
+					const restoredHistoryId = goalHistoryMap[restoredGoal?.goalId]
+					const restoredProgressCount = progress[restoredHistoryId] || 0
 
-  const handleVideoProgress = async (data: { currentTime: number }) => {
-    const current = exerciseGoals[currentVideoIndex]
-    if (!current) return
-    const key = `video-position-${current.goalId}`
-    await AsyncStorage.setItem(key, String(data.currentTime))
-  }
+					if (
+						restoredIndex >= 0 &&
+						restoredIndex < goals.length &&
+						restoredProgressCount < restoredGoal.setCount
+					) {
+						setCurrentVideoIndex(restoredIndex)
+					} else if (firstIndex !== -1) {
+						setCurrentVideoIndex(firstIndex)
+					} else {
+						await AsyncStorage.multiRemove([
+							`${storagePrefix}-videoProgress`,
+							`${storagePrefix}-currentVideoIndex`,
+						])
+						navigateToRecord(goals, goalHistoryMap, progress)
+					}
+				}
+			} catch (err) {
+				console.error("🚨 데이터 로딩 실패:", err)
+			} finally {
+				setLoading(false)
+			}
+		}
 
-  const findNextIncompleteIndex = (
-    goals: ExercisePrescriptionItem[],
-    historyMap: Record<number, number>,
-    progressMap: Record<number, number>
-  ): number => {
-    for (let i = 0; i < goals.length; i++) {
-      const goal = goals[i]
-      const historyId = historyMap[goal.goalId]
-      const watched = progressMap[historyId] || 0
-      if (watched < goal.setCount) return i
-    }
-    return -1
-  }
+		fetchData()
+	}, [storagePrefix])
 
-  const isAerobicExercise = (name: string) =>
-    name.includes("걷기") || name.includes("자전거 타기")
+	useEffect(() => {
+		if (!isAerobicActive || aerobicSecondsLeft <= 0 || paused) return
 
-  const handleVideoEnd = async () => {
-    const current = exerciseGoals[currentVideoIndex]
-    if (!current) return
-    const goalId = current.goalId
-    const historyId = goalToHistoryMap[goalId]
-    if (typeof historyId !== "number") return
+		const timer = setInterval(() => {
+			setAerobicSecondsLeft((prev) => {
+				if (prev <= 1) {
+					clearInterval(timer)
+					handleAerobicComplete()
+					return 0
+				}
+				return prev - 1
+			})
+		}, 1000)
 
-    const watched = (videoProgress[historyId] || 0) + 1
+		return () => clearInterval(timer)
+	}, [isAerobicActive, aerobicSecondsLeft, paused])
 
-    if (isAerobicExercise(current.exerciseName)) {
-      setPaused(true)
-      setIsAerobicActive(true)
-      setAerobicSecondsLeft(current.duration * 60)
-      return
-    }
+	useEffect(() => {
+		const subscription = AppState.addEventListener("change", async (nextAppState) => {
+			if (!isAerobicActive || !storagePrefix) return
 
-    const success = await completeExerciseSet(historyId)
-    if (!success) return
+			const key = `${storagePrefix}-aerobicPausedTime`
 
-    const updated = { ...videoProgress, [historyId]: watched }
-    setVideoProgress(updated)
+			if (nextAppState === "background") {
+				const now = Date.now()
+				await AsyncStorage.setItem(key, String(now))
+			} else if (nextAppState === "active") {
+				const pausedTimeStr = await AsyncStorage.getItem(key)
+				if (pausedTimeStr) {
+					const pausedTime = parseInt(pausedTimeStr, 10)
+					const now = Date.now()
+					const diff = Math.floor((now - pausedTime) / 1000)
+					setAerobicSecondsLeft((prev) => Math.max(prev - diff, 0))
+					await AsyncStorage.removeItem(key)
+				}
+			}
+		})
 
-    if (watched >= current.setCount) {
-      const next = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, updated)
-      if (next !== -1) setCurrentVideoIndex(next)
-      else navigateToRecord(exerciseGoals, goalToHistoryMap, updated)
-    } else {
-      setTimeout(() => setPaused(false), 100)
-    }
-  }
+		return () => {
+			subscription.remove()
+		}
+	}, [isAerobicActive, storagePrefix])
 
-  const handleAerobicComplete = async () => {
-    const current = exerciseGoals[currentVideoIndex]
-    if (!current) return
-    const goalId = current.goalId
-    const historyId = goalToHistoryMap[goalId]
-    if (typeof historyId !== "number") return
+	const saveVideoProgress = async (progress: Record<number, number>) => {
+		if (!storagePrefix) return
+		await AsyncStorage.setItem(`${storagePrefix}-videoProgress`, JSON.stringify(progress))
+	}
 
-    const success = await completeAerobicExercise(historyId)
-    if (!success) return
+	const handleVideoProgress = async (data: { currentTime: number }) => {
+		const current = exerciseGoals[currentVideoIndex]
+		if (!current || !storagePrefix) return
+		const key = `${storagePrefix}-video-position-${current.goalId}`
+		await AsyncStorage.setItem(key, String(data.currentTime))
+	}
 
-    const updated = { ...videoProgress, [historyId]: 1 }
-    setVideoProgress(updated)
-    setIsAerobicActive(false)
+	const findNextIncompleteIndex = (
+		goals: ExercisePrescriptionItem[],
+		historyMap: Record<number, number>,
+		progressMap: Record<number, number>
+	): number => {
+		for (let i = 0; i < goals.length; i++) {
+			const goal = goals[i]
+			const historyId = historyMap[goal.goalId]
+			const watched = progressMap[historyId] || 0
+			if (watched < goal.setCount) return i
+		}
+		return -1
+	}
 
-    const next = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, updated)
-    if (next !== -1) setCurrentVideoIndex(next)
-    else navigateToRecord(exerciseGoals, goalToHistoryMap, updated)
-  }
+	const isAerobicExercise = (name: string) => {
+		const aerobicNames = ["걷기", "자전거 타기"]
+		return aerobicNames.includes(name)
+	}
 
-  const navigateToRecord = (
-    goals = exerciseGoals,
-    map = goalToHistoryMap,
-    progress = videoProgress
-  ) => {
-    const totalSets = goals.reduce((sum, g) => sum + g.setCount, 0)
-    const done = Object.entries(map).reduce(
-      (sum, [_, historyId]) => sum + (progress[historyId] || 0),
-      0
-    )
-    const percent = totalSets ? (done / totalSets) * 100 : 0
+	const handleVideoEnd = async () => {
+		const current = exerciseGoals[currentVideoIndex]
+		if (!current) return
+		const goalId = current.goalId
+		const historyId = goalToHistoryMap[goalId]
+		if (typeof historyId !== "number") return
 
-    navigation.navigate("RecordScreen", {
-      progress: parseFloat(percent.toFixed(1)),
-      videoProgress: progress,
-      exerciseGoals: goals,
-    })
-  }
+		const currentCount = videoProgress[historyId] || 0
 
-  const handleStopWatching = () => {
-    setPaused(true)
-    navigateToRecord()
-  }
+		if (currentCount >= current.setCount) {
+			const next = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, videoProgress)
+			if (next !== -1) {
+				setCurrentVideoIndex(next)
+				await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(next))
+			} else {
+				await AsyncStorage.multiRemove([
+					`${storagePrefix}-videoProgress`,
+					`${storagePrefix}-currentVideoIndex`,
+				])
+				navigateToRecord(exerciseGoals, goalToHistoryMap, videoProgress)
+			}
+			return
+		}
 
-  if (loading) return <ActivityIndicator size="large" color="#76DABF" />
-  if (exerciseGoals.length === 0)
-    return <Text style={styles.noGoalText}>운동 목표가 없습니다.</Text>
+		if (isAerobicExercise(current.exerciseName)) {
+			setPaused(true)
+			setIsAerobicActive(true)
+			const seconds = currentExercise.duration * 60
+			const now = Math.floor(Date.now() / 1000)
+			await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
+			setAerobicSecondsLeft(seconds)
+			return
+		}
 
-  const currentExercise = exerciseGoals[currentVideoIndex]
-  const videoSource = getVideoSource(currentExercise.exerciseName)
+		const success = await completeExerciseSet(historyId)
+		if (!success) return
 
-  return (
-    <View style={styles.container}>
-      <ScreenHeader />
-      <View style={styles.videoContainer}>
-        {isAerobicActive ? (
-          <Text style={styles.timerText}>
-            유산소 운동 중... 남은 시간: {Math.floor(aerobicSecondsLeft / 60)}:
-            {String(aerobicSecondsLeft % 60).padStart(2, "0")}
-          </Text>
-        ) : videoSource ? (
-          <Video
-            ref={playerRef}
-            source={videoSource}
-            style={styles.video}
-            resizeMode="contain"
-            controls
-            paused={paused}
-            onEnd={handleVideoEnd}
-            onProgress={handleVideoProgress} // ✅ 추가
-          />
-        ) : (
-          <Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
-        )}
-      </View>
-      <View style={styles.exerciseInfo}>
-        <Text style={styles.exerciseText}>{currentExercise.exerciseName}</Text>
-        <Text style={styles.progressText}>
-          진행 중: {videoProgress[goalToHistoryMap[currentExercise.goalId]] || 0}/
-          {currentExercise.setCount} 세트
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.stopButton} onPress={handleStopWatching}>
-        <Text style={styles.stopButtonText}>그만 보기</Text>
-      </TouchableOpacity>
-    </View>
-  )
+		const updated = { ...videoProgress, [historyId]: currentCount + 1 }
+		setVideoProgress(updated)
+		await saveVideoProgress(updated)
+
+		if (updated[historyId] >= current.setCount) {
+			const next = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, updated)
+			if (next !== -1) {
+				setCurrentVideoIndex(next)
+				await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(next))
+			} else {
+				await AsyncStorage.multiRemove([
+					`${storagePrefix}-videoProgress`,
+					`${storagePrefix}-currentVideoIndex`,
+				])
+				navigateToRecord(exerciseGoals, goalToHistoryMap, updated)
+			}
+		} else {
+			setTimeout(() => setPaused(false), 100)
+		}
+	}
+
+	const handleAerobicComplete = async () => {
+		const current = exerciseGoals[currentVideoIndex]
+		if (!current) return
+
+		const goalId = current.goalId
+		const historyId = goalToHistoryMap[goalId]
+		if (typeof historyId !== "number") return
+
+		const success = await completeAerobicExercise(historyId)
+		if (!success) return
+
+		// 운동 완료 후 상태 저장
+		const updated = { ...videoProgress, [historyId]: 1 }
+		setVideoProgress(updated)
+		await saveVideoProgress(updated)
+		setIsAerobicActive(false)
+		await AsyncStorage.removeItem(`${storagePrefix}-aerobicStartTime`)
+
+		// 현재 상태 저장
+		await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(currentVideoIndex))
+		const next = findNextIncompleteIndex(exerciseGoals, goalToHistoryMap, updated)
+		if (next !== -1) {
+			setCurrentVideoIndex(next)
+			await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(next))
+		} else {
+			await AsyncStorage.multiRemove([
+				`${storagePrefix}-videoProgress`,
+				`${storagePrefix}-currentVideoIndex`,
+			])
+			navigateToRecord(exerciseGoals, goalToHistoryMap, updated)
+		}
+	}
+
+	const navigateToRecord = (
+		goals = exerciseGoals,
+		map = goalToHistoryMap,
+		progress = videoProgress
+	) => {
+		const totalSets = goals.reduce((sum, g) => sum + g.setCount, 0)
+		const done = Object.entries(map).reduce(
+			(sum, [_, historyId]) => sum + (progress[historyId] || 0),
+			0
+		)
+		const percent = totalSets ? (done / totalSets) * 100 : 0
+
+		navigation.navigate("RecordScreen", {
+			progress: parseFloat(percent.toFixed(1)),
+			videoProgress: progress,
+			exerciseGoals: goals,
+		})
+	}
+
+	const handleStopWatching = async () => {
+		setPaused(true)
+		await saveVideoProgress(videoProgress)
+		navigateToRecord()
+	}
+
+	if (loading) return <ActivityIndicator size="large" color="#76DABF" />
+	if (exerciseGoals.length === 0)
+		return <Text style={styles.noGoalText}>운동 목표가 없습니다.</Text>
+
+	const currentExercise = exerciseGoals[currentVideoIndex]
+	const videoSource = getVideoSource(currentExercise.exerciseName)
+
+	return (
+		<View style={styles.container}>
+			<ScreenHeader />
+			<View style={styles.videoContainer}>
+				{isAerobicExercise(currentExercise.exerciseName) ? (
+					isAerobicActive ? (
+						<View style={styles.videoContainer}>
+							<Text style={styles.timerText}>
+								남은 시간 {String(Math.floor(aerobicSecondsLeft / 60)).padStart(2, "0")}:
+								{String(aerobicSecondsLeft % 60).padStart(2, "0")}
+							</Text>
+							<TouchableOpacity onPress={() => setPaused((prev) => !prev)}>
+								<Ionicons
+									name={paused ? "play-circle-outline" : "pause-circle-outline"}
+									size={56}
+									color="#76DABF"
+								/>
+							</TouchableOpacity>
+						</View>
+					) : (
+						<TouchableOpacity
+							onPress={async () => {
+								setPaused(false)
+								setIsAerobicActive(true)
+								const seconds = currentExercise.duration * 60
+								const now = Date.now()
+								await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
+								setAerobicSecondsLeft(seconds)
+							}}
+						>
+							<Ionicons name="play-circle-outline" size={56} color="#76DABF" />
+						</TouchableOpacity>
+					)
+				) : videoSource ? (
+					<Video
+						ref={playerRef}
+						source={videoSource}
+						style={styles.video}
+						resizeMode="contain"
+						controls
+						paused={paused}
+						onEnd={handleVideoEnd}
+						onProgress={handleVideoProgress}
+					/>
+				) : (
+					<Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
+				)}
+			</View>
+
+			<View style={styles.exerciseInfo}>
+				<Text style={styles.exerciseText}>{currentExercise.exerciseName}</Text>
+				<Text style={styles.progressText}>
+					진행 중: {videoProgress[goalToHistoryMap[currentExercise.goalId]] || 0}/
+					{currentExercise.setCount} 세트
+				</Text>
+			</View>
+			<TouchableOpacity style={styles.stopButton} onPress={handleStopWatching}>
+				<Text style={styles.stopButtonText}>그만 보기</Text>
+			</TouchableOpacity>
+		</View>
+	)
 }
 
 export default ExerciseScreen
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    justifyContent: "space-between",
-    paddingBottom: 20,
-  },
-  videoContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  video: {
-    width: "90%",
-    height: 220,
-    backgroundColor: "#ddd",
-  },
-  exerciseInfo: {
-    padding: 16,
-    alignItems: "center",
-  },
-  exerciseText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  progressText: {
-    fontSize: 16,
-    color: "#555",
-  },
-  stopButton: {
-    backgroundColor: "#76DABF",
-    paddingVertical: 12,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  stopButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  noGoalText: {
-    textAlign: "center",
-    fontSize: 18,
-    marginTop: 50,
-    color: "#555",
-  },
-  errorText: {
-    textAlign: "center",
-    fontSize: 16,
-    color: "red",
-  },
-  timerText: {
-    fontSize: 24,
-    color: "#76DABF",
-    fontWeight: "bold",
-  },
+	container: {
+		flex: 1,
+		backgroundColor: "#fff",
+		justifyContent: "space-between",
+		paddingBottom: 20,
+	},
+	videoContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	video: {
+		width: "90%",
+		height: 220,
+		backgroundColor: "#ddd",
+	},
+	exerciseInfo: {
+		padding: 16,
+		alignItems: "center",
+	},
+	exerciseText: {
+		fontSize: 18,
+		fontWeight: "bold",
+		color: "#333",
+	},
+	progressText: {
+		fontSize: 16,
+		color: "#555",
+	},
+	stopButton: {
+		backgroundColor: "#76DABF",
+		paddingVertical: 12,
+		marginHorizontal: 16,
+		borderRadius: 8,
+		alignItems: "center",
+	},
+	stopButtonText: {
+		color: "#fff",
+		fontSize: 16,
+		fontWeight: "bold",
+	},
+	noGoalText: {
+		textAlign: "center",
+		fontSize: 18,
+		marginTop: 50,
+		color: "#555",
+	},
+	errorText: {
+		textAlign: "center",
+		fontSize: 16,
+		color: "red",
+	},
+	timerText: {
+		fontSize: 24,
+		color: "#76DABF",
+		fontWeight: "bold",
+	},
 })
