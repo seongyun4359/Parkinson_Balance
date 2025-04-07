@@ -10,6 +10,7 @@
 		"test": "jest"
 	},
 	"dependencies": {
+		"@microsoft/react-native-clarity": "^4.1.8",
 		"@react-native-async-storage/async-storage": "^2.1.1",
 		"@react-native-community/checkbox": "^0.5.17",
 		"@react-native-community/datetimepicker": "^8.3.0",

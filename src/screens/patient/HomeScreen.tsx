@@ -13,12 +13,14 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import ScreenHeader from "../../components/patient/ScreenHeader"
 import Calendar from "../../components/patient/Calendar"
 import { RootStackParamList } from "../../navigation/Root"
-import { getExerciseHistory, getExercisePrescriptionsByDate } from "../../apis/exercisePrescription"
+import {
+	getExerciseHistory,
+	getExercisePrescriptionsByDate,
+} from "../../apis/exercisePrescription"
 import { getUserInfo } from "../../apis/auth"
 import PushNotification from "react-native-push-notification"
 import dayjs from "dayjs"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>
 
@@ -31,12 +33,12 @@ const HomeScreen = () => {
 		const fetchCompletedDates = async () => {
 			try {
 				setLoading(true)
-	
+
 				const aerobicNames = ["걷기", "자전거 타기"]
 				const recentDates = Array.from({ length: 14 }, (_, i) =>
 					dayjs().subtract(i, "day").format("YYYY-MM-DD")
 				)
-	
+
 				const checks = await Promise.all(
 					recentDates.map(async (date) => {
 						try {
@@ -44,29 +46,33 @@ const HomeScreen = () => {
 								getExerciseHistory(date),
 								getExercisePrescriptionsByDate(date),
 							])
-	
+
 							const goals = goalsData.content
 							if (goals.length === 0) return null
-	
+
 							const historyMap: Record<string, number> = {}
-	
+
 							historyData.content.forEach((item) => {
 								const createdDate = item.createdAt?.split("T")[0]
 								if (createdDate !== date) return
-	
+
 								const isAerobic = aerobicNames.includes(item.exerciseName)
 								const isCompleted = item.status === "COMPLETE"
-								const completedSets = isAerobic ? (isCompleted ? 1 : 0) : item.setCount ?? 0
-	
+								const completedSets = isAerobic
+									? isCompleted
+										? 1
+										: 0
+									: item.setCount ?? 0
+
 								historyMap[item.exerciseName] = completedSets
 							})
-	
+
 							const allDone = goals.every((goal) => {
 								const required = goal.setCount ?? 1
 								const done = historyMap[goal.exerciseName] ?? 0
 								return done >= required
 							})
-	
+
 							return allDone ? date : null
 						} catch (e) {
 							console.warn(`⚠️ ${date} 데이터 오류`, e)
@@ -74,7 +80,7 @@ const HomeScreen = () => {
 						}
 					})
 				)
-	
+
 				const completed = checks.filter((d): d is string => !!d)
 				setCompletedDates(completed)
 			} catch (error) {
@@ -83,20 +89,20 @@ const HomeScreen = () => {
 				setLoading(false)
 			}
 		}
-	
+
 		const scheduleAlarm = async () => {
 			try {
 				const userInfo = await getUserInfo()
 				if (!userInfo) return
-	
+
 				const rawTime = userInfo.exerciseNotificationTime
 				if (!rawTime || typeof rawTime !== "string") return
-	
+
 				const fullDateTime = `${dayjs().format("YYYY-MM-DD")} ${rawTime}`
 				const alarmTime = dayjs(fullDateTime, "YYYY-MM-DD HH:mm:ss", true)
-	
+
 				if (!alarmTime.isValid() || alarmTime.isBefore(dayjs())) return
-	
+
 				PushNotification.localNotificationSchedule({
 					channelId: "exercise-alarm",
 					title: "운동 알람",
@@ -111,11 +117,10 @@ const HomeScreen = () => {
 				console.error("🚨 알람 예약 실패:", error)
 			}
 		}
-	
+
 		fetchCompletedDates()
 		scheduleAlarm()
 	}, [])
-	
 
 	const handleLogout = async () => {
 		Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [

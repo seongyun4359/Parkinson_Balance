@@ -1,0 +1,33 @@
+{
+  "name": "react-native-clarity",
+  "version": "4.1.8",
+  "summary": "A plugin to provide the Clarity experience for the React Native applications.",
+  "homepage": "https://clarity.microsoft.com/",
+  "license": "MIT",
+  "authors": "Microsoft - Clarity <clarity-apps-support@microsoft.com> (https://github.com/microsoft/clarity-apps)",
+  "platforms": {
+    "ios": "13.0"
+  },
+  "source": {
+    "git": "https://msasg.visualstudio.com/Clarity/_git/clarity-react-native.git",
+    "tag": "4.1.8"
+  },
+  "source_files": "ios/**/*.{h,m,mm}",
+  "dependencies": {
+    "React-Core": [],
+    "Clarity": [
+      "3.0.6"
+    ],
+    "React-Codegen": [],
+    "RCT-Folly": [],
+    "RCTRequired": [],
+    "RCTTypeSafety": [],
+    "ReactCommon/turbomodule/core": []
+  },
+  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32 -DRCT_NEW_ARCH_ENABLED=1",
+  "pod_target_xcconfig": {
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\"",
+    "OTHER_CPLUSPLUSFLAGS": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++17"
+  }
+}
