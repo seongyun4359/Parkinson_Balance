@@ -32,35 +32,35 @@ const HomeScreen = () => {
 		const fetchCompletedDates = async () => {
 			try {
 				setLoading(true)
-	
+
 				const completed: string[] = []
-	
+
 				// 최근 14일 기준으로 조회
 				const recentDates = Array.from({ length: 14 }, (_, i) =>
 					dayjs().subtract(i, "day").format("YYYY-MM-DD")
 				)
-	
+
 				for (const date of recentDates) {
 					try {
 						const historyData = await getExerciseHistory(date)
 						const goalsData = await getExercisePrescriptionsByDate(date)
 						const goals = goalsData.content
-	
+
 						const recordMap = historyData.content.reduce((acc, item) => {
 							acc[item.exerciseName] = item.setCount ?? 0 // ⚠️ 여기도 백엔드에서 setCount가 아니라면 수정 필요
 							return acc
 						}, {} as Record<string, number>)
-	
+
 						const allDone = goals.every(
 							(goal) => (recordMap[goal.exerciseName] ?? 0) >= goal.setCount
 						)
-	
+
 						if (allDone) completed.push(date)
 					} catch (e) {
 						console.warn(`⚠️ ${date} 운동 데이터 불러오기 실패`, e)
 					}
 				}
-	
+
 				setCompletedDates(completed)
 			} catch (error) {
 				console.error("🚨 운동 기록 불러오기 오류:", error)
@@ -68,15 +68,15 @@ const HomeScreen = () => {
 				setLoading(false)
 			}
 		}
-	
+
 		const scheduleAlarm = async () => {
 			// 알람 설정 로직은 기존 코드 그대로 유지
 		}
-	
+
 		fetchCompletedDates()
 		scheduleAlarm()
 	}, [])
-	
+
 	const handleLogout = async () => {
 		try {
 			Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
