@@ -21,9 +21,6 @@ export const loginUser = async (loginData) => {
 			await saveTokens(accessToken, refreshToken)
 			console.log(" 토큰 저장 완료")
 
-			//  기존에 저장된 사용자 정보 가져오기
-			const existingUserInfo = await getUserInfo()
-
 			// 🔥 로그인 응답에서 운동 알람 시간이 없음 -> 직접 가져오기
 			let exerciseNotificationTime =
 				response.data[0]?.memberInfoResponse?.exerciseNotificationTime ?? null
