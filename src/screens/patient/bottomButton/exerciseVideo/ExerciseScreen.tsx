@@ -36,6 +36,7 @@ const ExerciseScreen = () => {
 	const [isAerobicActive, setIsAerobicActive] = useState(false)
 	const [aerobicSecondsLeft, setAerobicSecondsLeft] = useState(0)
 	const playerRef = useRef<VideoRef>(null)
+	const [appState, setAppState] = useState(AppState.currentState)
 
 	const todayDate = new Date().toISOString().split("T")[0]
 	const [storagePrefix, setStoragePrefix] = useState<string | null>(null)
@@ -57,6 +58,20 @@ const ExerciseScreen = () => {
 				setLoading(true)
 				const response = await getExercisePrescriptionsByDate(todayDate)
 				const goals = response.content || []
+
+				const priority = [
+					"신장 운동",
+					"근력 운동",
+					"균형 및 협응 운동",
+					"구강/발성 운동",
+					"유산소 운동",
+				]
+
+				goals.sort((a, b) => {
+					const aIndex = priority.indexOf(a.exerciseType)
+					const bIndex = priority.indexOf(b.exerciseType)
+					return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex)
+				  })
 
 				const historyData = await getExerciseHistory(todayDate)
 				const existingMap: Record<number, number> = {}
@@ -89,6 +104,7 @@ const ExerciseScreen = () => {
 						continue
 					}
 
+					// 먼저 기존 히스토리 중 진행 중인 게 있는지 찾기
 					const progressHistory = historyData.content.find(
 						(h) => h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
 					)
@@ -96,12 +112,30 @@ const ExerciseScreen = () => {
 						historyId = progressHistory.historyId
 						progress[historyId] = restoredProgress[historyId] ?? progressHistory.completedCount ?? 0
 					} else if (!historyId) {
+						// 새 history 생성 시도
 						const newHistory = await startExercise(goal.goalId)
+
 						if (newHistory && typeof newHistory === "object" && "historyId" in newHistory) {
-							historyId = (newHistory as { historyId: number }).historyId
+							const { historyId } = newHistory as { historyId: number }
 							progress[historyId] = 0
 						} else {
-							continue
+							console.warn("⚠️ historyId 없음, fallback 재시도 전 대기 중...")
+							await new Promise((res) => setTimeout(res, 300)) // 잠깐 대기
+
+							// fallback 재조회
+							const refreshedHistory = await getExerciseHistory(todayDate)
+							const retry = (refreshedHistory.content as ExerciseHistoryItem[]).find(
+								(h: ExerciseHistoryItem) =>
+									h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
+							)
+
+							if (retry) {
+								historyId = retry.historyId
+								progress[historyId] = restoredProgress[retry.historyId] ?? retry.completedCount ?? 0
+							} else {
+								console.error("❌ 운동 시작 실패: historyId 없음 + 최종 fallback 실패", newHistory)
+								continue
+							}
 						}
 					}
 
@@ -113,28 +147,57 @@ const ExerciseScreen = () => {
 				setGoalToHistoryMap(goalHistoryMap)
 
 				// aerobicStartTime 복원
+				// aerobicStartTime 복원
 				const aerobicKey = `${storagePrefix}-aerobicStartTime`
 				const storedStartTime = await AsyncStorage.getItem(aerobicKey)
 				if (storedStartTime) {
 					const elapsed = Math.floor((Date.now() - Number(storedStartTime)) / 1000)
 					const goal = goals.find((g) => isAerobicExercise(g.exerciseName))
-					if (goal) {
+
+					if (goal && goal.duration) {
 						const totalSeconds = goal.duration
 						const remaining = totalSeconds - elapsed
-						if (remaining > 0) {
+
+						console.log(
+							"⏱ elapsed:",
+							elapsed,
+							"remaining:",
+							remaining,
+							"goal.duration:",
+							goal.duration
+						)
+
+						// ✅ 예외적으로 음수이거나 비정상적인 값이면 무시
+						if (elapsed < 0 || elapsed > totalSeconds + 300) {
+							console.warn("⚠️ elapsed 비정상, 유산소 운동 무시됨")
+							return
+						}
+
+						// ⏳ 남은 시간 있다면 복원
+						if (remaining > 0 && remaining <= totalSeconds) {
 							setPaused(true)
 							setIsAerobicActive(true)
 							setAerobicSecondsLeft(remaining)
-						} else {
+						}
+						// ✅ 0초 이하라면 완료 처리
+						else if (remaining <= 0) {
 							const historyId = goalHistoryMap[goal.goalId]
-							if (historyId) await completeAerobicExercise(historyId)
-							await AsyncStorage.removeItem(aerobicKey)
+							if (historyId && !isAerobicActive) {
+								await completeAerobicExercise(historyId)
+								await AsyncStorage.removeItem(aerobicKey)
+							}
 						}
 					}
 				}
 
 				const savedIndex = await AsyncStorage.getItem(`${storagePrefix}-currentVideoIndex`)
 				const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
+
+				// ✅ 추가된 부분: 모든 운동 완료 시 자동 이동
+				if (goals.length > 0 && firstIndex === -1) {
+					navigateToRecord(goals, goalHistoryMap, progress)
+					return
+				}
 
 				if (savedIndex !== null) {
 					const restoredIndex = parseInt(savedIndex, 10)
@@ -151,12 +214,10 @@ const ExerciseScreen = () => {
 					} else if (firstIndex !== -1) {
 						setCurrentVideoIndex(firstIndex)
 					} else {
-						await AsyncStorage.multiRemove([
-							`${storagePrefix}-videoProgress`,
-							`${storagePrefix}-currentVideoIndex`,
-						])
 						navigateToRecord(goals, goalHistoryMap, progress)
 					}
+				} else if (firstIndex !== -1) {
+					setCurrentVideoIndex(firstIndex)
 				}
 			} catch (err) {
 				console.error("🚨 데이터 로딩 실패:", err)
@@ -168,48 +229,47 @@ const ExerciseScreen = () => {
 		fetchData()
 	}, [storagePrefix])
 
+	const appStateRef = useRef(appState)
 	useEffect(() => {
-		if (!isAerobicActive || aerobicSecondsLeft <= 0 || paused) return
-
-		const timer = setInterval(() => {
-			setAerobicSecondsLeft((prev) => {
-				if (prev <= 1) {
-					clearInterval(timer)
-					handleAerobicComplete()
-					return 0
-				}
-				return prev - 1
-			})
-		}, 1000)
-
-		return () => clearInterval(timer)
-	}, [isAerobicActive, aerobicSecondsLeft, paused])
+		appStateRef.current = appState
+	}, [appState])
 
 	useEffect(() => {
-		const subscription = AppState.addEventListener("change", async (nextAppState) => {
+		let timer: NodeJS.Timeout | null = null
+		if (appState === "active" && isAerobicActive && !paused && aerobicSecondsLeft > 0) {
+			timer = setInterval(() => {
+				setAerobicSecondsLeft((prev) => {
+					if (prev <= 1) {
+						clearInterval(timer!)
+						handleAerobicComplete()
+						return 0
+					}
+					return prev - 1
+				})
+			}, 1000)
+		}
+		return () => {
+			if (timer) clearInterval(timer)
+		}
+	}, [appState, isAerobicActive, paused, aerobicSecondsLeft])
+
+	useEffect(() => {
+		const subscription = AppState.addEventListener("change", (nextAppState) => {
 			if (!isAerobicActive || !storagePrefix) return
-
-			const key = `${storagePrefix}-aerobicPausedTime`
-
+			const key = `${storagePrefix}-aerobicRemainingTime`
 			if (nextAppState === "background") {
-				const now = Date.now()
-				await AsyncStorage.setItem(key, String(now))
+				// 백그라운드로 갈 때 현재 남은 시간을 저장
+				AsyncStorage.setItem(key, String(aerobicSecondsLeft))
 			} else if (nextAppState === "active") {
-				const pausedTimeStr = await AsyncStorage.getItem(key)
-				if (pausedTimeStr) {
-					const pausedTime = parseInt(pausedTimeStr, 10)
-					const now = Date.now()
-					const diff = Math.floor((now - pausedTime) / 1000)
-					setAerobicSecondsLeft((prev) => Math.max(prev - diff, 0))
-					await AsyncStorage.removeItem(key)
-				}
+				// active로 돌아오면 저장된 값을 지우고, 타이머는 useEffect에서 다시 시작됨
+				AsyncStorage.removeItem(key)
 			}
+			setAppState(nextAppState)
 		})
-
 		return () => {
 			subscription.remove()
 		}
-	}, [isAerobicActive, storagePrefix])
+	}, [isAerobicActive, storagePrefix, aerobicSecondsLeft])
 
 	const saveVideoProgress = async (progress: Record<number, number>) => {
 		if (!storagePrefix) return
@@ -269,7 +329,7 @@ const ExerciseScreen = () => {
 		if (isAerobicExercise(current.exerciseName)) {
 			setPaused(true)
 			setIsAerobicActive(true)
-			const seconds = currentExercise.duration * 60
+			const seconds = currentExercise.duration
 			const now = Math.floor(Date.now() / 1000)
 			await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
 			setAerobicSecondsLeft(seconds)
@@ -289,10 +349,6 @@ const ExerciseScreen = () => {
 				setCurrentVideoIndex(next)
 				await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(next))
 			} else {
-				await AsyncStorage.multiRemove([
-					`${storagePrefix}-videoProgress`,
-					`${storagePrefix}-currentVideoIndex`,
-				])
 				navigateToRecord(exerciseGoals, goalToHistoryMap, updated)
 			}
 		} else {
@@ -325,10 +381,6 @@ const ExerciseScreen = () => {
 			setCurrentVideoIndex(next)
 			await AsyncStorage.setItem(`${storagePrefix}-currentVideoIndex`, String(next))
 		} else {
-			await AsyncStorage.multiRemove([
-				`${storagePrefix}-videoProgress`,
-				`${storagePrefix}-currentVideoIndex`,
-			])
 			navigateToRecord(exerciseGoals, goalToHistoryMap, updated)
 		}
 	}
@@ -389,7 +441,7 @@ const ExerciseScreen = () => {
 							onPress={async () => {
 								setPaused(false)
 								setIsAerobicActive(true)
-								const seconds = currentExercise.duration * 60
+								const seconds = currentExercise.duration
 								const now = Date.now()
 								await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
 								setAerobicSecondsLeft(seconds)
