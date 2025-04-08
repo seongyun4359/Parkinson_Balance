@@ -17,19 +17,22 @@ export const saveTokens = async (accessToken: string, refreshToken: string) => {
 
 export const refreshAccessToken = async (): Promise<string | null> => {
   try {
+    const accessToken = await AsyncStorage.getItem("accessToken")
     const refreshToken = await AsyncStorage.getItem("refreshToken")
-    if (!refreshToken) {
-      console.warn("❗️ 저장된 refreshToken 없음")
+
+    if (!accessToken || !refreshToken) {
+      console.warn("❗ 저장된 토큰 없음")
       return null
     }
 
     const response = await fetch(`${API_URL}/refresh`, {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${accessToken}`, // ✅ 반드시 추가
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ refreshToken }), // ✅ 핵심 수정
+      body: JSON.stringify({ refreshToken }), // ✅ 여전히 body에는 refreshToken
     })
 
     const text = await response.text()
@@ -51,6 +54,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
 
     if (newAccessToken && newRefreshToken) {
       await saveTokens(newAccessToken, newRefreshToken)
+      ACCESS_TOKEN = newAccessToken 
       console.log("✅ 토큰 갱신 완료")
       return newAccessToken
     }
@@ -61,6 +65,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     return null
   }
 }
+
 
 // 🛠 fetch 래퍼 함수: 자동 accessToken 갱신 포함
 export const fetchWithAuth = async (
