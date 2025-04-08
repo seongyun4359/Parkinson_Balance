@@ -15,12 +15,9 @@ export const saveTokens = async (accessToken: string, refreshToken: string) => {
   ACCESS_TOKEN = accessToken // 갱신
 }
 
-// 🔄 리프레시 토큰으로 accessToken 재발급
 export const refreshAccessToken = async (): Promise<string | null> => {
   try {
     const refreshToken = await AsyncStorage.getItem("refreshToken")
-    console.log("📦 저장된 refreshToken:", refreshToken)
-    
     if (!refreshToken) {
       console.warn("❗️ 저장된 refreshToken 없음")
       return null
@@ -29,13 +26,11 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     const response = await fetch(`${API_URL}/refresh`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
         "Content-Type": "application/json",
         Accept: "application/json",
       },
+      body: JSON.stringify({ refreshToken }), // ✅ 핵심 수정
     })
-
-    console.log("🔐 Authorization 헤더:", `Bearer ${refreshToken}`)
 
     const text = await response.text()
     let data
@@ -113,3 +108,4 @@ export const fetchWithAuth = async (
     throw error
   }
 }
+

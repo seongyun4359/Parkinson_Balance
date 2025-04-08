@@ -58,7 +58,7 @@ const ExerciseScreen = () => {
 				setLoading(true)
 				const response = await getExercisePrescriptionsByDate(todayDate)
 				const goals = response.content || []
-
+		
 				const priority = [
 					"신장 운동",
 					"근력 운동",
@@ -66,23 +66,23 @@ const ExerciseScreen = () => {
 					"구강/발성 운동",
 					"유산소 운동",
 				]
-
+		
 				goals.sort((a, b) => {
 					const aIndex = priority.indexOf(a.exerciseType)
 					const bIndex = priority.indexOf(b.exerciseType)
 					return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex)
-				  })
-
+				})
+		
 				const historyData = await getExerciseHistory(todayDate)
 				const existingMap: Record<number, number> = {}
 				const progress: Record<number, number> = {}
 				const goalHistoryMap: Record<number, number> = {}
-
+		
 				const storedProgress = await AsyncStorage.getItem(`${storagePrefix}-videoProgress`)
 				const restoredProgress: Record<number, number> = storedProgress
 					? JSON.parse(storedProgress)
 					: {}
-
+		
 				historyData.content.forEach((item: ExerciseHistoryItem) => {
 					const createdDate = item.createdAt?.split("T")[0]
 					if (!isValidHistory(item)) return
@@ -94,17 +94,16 @@ const ExerciseScreen = () => {
 						progress[item.historyId] = restoredProgress[item.historyId] ?? item.completedCount ?? 0
 					}
 				})
-
+		
 				for (const goal of goals) {
 					let historyId = existingMap[goal.goalId]
 					const isDone = historyId && (progress[historyId] ?? 0) >= goal.setCount
-
+		
 					if (isDone) {
 						goalHistoryMap[goal.goalId] = historyId
 						continue
 					}
-
-					// 먼저 기존 히스토리 중 진행 중인 게 있는지 찾기
+		
 					const progressHistory = historyData.content.find(
 						(h) => h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
 					)
@@ -112,23 +111,21 @@ const ExerciseScreen = () => {
 						historyId = progressHistory.historyId
 						progress[historyId] = restoredProgress[historyId] ?? progressHistory.completedCount ?? 0
 					} else if (!historyId) {
-						// 새 history 생성 시도
 						const newHistory = await startExercise(goal.goalId)
-
+		
 						if (newHistory && typeof newHistory === "object" && "historyId" in newHistory) {
 							const { historyId } = newHistory as { historyId: number }
 							progress[historyId] = 0
 						} else {
 							console.warn("⚠️ historyId 없음, fallback 재시도 전 대기 중...")
-							await new Promise((res) => setTimeout(res, 300)) // 잠깐 대기
-
-							// fallback 재조회
+							await new Promise((res) => setTimeout(res, 300))
+		
 							const refreshedHistory = await getExerciseHistory(todayDate)
 							const retry = (refreshedHistory.content as ExerciseHistoryItem[]).find(
 								(h: ExerciseHistoryItem) =>
 									h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
 							)
-
+		
 							if (retry) {
 								historyId = retry.historyId
 								progress[historyId] = restoredProgress[retry.historyId] ?? retry.completedCount ?? 0
@@ -138,73 +135,33 @@ const ExerciseScreen = () => {
 							}
 						}
 					}
-
+		
 					goalHistoryMap[goal.goalId] = historyId
 				}
-
+		
 				setExerciseGoals(goals)
 				setVideoProgress(progress)
 				setGoalToHistoryMap(goalHistoryMap)
-
-				// aerobicStartTime 복원
-				// aerobicStartTime 복원
+		
+				// ✅ aerobicStartTime 무조건 삭제 (복원 X)
 				const aerobicKey = `${storagePrefix}-aerobicStartTime`
-				const storedStartTime = await AsyncStorage.getItem(aerobicKey)
-				if (storedStartTime) {
-					const elapsed = Math.floor((Date.now() - Number(storedStartTime)) / 1000)
-					const goal = goals.find((g) => isAerobicExercise(g.exerciseName))
-
-					if (goal && goal.duration) {
-						const totalSeconds = goal.duration
-						const remaining = totalSeconds - elapsed
-
-						console.log(
-							"⏱ elapsed:",
-							elapsed,
-							"remaining:",
-							remaining,
-							"goal.duration:",
-							goal.duration
-						)
-
-						// ✅ 예외적으로 음수이거나 비정상적인 값이면 무시
-						if (elapsed < 0 || elapsed > totalSeconds + 300) {
-							console.warn("⚠️ elapsed 비정상, 유산소 운동 무시됨")
-							return
-						}
-
-						// ⏳ 남은 시간 있다면 복원
-						if (remaining > 0 && remaining <= totalSeconds) {
-							setPaused(true)
-							setIsAerobicActive(true)
-							setAerobicSecondsLeft(remaining)
-						}
-						// ✅ 0초 이하라면 완료 처리
-						else if (remaining <= 0) {
-							const historyId = goalHistoryMap[goal.goalId]
-							if (historyId && !isAerobicActive) {
-								await completeAerobicExercise(historyId)
-								await AsyncStorage.removeItem(aerobicKey)
-							}
-						}
-					}
-				}
-
+				await AsyncStorage.removeItem(aerobicKey)
+				console.log("🧹 유산소 운동 초기화 - 저장된 시간 무시함")
+		
 				const savedIndex = await AsyncStorage.getItem(`${storagePrefix}-currentVideoIndex`)
 				const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
-
-				// ✅ 추가된 부분: 모든 운동 완료 시 자동 이동
+		
 				if (goals.length > 0 && firstIndex === -1) {
 					navigateToRecord(goals, goalHistoryMap, progress)
 					return
 				}
-
+		
 				if (savedIndex !== null) {
 					const restoredIndex = parseInt(savedIndex, 10)
 					const restoredGoal = goals[restoredIndex]
 					const restoredHistoryId = goalHistoryMap[restoredGoal?.goalId]
 					const restoredProgressCount = progress[restoredHistoryId] || 0
-
+		
 					if (
 						restoredIndex >= 0 &&
 						restoredIndex < goals.length &&
@@ -225,6 +182,7 @@ const ExerciseScreen = () => {
 				setLoading(false)
 			}
 		}
+		
 
 		fetchData()
 	}, [storagePrefix])
@@ -255,21 +213,13 @@ const ExerciseScreen = () => {
 
 	useEffect(() => {
 		const subscription = AppState.addEventListener("change", (nextAppState) => {
-			if (!isAerobicActive || !storagePrefix) return
-			const key = `${storagePrefix}-aerobicRemainingTime`
-			if (nextAppState === "background") {
-				// 백그라운드로 갈 때 현재 남은 시간을 저장
-				AsyncStorage.setItem(key, String(aerobicSecondsLeft))
-			} else if (nextAppState === "active") {
-				// active로 돌아오면 저장된 값을 지우고, 타이머는 useEffect에서 다시 시작됨
-				AsyncStorage.removeItem(key)
-			}
 			setAppState(nextAppState)
 		})
 		return () => {
 			subscription.remove()
 		}
-	}, [isAerobicActive, storagePrefix, aerobicSecondsLeft])
+	}, [])
+	
 
 	const saveVideoProgress = async (progress: Record<number, number>) => {
 		if (!storagePrefix) return
