@@ -131,8 +131,6 @@
 ### 📱 **프론트엔드 (React Native 기반)**
 
 - `React Native`
-- `React Navigation`
-- `Fetch (API 요청)`?
 
 ### 🖥 **백엔드(?)**
 
