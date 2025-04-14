@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from "react"
-import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, AppState } from "react-native"
+import {
+	View,
+	StyleSheet,
+	TouchableOpacity,
+	Text,
+	ActivityIndicator,
+	AppState,
+	TouchableWithoutFeedback,
+} from "react-native"
 import Video from "react-native-video"
 import type { VideoRef } from "react-native-video"
 import ScreenHeader from "../../../../components/patient/ScreenHeader"
@@ -41,6 +49,17 @@ const ExerciseScreen = () => {
 	const todayDate = new Date().toISOString().split("T")[0]
 	const [storagePrefix, setStoragePrefix] = useState<string | null>(null)
 
+	const [showControls, setShowControls] = useState(true)
+	const controlTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+	const showControlTemporarily = () => {
+		setShowControls(true)
+		if (controlTimeoutRef.current) clearTimeout(controlTimeoutRef.current)
+		controlTimeoutRef.current = setTimeout(() => {
+			setShowControls(false)
+		}, 2000)
+	}
+
 	useEffect(() => {
 		const prepare = async () => {
 			const user = await getUserInfo()
@@ -58,7 +77,7 @@ const ExerciseScreen = () => {
 				setLoading(true)
 				const response = await getExercisePrescriptionsByDate(todayDate)
 				const goals = response.content || []
-		
+
 				const priority = [
 					"신장 운동",
 					"근력 운동",
@@ -66,23 +85,23 @@ const ExerciseScreen = () => {
 					"구강/발성 운동",
 					"유산소 운동",
 				]
-		
+
 				goals.sort((a, b) => {
 					const aIndex = priority.indexOf(a.exerciseType)
 					const bIndex = priority.indexOf(b.exerciseType)
 					return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex)
 				})
-		
+
 				const historyData = await getExerciseHistory(todayDate)
 				const existingMap: Record<number, number> = {}
 				const progress: Record<number, number> = {}
 				const goalHistoryMap: Record<number, number> = {}
-		
+
 				const storedProgress = await AsyncStorage.getItem(`${storagePrefix}-videoProgress`)
 				const restoredProgress: Record<number, number> = storedProgress
 					? JSON.parse(storedProgress)
 					: {}
-		
+
 				historyData.content.forEach((item: ExerciseHistoryItem) => {
 					const createdDate = item.createdAt?.split("T")[0]
 					if (!isValidHistory(item)) return
@@ -94,16 +113,16 @@ const ExerciseScreen = () => {
 						progress[item.historyId] = restoredProgress[item.historyId] ?? item.completedCount ?? 0
 					}
 				})
-		
+
 				for (const goal of goals) {
 					let historyId = existingMap[goal.goalId]
 					const isDone = historyId && (progress[historyId] ?? 0) >= goal.setCount
-		
+
 					if (isDone) {
 						goalHistoryMap[goal.goalId] = historyId
 						continue
 					}
-		
+
 					const progressHistory = historyData.content.find(
 						(h) => h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
 					)
@@ -112,20 +131,20 @@ const ExerciseScreen = () => {
 						progress[historyId] = restoredProgress[historyId] ?? progressHistory.completedCount ?? 0
 					} else if (!historyId) {
 						const newHistory = await startExercise(goal.goalId)
-		
+
 						if (newHistory && typeof newHistory === "object" && "historyId" in newHistory) {
 							const { historyId } = newHistory as { historyId: number }
 							progress[historyId] = 0
 						} else {
 							console.warn("⚠️ historyId 없음, fallback 재시도 전 대기 중...")
 							await new Promise((res) => setTimeout(res, 300))
-		
+
 							const refreshedHistory = await getExerciseHistory(todayDate)
 							const retry = (refreshedHistory.content as ExerciseHistoryItem[]).find(
 								(h: ExerciseHistoryItem) =>
 									h.exerciseName === goal.exerciseName && h.status === "PROGRESS"
 							)
-		
+
 							if (retry) {
 								historyId = retry.historyId
 								progress[historyId] = restoredProgress[retry.historyId] ?? retry.completedCount ?? 0
@@ -135,33 +154,33 @@ const ExerciseScreen = () => {
 							}
 						}
 					}
-		
+
 					goalHistoryMap[goal.goalId] = historyId
 				}
-		
+
 				setExerciseGoals(goals)
 				setVideoProgress(progress)
 				setGoalToHistoryMap(goalHistoryMap)
-		
+
 				// ✅ aerobicStartTime 무조건 삭제 (복원 X)
 				const aerobicKey = `${storagePrefix}-aerobicStartTime`
 				await AsyncStorage.removeItem(aerobicKey)
 				console.log("🧹 유산소 운동 초기화 - 저장된 시간 무시함")
-		
+
 				const savedIndex = await AsyncStorage.getItem(`${storagePrefix}-currentVideoIndex`)
 				const firstIndex = findNextIncompleteIndex(goals, goalHistoryMap, progress)
-		
+
 				if (goals.length > 0 && firstIndex === -1) {
 					navigateToRecord(goals, goalHistoryMap, progress)
 					return
 				}
-		
+
 				if (savedIndex !== null) {
 					const restoredIndex = parseInt(savedIndex, 10)
 					const restoredGoal = goals[restoredIndex]
 					const restoredHistoryId = goalHistoryMap[restoredGoal?.goalId]
 					const restoredProgressCount = progress[restoredHistoryId] || 0
-		
+
 					if (
 						restoredIndex >= 0 &&
 						restoredIndex < goals.length &&
@@ -182,7 +201,6 @@ const ExerciseScreen = () => {
 				setLoading(false)
 			}
 		}
-		
 
 		fetchData()
 	}, [storagePrefix])
@@ -219,7 +237,6 @@ const ExerciseScreen = () => {
 			subscription.remove()
 		}
 	}, [])
-	
 
 	const saveVideoProgress = async (progress: Record<number, number>) => {
 		if (!storagePrefix) return
@@ -401,16 +418,35 @@ const ExerciseScreen = () => {
 						</TouchableOpacity>
 					)
 				) : videoSource ? (
-					<Video
-						ref={playerRef}
-						source={videoSource}
-						style={styles.video}
-						resizeMode="contain"
-						controls
-						paused={paused}
-						onEnd={handleVideoEnd}
-						onProgress={handleVideoProgress}
-					/>
+					<TouchableWithoutFeedback onPress={showControlTemporarily}>
+						<View style={styles.videoWrapper}>
+							<Video
+								ref={playerRef}
+								source={videoSource}
+								style={styles.video}
+								resizeMode="contain"
+								paused={paused}
+								onEnd={handleVideoEnd}
+								onProgress={handleVideoProgress}
+							/>
+
+							{showControls && (
+								<TouchableOpacity
+									style={styles.centerButton}
+									onPress={() => {
+										setPaused((prev) => !prev)
+										showControlTemporarily()
+									}}
+								>
+									<Ionicons
+										name={paused ? "play-circle-outline" : "pause-circle-outline"}
+										size={48}
+										color="#ffffff"
+									/>
+								</TouchableOpacity>
+							)}
+						</View>
+					</TouchableWithoutFeedback>
 				) : (
 					<Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
 				)}
@@ -489,5 +525,18 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		color: "#76DABF",
 		fontWeight: "bold",
+	},
+	videoWrapper: {
+		position: "relative",
+		width: "100%",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	centerButton: {
+		position: "absolute",
+		alignSelf: "center",
+		justifyContent: "center",
+		alignItems: "center",
+		zIndex: 1,
 	},
 })
