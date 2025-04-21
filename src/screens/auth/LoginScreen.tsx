@@ -1,5 +1,14 @@
 import React, { useState, useRef, useEffect } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native"
+import {
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	StyleSheet,
+	Image,
+	Alert,
+	ActivityIndicator,
+} from "react-native"
 import { loginUser } from "../../apis/Login"
 import { getFCMToken } from "../../utils/tokenUtils" //  tokenUtils에서 FCM 토큰 가져오기
 import { checkLoginStatus } from "../../apis/auth"
@@ -11,6 +20,8 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [phoneNumber2, setPhoneNumber2] = useState("")
 	const [phoneNumber3, setPhoneNumber3] = useState("")
 	const [password, setPassword] = useState("")
+	const [isLoading, setIsLoading] = useState(false)
+	const [isEnabled, setIsEnabled] = useState(true)
 
 	const phoneNumber2Ref = useRef<TextInput>(null)
 	const phoneNumber3Ref = useRef<TextInput>(null)
@@ -42,24 +53,29 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	}
 
 	const handleLogin = async () => {
+		if (!isEnabled) return
+
 		// 입력값 검증
 		if (!phoneNumber1 || !phoneNumber2 || !phoneNumber3 || !password) {
 			console.log("🚨 입력값 누락:", {
 				phoneNumber1,
 				phoneNumber2,
 				phoneNumber3,
-				password,
+				password: "***",
 			})
 			Alert.alert("입력 오류", "모든 필드를 입력해주세요.")
 			return
 		}
 
-		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
-		console.log("📱 전화번호 형식:", fullPhoneNumber)
-
 		try {
+			setIsLoading(true)
+			setIsEnabled(false)
+
+			const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
+			console.log("📱 전화번호 형식:", fullPhoneNumber)
+
 			const loginData = { phoneNumber: fullPhoneNumber, password }
-			console.log("📤 로그인 시도:", { ...loginData, password: "***" })
+			console.log("📤 로그인 시도:", { phoneNumber: fullPhoneNumber, password: "***" })
 
 			const response = await loginUser(loginData)
 			console.log("📥 로그인 응답:", JSON.stringify(response, null, 2))
@@ -115,6 +131,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		} catch (error) {
 			console.error("🚨 로그인 에러:", error)
 			Alert.alert("로그인 실패", error.message || "로그인에 실패했습니다. 다시 시도해주세요.")
+		} finally {
+			setIsLoading(false)
+			setIsEnabled(true)
 		}
 	}
 
@@ -168,6 +187,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					onChangeText={handlePhoneNumber1Change}
 					keyboardType="number-pad"
 					maxLength={3}
+					editable={!isLoading}
 				/>
 				<Text style={styles.phoneSeparator}>-</Text>
 				<TextInput
@@ -178,6 +198,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					onChangeText={handlePhoneNumber2Change}
 					keyboardType="number-pad"
 					maxLength={4}
+					editable={!isLoading}
 				/>
 				<Text style={styles.phoneSeparator}>-</Text>
 				<TextInput
@@ -188,6 +209,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 					onChangeText={handlePhoneNumber3Change}
 					keyboardType="number-pad"
 					maxLength={4}
+					editable={!isLoading}
 				/>
 			</View>
 
@@ -200,13 +222,26 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				secureTextEntry
 				value={password}
 				onChangeText={setPassword}
+				editable={!isLoading}
 			/>
 
-			<TouchableOpacity style={styles.button} onPress={handleLogin}>
-				<Text style={styles.buttonText}>로그인</Text>
+			<TouchableOpacity
+				style={[styles.button, !isEnabled && styles.buttonDisabled]}
+				onPress={handleLogin}
+				disabled={!isEnabled || isLoading}
+			>
+				{isLoading ? (
+					<ActivityIndicator color="#76DABF" />
+				) : (
+					<Text style={styles.buttonText}>로그인</Text>
+				)}
 			</TouchableOpacity>
 
-			<TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+			<TouchableOpacity
+				style={[styles.signupButton, !isEnabled && styles.buttonDisabled]}
+				onPress={handleSignup}
+				disabled={!isEnabled || isLoading}
+			>
 				<Text style={styles.signupButtonText}>회원가입</Text>
 			</TouchableOpacity>
 		</View>
@@ -296,6 +331,9 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 18,
 		fontWeight: "bold",
+	},
+	buttonDisabled: {
+		opacity: 0.5,
 	},
 })
 
