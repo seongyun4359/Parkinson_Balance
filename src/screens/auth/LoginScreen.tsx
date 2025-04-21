@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } fro
 import { loginUser } from "../../apis/Login"
 import { getFCMToken } from "../../utils/tokenUtils" //  tokenUtils에서 FCM 토큰 가져오기
 import { checkLoginStatus } from "../../apis/auth"
+import { updateFcmToken } from "../../apis/notification"
+import messaging from "@react-native-firebase/messaging"
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [phoneNumber1, setPhoneNumber1] = useState("")
@@ -66,12 +68,16 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				const { memberInfoResponse } = response.data[0]
 				console.log(" 로그인 성공:", memberInfoResponse)
 
-				// 🔹 로그인 후 저장된 FCM 토큰 사용 (새로 요청하지 않음)
-				const fcmToken = await getFCMToken()
-				if (fcmToken) {
-					console.log(" 로그인 후 FCM 토큰 사용:", fcmToken)
-				} else {
-					console.warn("⚠️ 로그인 후 저장된 FCM 토큰이 없습니다.")
+				// FCM 토큰 가져오기
+				const fcmToken = await messaging().getToken()
+				console.log("FCM 토큰:", fcmToken)
+
+				// FCM 토큰 서버에 업데이트
+				try {
+					await updateFcmToken(fcmToken)
+					console.log("FCM 토큰 업데이트 성공")
+				} catch (error) {
+					console.error("FCM 토큰 업데이트 실패:", error)
 				}
 
 				// 🔹 사용자 역할에 따라 화면 이동
@@ -107,6 +113,21 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 		checkAuth()
 	}, [navigation])
+
+	// FCM 토큰 갱신 감지
+	useEffect(() => {
+		const unsubscribe = messaging().onTokenRefresh(async (token) => {
+			console.log("FCM 토큰 갱신 감지:", token)
+			try {
+				await updateFcmToken(token)
+				console.log("FCM 토큰 갱신 업데이트 성공")
+			} catch (error) {
+				console.error("FCM 토큰 갱신 업데이트 실패:", error)
+			}
+		})
+
+		return () => unsubscribe()
+	}, [])
 
 	return (
 		<View style={styles.container}>

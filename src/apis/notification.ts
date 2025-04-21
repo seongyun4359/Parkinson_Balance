@@ -25,7 +25,9 @@ const logRequestDetails = (url: string, method: string, headers: any, body: any)
 	console.log("Method:", method)
 	console.log("Headers:", {
 		...headers,
-		Authorization: headers.Authorization ? headers.Authorization.substring(0, 20) + "..." : undefined,
+		Authorization: headers.Authorization
+			? headers.Authorization.substring(0, 20) + "..."
+			: undefined,
 	})
 	console.log("Raw Body:", body)
 	console.log("Stringified Body:", JSON.stringify(body))
@@ -48,6 +50,33 @@ const logResponseDetails = (response: Response, data: any) => {
 		raw: data,
 	})
 	console.groupEnd()
+}
+
+// 토큰을 포함한 fetch 요청 함수
+const fetchWithToken = async (url: string, options: RequestInit = {}) => {
+	try {
+		const token = await AsyncStorage.getItem("accessToken")
+		if (!token) {
+			throw new Error("토큰이 없습니다.")
+		}
+
+		const response = await fetch(url, {
+			...options,
+			headers: {
+				...options.headers,
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		if (!response.ok) {
+			throw new Error(`서버 응답 오류: ${response.status}`)
+		}
+
+		return response
+	} catch (error) {
+		console.error("API 요청 중 오류:", error)
+		throw error
+	}
 }
 
 export const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
@@ -142,7 +171,10 @@ export const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
 				throw new Error(errorMessage)
 			}
 
-			throw new Error(data.error || `알림 전송 실패 (${response.status}: ${response.statusText || "알 수 없는 오류"})`)
+			throw new Error(
+				data.error ||
+					`알림 전송 실패 (${response.status}: ${response.statusText || "알 수 없는 오류"})`
+			)
 		}
 
 		if (data.status !== "SUCCESS") {
@@ -169,6 +201,30 @@ export const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
 		if (error.message.includes("Failed to fetch")) {
 			throw new Error("서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.")
 		}
+		throw error
+	}
+}
+
+export const updateFcmToken = async (fcmToken: string) => {
+	try {
+		const response = await fetchWithToken("https://kwhcclab.com:20955/api/fcm-token", {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+			body: JSON.stringify({
+				fcmToken: fcmToken,
+			}),
+		})
+
+		if (!response.ok) {
+			throw new Error("FCM 토큰 업데이트 실패")
+		}
+
+		return true
+	} catch (error) {
+		console.error("FCM 토큰 업데이트 중 오류:", error)
 		throw error
 	}
 }
