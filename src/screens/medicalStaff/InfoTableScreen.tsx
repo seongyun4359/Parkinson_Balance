@@ -9,6 +9,8 @@ import { Patient, SortConfig, FilterConfig } from "../../types/patient"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { addBookmark, removeBookmark, getBookmarks } from "../../apis/bookmark"
 import messaging from "@react-native-firebase/messaging"
+import { updateFcmToken } from "../../apis/notification"
+import { checkLoginStatus } from "../../apis/auth"
 
 const API_URL = "https://kwhcclab.com:20955/api/members"
 const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh"
@@ -387,6 +389,54 @@ export const InfoTableScreen = () => {
 	}
 
 	useEffect(() => {
+		const checkAuth = async () => {
+			try {
+				const isLoggedIn = await checkLoginStatus()
+				if (!isLoggedIn) {
+					navigation.reset({
+						index: 0,
+						routes: [{ name: "MedicalStaffAuth" }],
+					})
+					return
+				}
+
+				// FCM 토큰 가져오기
+				const fcmToken = await messaging().getToken()
+				console.log("어드민 FCM 토큰:", fcmToken)
+
+				// FCM 토큰 서버에 업데이트
+				try {
+					await updateFcmToken(fcmToken)
+					console.log("어드민 FCM 토큰 업데이트 성공")
+				} catch (error) {
+					console.error("어드민 FCM 토큰 업데이트 실패:", error)
+				}
+
+				// ... existing code ...
+			} catch (error) {
+				// ... existing error handling ...
+			}
+		}
+
+		checkAuth()
+	}, [navigation])
+
+	// FCM 토큰 갱신 감지
+	useEffect(() => {
+		const unsubscribe = messaging().onTokenRefresh(async (token) => {
+			console.log("어드민 FCM 토큰 갱신 감지:", token)
+			try {
+				await updateFcmToken(token)
+				console.log("어드민 FCM 토큰 갱신 업데이트 성공")
+			} catch (error) {
+				console.error("어드민 FCM 토큰 갱신 업데이트 실패:", error)
+			}
+		})
+
+		return () => unsubscribe()
+	}, [])
+
+	useEffect(() => {
 		fetchPatients(currentPage)
 	}, [])
 
@@ -404,52 +454,60 @@ export const InfoTableScreen = () => {
 	// 푸시 알림 전송 함수
 	const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
 		try {
-			console.log("알림 전송 시도:", { phoneNumbers })
+			console.log("전송할 전화번호:", phoneNumbers)
+			console.log("요청 URL:", "https://kwhcclab.com:20955/api/notifications/exercises/cheers")
+			console.log("요청 본문:", JSON.stringify({ phoneNumbers: phoneNumbers }, null, 2))
 
 			const response = await fetchWithToken(
 				"https://kwhcclab.com:20955/api/notifications/exercises/cheers",
 				{
 					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
 					body: JSON.stringify({
-						phoneNumbers,
-						title: "할 수 있어요!",
-						content: "운동하기 좋은 날입니다. 운동으로 건강한 하루를 시작해볼까요 ?",
+						phoneNumbers: phoneNumbers,
 					}),
 				},
 				handleLogout
 			)
 
+			console.log("서버 응답 상태 코드:", response.status)
+			console.log("서버 응답 상태 텍스트:", response.statusText)
+			console.log("서버 응답 헤더:", Object.fromEntries([...response.headers.entries()]))
+
 			const responseText = await response.text()
-			console.log("서버 응답:", responseText)
+			console.log("서버 응답 텍스트:", responseText)
 
-			let responseData
-			try {
-				responseData = JSON.parse(responseText)
-			} catch (e) {
-				console.error("JSON 파싱 오류:", e)
-				throw new Error("서버 응답을 처리할 수 없습니다.")
-			}
+			if (!response.ok) {
+				const errorInfo = {
+					statusCode: response.status,
+					statusText: response.statusText,
+					responseText: responseText,
+					headers: Object.fromEntries([...response.headers.entries()]),
+					requestUrl: "https://kwhcclab.com:20955/api/notifications/exercises/cheers",
+					requestBody: { phoneNumbers: phoneNumbers },
+				}
+				console.error("알림 전송 실패 - 상세 정보:", errorInfo)
 
-			if (responseData.status === "ERROR") {
-				throw new Error(responseData.error || "알림 전송에 실패했습니다.")
-			}
-
-			if (!response.ok || responseData.status !== "SUCCESS") {
-				console.error("알림 전송 실패:", responseData)
-				throw new Error(responseData.error || "알림 전송에 실패했습니다.")
+				if (response.status === 500) {
+					throw new Error("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+				}
+				throw new Error(`알림 전송 실패 (상태 코드: ${response.status})`)
 			}
 
 			return true
 		} catch (error: any) {
-			console.error("운동 독려 알림 전송 실패:", error)
-			if (error.message.includes("{")) {
-				try {
-					const errorData = JSON.parse(error.message)
-					throw new Error(errorData.error || "알림 전송에 실패했습니다.")
-				} catch (e) {
-					throw error
-				}
-			}
+			console.error("운동 독려 알림 전송 실패 - 상세 정보:", {
+				message: error.message,
+				statusCode: error.response?.status,
+				statusText: error.response?.statusText,
+				responseText: error.response?.text,
+				stack: error.stack,
+				requestUrl: "https://kwhcclab.com:20955/api/notifications/exercises/cheers",
+				requestBody: { phoneNumbers: phoneNumbers },
+			})
 			throw error
 		}
 	}
@@ -474,20 +532,50 @@ export const InfoTableScreen = () => {
 							}
 
 							try {
-								const selectedPhoneNumbers = filteredPatients
+								// 선택된 환자 정보 로깅
+								const selectedPatientsInfo = filteredPatients
 									.filter((patient) => selectedPatients.has(patient.id))
-									.map((patient) => patient.phoneNumber)
+									.map((patient) => ({
+										id: patient.id,
+										name: patient.name,
+										phoneNumber: patient.phoneNumber,
+										isFavorite: patient.isFavorite,
+									}))
 
+								console.log("선택된 환자 상세 정보:", selectedPatientsInfo)
+
+								const selectedPhoneNumbers = selectedPatientsInfo.map(
+									(patient) => patient.phoneNumber
+								)
 								console.log("선택된 환자 전화번호:", selectedPhoneNumbers)
 
-								await sendExerciseCheerNotification(selectedPhoneNumbers)
+								// 전화번호 형식 검증
+								const invalidNumbers = selectedPhoneNumbers.filter(
+									(phone) => !/^0\d{9,10}$/.test(phone.replace(/-/g, ""))
+								)
+								if (invalidNumbers.length > 0) {
+									Alert.alert(
+										"오류",
+										`다음 전화번호 형식이 올바르지 않습니다: ${invalidNumbers.join(", ")}`
+									)
+									return
+								}
+
+								const response = await sendExerciseCheerNotification(selectedPhoneNumbers)
+								console.log("알림 전송 응답:", response)
+
 								Alert.alert(
 									"알림 전송 성공",
 									`${selectedPatients.size}명에게 운동 독려 알림을 전송했습니다.`
 								)
 								setSelectedPatients(new Set())
 							} catch (error: any) {
-								console.error("알림 전송 중 오류:", error)
+								console.error("알림 전송 중 오류 발생:", error)
+								console.error("오류 상세 정보:", {
+									message: error.message,
+									stack: error.stack,
+									response: error.response?.data,
+								})
 								Alert.alert(
 									"알림 전송 실패",
 									typeof error === "string"

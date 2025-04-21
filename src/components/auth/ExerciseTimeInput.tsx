@@ -10,23 +10,53 @@ const ExerciseTimeInput: React.FC<{
 	setSecond: React.Dispatch<React.SetStateAction<string>>
 }> = ({ hour, setHour, minute, setMinute, second, setSecond }) => {
 	const handleHourChange = (text: string) => {
+		if (text === "") {
+			setHour("")
+			return
+		}
+
+		if (isNaN(Number(text))) {
+			return
+		}
+
 		const value = parseInt(text)
-		if (!isNaN(value) && value >= 0 && value <= 23) {
-			setHour(String(value))
+
+		if (value >= 0 && value <= 23) {
+			setHour(text)
 		}
 	}
 
 	const handleMinuteChange = (text: string) => {
+		if (text === "") {
+			setMinute("")
+			return
+		}
+
+		if (isNaN(Number(text))) {
+			return
+		}
+
 		const value = parseInt(text)
-		if (!isNaN(value) && value >= 0 && value <= 59) {
-			setMinute(String(value))
+
+		if (value >= 0 && value <= 59) {
+			setMinute(text)
 		}
 	}
 
 	const handleSecondChange = (text: string) => {
+		if (text === "") {
+			setSecond("")
+			return
+		}
+
+		if (isNaN(Number(text))) {
+			return
+		}
+
 		const value = parseInt(text)
-		if (!isNaN(value) && value >= 0 && value <= 59) {
-			setSecond(String(value))
+
+		if (value >= 0 && value <= 59) {
+			setSecond(text)
 		}
 	}
 
