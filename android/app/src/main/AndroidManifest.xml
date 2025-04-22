@@ -3,6 +3,8 @@
 
     <!-- ✅ 필수 권한 추가 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- ✨ 추가! -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>

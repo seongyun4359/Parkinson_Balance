@@ -18,6 +18,7 @@ import { getUserInfo } from "../../apis/auth"
 import PushNotification from "react-native-push-notification"
 import dayjs from "dayjs"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { requestStoragePermission } from '../../utils/permissions'
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>
 
@@ -113,6 +114,7 @@ const HomeScreen = () => {
 	
 		fetchCompletedDates()
 		scheduleAlarm()
+		requestStoragePermission() 
 	}, [])	
 
 	const handleLogout = async () => {
