@@ -64,7 +64,7 @@ const ExerciseTimeInput: React.FC<{
 		<View style={styles.timeInputContainer}>
 			<TextInput
 				style={styles.timeInput}
-				placeholder="시"
+				placeholder="00-23"
 				placeholderTextColor="#999"
 				keyboardType="numeric"
 				maxLength={2}
@@ -74,7 +74,7 @@ const ExerciseTimeInput: React.FC<{
 			<Text>:</Text>
 			<TextInput
 				style={styles.timeInput}
-				placeholder="분"
+				placeholder="00-59"
 				placeholderTextColor="#999"
 				keyboardType="numeric"
 				maxLength={2}
@@ -84,7 +84,7 @@ const ExerciseTimeInput: React.FC<{
 			<Text>:</Text>
 			<TextInput
 				style={styles.timeInput}
-				placeholder="초"
+				placeholder="00-59"
 				placeholderTextColor="#999"
 				keyboardType="numeric"
 				maxLength={2}
