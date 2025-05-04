@@ -14,6 +14,7 @@ import { getFCMToken } from "../../utils/tokenUtils" //  tokenUtils에서 FCM �
 import { checkLoginStatus } from "../../apis/auth"
 import { updateFcmToken } from "../../apis/notification"
 import messaging from "@react-native-firebase/messaging"
+import { requestExactAlarmPermission } from "../../utils/permissions"
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const [phoneNumber1, setPhoneNumber1] = useState("")
@@ -85,6 +86,18 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 				console.log("✅ 로그인 성공 - 사용자 정보:", JSON.stringify(memberInfoResponse, null, 2))
 
 				try {
+					// 환자인 경우에만 정확한 알람 권한 요청
+					if (memberInfoResponse.role === "PATIENT") {
+						const hasAlarmPermission = await requestExactAlarmPermission()
+						if (!hasAlarmPermission) {
+							console.warn("⚠️ 정확한 알람 권한이 거부됨")
+							Alert.alert(
+								"알람 권한 필요",
+								"정확한 시간에 운동 알람을 받으려면 알람 권한이 필요합니다. 설정에서 권한을 허용해주세요."
+							)
+						}
+					}
+
 					// FCM 토큰 가져오기
 					const fcmToken = await messaging().getToken()
 					console.log("📱 FCM 토큰 발급 성공:", fcmToken)
