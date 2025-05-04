@@ -63,7 +63,7 @@ const ExerciseTimeInput: React.FC<{
 	return (
 		<View style={styles.timeInputContainer}>
 			<TextInput
-				style={styles.timeInput}
+				style={[styles.timeInput, styles.inputText]}
 				placeholder="00-23"
 				placeholderTextColor="#999"
 				keyboardType="numeric"
@@ -71,9 +71,9 @@ const ExerciseTimeInput: React.FC<{
 				value={hour}
 				onChangeText={handleHourChange}
 			/>
-			<Text>:</Text>
+			<Text style={styles.colonText}>:</Text>
 			<TextInput
-				style={styles.timeInput}
+				style={[styles.timeInput, styles.inputText]}
 				placeholder="00-59"
 				placeholderTextColor="#999"
 				keyboardType="numeric"
@@ -81,9 +81,9 @@ const ExerciseTimeInput: React.FC<{
 				value={minute}
 				onChangeText={handleMinuteChange}
 			/>
-			<Text>:</Text>
+			<Text style={styles.colonText}>:</Text>
 			<TextInput
-				style={styles.timeInput}
+				style={[styles.timeInput, styles.inputText]}
 				placeholder="00-59"
 				placeholderTextColor="#999"
 				keyboardType="numeric"
@@ -116,6 +116,14 @@ const styles = StyleSheet.create({
 		shadowRadius: 4,
 		borderWidth: 1.5,
 		borderColor: "#a0a0a0",
+	},
+	inputText: {
+		color: "#000",
+	},
+	colonText: {
+		color: "#000",
+		fontSize: 20,
+		fontWeight: "bold",
 	},
 })
 
