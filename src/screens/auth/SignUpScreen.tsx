@@ -49,6 +49,11 @@ const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 		const fullPhoneNumber = `${phoneNumber1}-${phoneNumber2}-${phoneNumber3}`
 		let adjustedHour = parseInt(hour)
 
+		if (adjustedHour < 0 || adjustedHour > 23) {
+			Alert.alert("시간 오류", "시간은 0-23 사이의 값을 입력해주세요.")
+			return
+		}
+
 		const exerciseNotificationTime = `${String(adjustedHour).padStart(2, "0")}:${String(
 			minute
 		).padStart(2, "0")}:${String(second).padStart(2, "0")}`
