@@ -54,7 +54,7 @@ export const exerciseNameToNumber: Record<string, string> = {
 };
 
 // 🎥 비디오 파일 매핑
-export const videoSources: Record<string, NodeRequire> = {
+export const videoSources: Record<string, any> = {
   // 1단계
   "1-1": require("../../../assets/video/1-1.mp4"),
   "1-2": require("../../../assets/video/1-2.mp4"),
@@ -110,7 +110,10 @@ export const videoSources: Record<string, NodeRequire> = {
 };
 
 // 🎥 운동 영상 가져오기 함수
-export const getVideoSource = (exerciseName: string): { uri: NodeRequire } | undefined => {
+export const getVideoSource = (exerciseName: string): any => {
   const videoNumber = exerciseNameToNumber[exerciseName];
-  return videoNumber && videoSources[videoNumber] ? { uri: videoSources[videoNumber] } : undefined;
+  return videoNumber && videoSources[videoNumber];
 };
+
+
+
