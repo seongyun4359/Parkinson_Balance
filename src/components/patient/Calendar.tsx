@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, Text, Dimensions, TouchableOpacity } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -8,6 +8,8 @@ import type XDate from 'xdate';
 
 interface CalendarComponentProps {
   completedDates?: string[];
+  selectedDate?: string;
+  onSelectDate?: (date: string) => void;
 }
 
 type DayRecordScreenNavigationProp = StackNavigationProp<
@@ -18,35 +20,33 @@ type DayRecordScreenNavigationProp = StackNavigationProp<
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const FIXED_CALENDAR_HEIGHT = 400;
 
-const CalendarComponent: React.FC<CalendarComponentProps> = ({ completedDates = [] }) => {
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = ('0' + (today.getMonth() + 1)).slice(-2);
-    const dd = ('0' + today.getDate()).slice(-2);
-    return `${yyyy}-${mm}-${dd}`;
-  });
-
+const CalendarComponent: React.FC<CalendarComponentProps> = ({
+  completedDates = [],
+  selectedDate,
+  onSelectDate,
+}) => {
   const navigation = useNavigation<DayRecordScreenNavigationProp>();
+  const today = new Date().toISOString().split("T")[0];
 
   const handleDayPress = (day: DateData) => {
-    setSelectedDate(day.dateString);
+    onSelectDate?.(day.dateString);
     navigation.navigate('DayRecord', { date: day.dateString });
   };
 
   return (
     <View style={[styles.container, { height: FIXED_CALENDAR_HEIGHT }]}>
       <Calendar
-        initialDate={selectedDate}
+        initialDate={selectedDate || today}
         onDayPress={handleDayPress}
         markedDates={{
-          [selectedDate]: {
+          [(selectedDate || today)]: {
             selected: true,
             selectedColor: '#76DABF',
             selectedTextColor: '#FFFFFF',
           },
           ...completedDates.reduce((acc, date) => {
             acc[date] = {
+              ...(acc[date] || {}),
               marked: true,
               dotColor: 'pink',
             };
@@ -64,7 +64,8 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ completedDates = 
         renderHeader={(date: XDate | undefined) => {
           if (!date) return null;
           const monthNames = [
-            'January','February','March','April','May','June','July','August','September','October','November','December',
+            'January','February','March','April','May','June','July',
+            'August','September','October','November','December',
           ];
           return (
             <View style={styles.headerContainer}>
@@ -92,7 +93,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ completedDates = 
           arrowColor: '#76DABF',
         }}
         dayComponent={({ date }) => {
-          const isToday = date?.dateString === selectedDate;
+          const isSelected = selectedDate
+            ? date?.dateString === selectedDate
+            : date?.dateString === today;
           const isCompleted = completedDates.includes(date?.dateString || '');
 
           return (
@@ -102,12 +105,12 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ completedDates = 
               }}
               style={[
                 styles.dayContainer,
-                isToday ? styles.selectedDay : styles.defaultDay,
+                isSelected ? styles.selectedDay : styles.defaultDay,
               ]}
             >
               <View style={styles.innerDayContainer}>
                 {isCompleted && <Text style={styles.flowerIcon}>🌸</Text>}
-                <Text style={[styles.dayText, isToday && styles.selectedDayText]}>
+                <Text style={[styles.dayText, isSelected && styles.selectedDayText]}>
                   {date?.day}
                 </Text>
               </View>
