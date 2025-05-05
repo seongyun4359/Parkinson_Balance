@@ -30,20 +30,19 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ exercises }) => {
         data={exercises}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.exerciseButton}>
+          <TouchableOpacity
+            style={styles.exerciseButton}
+            onPress={() => openVideoModal(item.video)}
+            onPressIn={() => setActiveIcon(`play-${item.id}`)}
+            onPressOut={() => setActiveIcon(null)}
+          >
             <Text style={styles.exerciseText}>{item.title}</Text>
-            <TouchableOpacity
-              onPress={() => openVideoModal(item.video)}
-              onPressIn={() => setActiveIcon(`play-${item.id}`)}
-              onPressOut={() => setActiveIcon(null)}
-            >
-              <Icon
-                name="play"
-                size={18}
-                color={activeIcon === `play-${item.id}` ? "#76DABF" : "#333"}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
+            <Icon
+              name="play"
+              size={18}
+              color={activeIcon === `play-${item.id}` ? "#76DABF" : "#333"}
+              style={styles.icon}
+            />
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.list}
