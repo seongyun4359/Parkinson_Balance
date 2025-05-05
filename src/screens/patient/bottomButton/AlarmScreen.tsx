@@ -19,7 +19,6 @@ const AlarmScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>()
   const [alarmTime, setAlarmTime] = useState<string | null>(null)
 
-  // 🔹 알림 권한 요청 함수
   const requestNotificationPermission = async () => {
     if (Platform.OS === "android") {
       const { status } = await checkNotifications()
@@ -40,16 +39,18 @@ const AlarmScreen = () => {
     return true
   }
 
-  // 🔹 운동 시간 가져오기
   const loadUserExerciseTime = async () => {
     try {
       const userInfo = await getUserInfo()
+      console.log("🎯 유저 정보:", userInfo)
+
       if (userInfo && userInfo.exerciseNotificationTime) {
-        console.log("✅ 저장된 운동 알람 시간:", userInfo.exerciseNotificationTime)
-        setAlarmTime(userInfo.exerciseNotificationTime)
-        scheduleAlarm(userInfo.exerciseNotificationTime)
+        const time = userInfo.exerciseNotificationTime
+        console.log("✅ 저장된 알람 시간:", time)
+        setAlarmTime(time)
+        scheduleAlarm(time)
       } else {
-        console.warn("⚠️ 저장된 운동 알람 시간이 없습니다.")
+        console.warn("⚠️ 운동 알람 시간이 없습니다.")
       }
     } catch (error) {
       console.error("❌ 운동 알람 시간 불러오기 실패:", error)
@@ -57,45 +58,56 @@ const AlarmScreen = () => {
     }
   }
 
-  // 🔹 운동 시간에 맞춰 알람을 울리도록 설정
   const scheduleAlarm = async (time: string) => {
-    if (!time) {
-      console.error("❌ 알람 설정 실패: 시간 값이 없습니다.")
-      return
+    try {
+      if (!time || typeof time !== "string") {
+        console.error("❌ 알람 설정 실패: 시간 값이 없음 또는 형식 오류 →", time)
+        return
+      }
+
+      const parts = time.split(":").map(Number)
+      if (parts.length < 2 || parts.length > 3 || parts.some(isNaN)) {
+        console.error("❌ 잘못된 시간 포맷:", time)
+        Alert.alert("오류", "알림 시간이 잘못된 형식입니다.")
+        return
+      }
+
+      const [hour, minute, second = 0] = parts
+      const now = new Date()
+      const alarmDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hour,
+        minute,
+        second
+      )
+
+      if (isNaN(alarmDate.getTime())) {
+        console.error("❌ Invalid Date 객체 발생:", alarmDate)
+        return
+      }
+
+      if (alarmDate < now) {
+        alarmDate.setDate(alarmDate.getDate() + 1)
+      }
+
+      console.log("✅ 알람 예약됨:", alarmDate.toISOString())
+
+      PushNotification.localNotificationSchedule({
+        channelId: "exercise-alarm",
+        title: "운동 알람",
+        message: "운동할 시간입니다! 건강을 위해 몸을 움직여 보세요!",
+        date: alarmDate,
+        allowWhileIdle: true,
+        soundName: "default",
+        vibrate: true,
+        repeatType: "day",
+      })
+    } catch (e) {
+      console.error("🚨 알람 등록 중 예외 발생:", e)
+      Alert.alert("알람 오류", "알람을 등록하는 중 문제가 발생했습니다.")
     }
-
-    const hasPermission = await requestNotificationPermission()
-    if (!hasPermission) {
-      console.warn("⚠️ 알림 권한이 없어 알람을 설정하지 않습니다.")
-      return
-    }
-
-    const timeParts = time.split(":").map(Number)
-    if (timeParts.length !== 3 || timeParts.some(isNaN)) {
-      console.error("❌ 잘못된 시간 형식:", time)
-      return
-    }
-
-    const [hour, minute, second] = timeParts
-    const now = new Date()
-    let alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, second)
-
-    if (alarmTime < now) {
-      alarmTime.setDate(alarmTime.getDate() + 1)
-    }
-
-    console.log("✅ 알람 설정됨:", alarmTime.toISOString())
-
-    PushNotification.localNotificationSchedule({
-      channelId: "exercise-alarm",
-      title: "운동 알람",
-      message: "운동할 시간입니다! 건강을 위해 몸을 움직여 보세요!",
-      date: alarmTime,
-      allowWhileIdle: true,
-      soundName: "default",
-      vibrate: true,
-      repeatType: "day",
-    })
   }
 
   useEffect(() => {
