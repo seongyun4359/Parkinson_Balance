@@ -37,48 +37,48 @@ const AppNavigator = () => {
 		>
 			{/* 기본 스크린 */}
 			<Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-			<Stack.Screen name="PatientHome" component={PatientHome} options={{ title: "환자 홈" }} />
-			<Stack.Screen name="Alarm" component={AlarmScreen} options={{ title: "알람페이지" }} />
+			<Stack.Screen name="PatientHome" component={PatientHome}  options={{ headerShown: false }} />
+			<Stack.Screen name="Alarm" component={AlarmScreen}  options={{ headerShown: false }} />
 			<Stack.Screen
 				name="ExerciseScreen"
 				component={ExerciseScreen}
-				options={{ title: "운동 시작" }}
+				options={{ headerShown: false }}
 			/>
-			<Stack.Screen name="Category" component={CategoryScreen} options={{ title: "운동 종류" }} />
+			<Stack.Screen name="Category" component={CategoryScreen}  options={{ headerShown: false }} />
 			<Stack.Screen
 				name="KidneyExercise"
 				component={KidneyExerciseScreen}
-				options={{ title: "신장운동" }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="StrengthExercise"
 				component={StrengthExerciseScreen}
-				options={{ title: "근력 운동" }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="BalanceExercise"
 				component={BalanceExerciseScreen}
-				options={{ title: "균형/협응 운동" }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="OralExercise"
 				component={OralExerciseScreen}
-				options={{ title: "구강/발성 운동" }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="DayRecord"
 				component={DayRecordScreen}
-				options={{ title: "운동 일일 기록" }}
+				options={{ headerShown: false }}
 			/>
-			<Stack.Screen name="RecordScreen" component={RecordScreen} options={{ title: "운동 기록" }} />
-			<Stack.Screen name="SignUp" component={SignUpScreen} options={{ title: "회원가입" }} />
-			<Stack.Screen name="EditInfo" component={EditInfoScreen} options={{ title: "정보 수정" }} />
+			<Stack.Screen name="RecordScreen" component={RecordScreen}  options={{ headerShown: false }} />
+			<Stack.Screen name="SignUp" component={SignUpScreen}  options={{ headerShown: false }} />
+			<Stack.Screen name="EditInfo" component={EditInfoScreen}  options={{ headerShown: false }} />
 			<Stack.Screen
 				name="InfoTable"
 				component={InfoTableScreen}
-				options={{ title: "전체 기록 테이블" }}
+				options={{ headerShown: false }}
 			/>
-			<Stack.Screen name="MyInformation" component={MyInfoScreen} options={{ title: "내 정보" }} />
+			<Stack.Screen name="MyInformation" component={MyInfoScreen}  options={{ headerShown: false }} />
 			<Stack.Screen
 				name="MedicalStaffAuth"
 				component={LoginScreen}
@@ -87,7 +87,7 @@ const AppNavigator = () => {
 			<Stack.Screen
 				name="PatientDetail"
 				component={PatientDetailScreen}
-				options={{ title: "환자 상세 정보" }}
+				options={{ headerShown: false }}
 			/>
 		</Stack.Navigator>
 	)
