@@ -20,26 +20,15 @@ export const requestStoragePermission = async () => {
 export const requestExactAlarmPermission = async () => {
 	if (Platform.OS === "android") {
 		try {
-			// Android 13 이상에서는 SCHEDULE_EXACT_ALARM 권한이 필요하지 않음
 			if (Platform.Version >= 33) {
-				// USE_EXACT_ALARM은 권한 요청이 필요하지 않음 (manifest에만 선언)
-				console.log("✅ Android 13 이상: 정확한 알람 권한 사용 가능")
-				return true
+				// Android 13 이상은 manifest에 USE_EXACT_ALARM만 있으면 충분
+				console.log("✅ Android 13 이상: 정확한 알람 권한 manifest로 처리됨")
 			} else {
-				// Android 12 이하에서는 SCHEDULE_EXACT_ALARM 권한만 필요
-				const result = await PermissionsAndroid.request(
-					PermissionsAndroid.PERMISSIONS.SCHEDULE_EXACT_ALARM as any
-				)
-				const granted = result === PermissionsAndroid.RESULTS.GRANTED
-				if (granted) {
-					console.log("✅ 정확한 알람 권한 허용됨")
-				} else {
-					console.warn("🚨 정확한 알람 권한 거부됨")
-				}
-				return granted
+				console.log("✅ Android 12 이하: 알람 권한 요청 없이 사용 가능 (manifest만 설정)")
 			}
+			return true
 		} catch (err) {
-			console.error("❌ 정확한 알람 권한 요청 실패:", err)
+			console.error("❌ 정확한 알람 권한 처리 중 오류:", err)
 			return false
 		}
 	}
