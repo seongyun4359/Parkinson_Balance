@@ -62,9 +62,14 @@ const ExerciseScreen = () => {
 
 	useEffect(() => {
 		const prepare = async () => {
-			const user = await getUserInfo()
-			if (!user?.phoneNumber) return
-			setStoragePrefix(user.phoneNumber)
+			try {
+				const user = await getUserInfo()
+				if (!user?.phoneNumber) throw new Error("전화번호 없음")
+				setStoragePrefix(user.phoneNumber)
+			} catch (e) {
+				console.error("🚨 사용자 정보 불러오기 실패:", e)
+				setLoading(false)
+			}
 		}
 		prepare()
 	}, [])
@@ -303,6 +308,7 @@ const ExerciseScreen = () => {
 				playerRef.current?.seek(0)
 				setPaused(false)
 			}, 200)
+			
 		}
 	}
 
