@@ -3,7 +3,10 @@ import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from "react
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../../navigation/Root";
 
-const categories: { id: string; title: string; screen: keyof RootStackParamList }[] = [
+// ✅ screen 이름을 정확히 지정된 값만 허용하는 타입으로 제한
+type CategoryScreenName = "KidneyExercise" | "StrengthExercise" | "BalanceExercise" | "OralExercise";
+
+const categories: { id: string; title: string; screen: CategoryScreenName }[] = [
   { id: "1", title: "신장운동", screen: "KidneyExercise" },
   { id: "2", title: "근력 운동", screen: "StrengthExercise" },
   { id: "3", title: "균형/협응 운동", screen: "BalanceExercise" },
@@ -26,7 +29,12 @@ const CategoryScreen = () => {
               : require("../../../../assets/category/category_pink.png");
 
           return (
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate(item.screen)}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                navigation.navigate({ name: item.screen, params: undefined })
+              }
+            >
               <View style={styles.textContainer}>
                 <Text style={styles.about}>ABOUT</Text>
                 <Text style={styles.title}>{item.title}</Text>
@@ -49,7 +57,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginTop: 30,
-    marginBottom:30,
+    marginBottom: 30,
     textAlign: "center",
     fontSize: 20,
     fontWeight: "bold",
