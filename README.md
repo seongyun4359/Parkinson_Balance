@@ -1,6 +1,6 @@
 # 🏋️ 파킨슨 밸런스 (Parkinson Balance)
 
-📌 **Version 1.0**  
+📌 **Version 1.0.X **  
 👥 **환자 & 의료진을 위한 맞춤형 운동 관리 앱**
 
 --- 
