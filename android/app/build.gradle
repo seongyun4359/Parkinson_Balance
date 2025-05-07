@@ -16,11 +16,12 @@ android {
 
     namespace "com.idealab.pddiary"
     defaultConfig {
-        applicationId "com.idealab.pddiary"
+        applicationId "com.pd_balance"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 3
-        versionName "1.0.2"
+        versionName "1.0.3"
+        resConfigs "ko"
     }
 
     signingConfigs {
