@@ -15,6 +15,9 @@ import { getExerciseGoals, ExerciseGoalItem, updateExerciseGoal } from "../../ap
 import { getPatientExerciseHistory } from "../../apis/exercise"
 import Icon from "react-native-vector-icons/MaterialIcons"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { fetchWithToken } from "../../utils/fetchWithToken"
+import { API_URL } from "../../constants/urls"
+import { ExerciseHistoryItem } from "../../apis/exercisePrescription"
 
 type PatientDetailScreenRouteProp = RouteProp<RootStackParamList, "PatientDetail">
 type PatientDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>
@@ -111,12 +114,25 @@ const PatientDetailScreen = () => {
 				setCount,
 			})
 
+			// 현재 운동 기록 확인
+			const today = new Date().toISOString().split("T")[0]
+			const historyResponse = await getPatientExerciseHistory(patient.phoneNumber, today)
+			const currentHistory = historyResponse.content.find((h) => h.goalId === editingGoal.goalId)
+
+			// 운동 목표 수정
 			await updateExerciseGoal(patient.phoneNumber, editingGoal.goalId, setCount)
 
 			// UI 즉시 업데이트
 			setExerciseGoals((prevGoals) =>
 				prevGoals.map((goal) => (goal.goalId === editingGoal.goalId ? { ...goal, setCount } : goal))
 			)
+
+			// 운동 기록이 있고, 완료된 세트 수가 새로운 목표 세트 수보다 크거나 같으면 완료 상태로 갱신
+			if (currentHistory && currentHistory.completedCount >= setCount) {
+				await fetchWithToken(`${API_URL}/exercises/${currentHistory.historyId}/complete`, {
+					method: "POST",
+				})
+			}
 
 			Alert.alert("성공", "운동 목표가 수정되었습니다.")
 			setEditingGoal(null)
