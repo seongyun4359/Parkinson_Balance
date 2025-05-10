@@ -145,10 +145,12 @@
 ### 🔹 **1. 클론 후 의존성 설치**
 
 ```sh
+
 git clone https://github.com/kw-idea/PD_balance.git
 cd PD_balance
 npm install
 npm start
 npm run android
 npm run ios (미개발 상태)
+
 ```
