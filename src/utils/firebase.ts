@@ -1,5 +1,5 @@
 import messaging from "@react-native-firebase/messaging"
-import { Platform, PermissionsAndroid } from "react-native"
+import { Platform, PermissionsAndroid, Alert } from "react-native"
 import { initializeApp, getApps, getApp } from "@react-native-firebase/app"
 
 // Firebase 설정 정보 (google-services.json 기반)
@@ -137,6 +137,22 @@ export const setupNotificationListeners = async () => {
 			// 포그라운드 메시지 핸들러
 			const unsubscribe = messaging().onMessage(async (remoteMessage) => {
 				console.log("📬 포그라운드 메시지 수신:", remoteMessage)
+
+				// 알림 표시
+				if (Platform.OS === "android") {
+					// Android에서는 자동으로 알림이 표시됨
+					return
+				}
+
+				// iOS에서는 수동으로 알림 표시
+				if (Platform.OS === "ios") {
+					const { title, body } = remoteMessage.notification || {}
+					if (title || body) {
+						Alert.alert(title || "알림", body || "", [
+							{ text: "확인", onPress: () => console.log("알림 확인됨") },
+						])
+					}
+				}
 			})
 
 			// 백그라운드 메시지 핸들러
