@@ -59,6 +59,11 @@ const ExerciseScreen = () => {
 			setShowControls(false)
 		}, 2000)
 	}
+	const [isFullscreen, setIsFullscreen] = useState(false)
+
+	const toggleFullscreen = () => {
+		setIsFullscreen((prev) => !prev)
+	}
 
 	useEffect(() => {
 		const prepare = async () => {
@@ -308,7 +313,6 @@ const ExerciseScreen = () => {
 				playerRef.current?.seek(0)
 				setPaused(false)
 			}, 200)
-			
 		}
 	}
 
@@ -375,44 +379,16 @@ const ExerciseScreen = () => {
 
 	return (
 		<View style={styles.container}>
-			<ScreenHeader />
-			<View style={styles.videoContainer}>
-				{isAerobicExercise(currentExercise.exerciseName) ? (
-					isAerobicActive ? (
-						<View style={styles.videoContainer}>
-							<Text style={styles.timerText}>
-								남은 시간 {String(Math.floor(aerobicSecondsLeft / 60)).padStart(2, "0")}:
-								{String(aerobicSecondsLeft % 60).padStart(2, "0")}
-							</Text>
-							<TouchableOpacity onPress={() => setPaused((prev) => !prev)}>
-								<Ionicons
-									name={paused ? "play-circle-outline" : "pause-circle-outline"}
-									size={56}
-									color="#76DABF"
-								/>
-							</TouchableOpacity>
-						</View>
-					) : (
-						<TouchableOpacity
-							onPress={async () => {
-								setPaused(false)
-								setIsAerobicActive(true)
-								const seconds = currentExercise.duration
-								const now = Date.now()
-								await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
-								setAerobicSecondsLeft(seconds)
-							}}
-						>
-							<Ionicons name="play-circle-outline" size={56} color="#76DABF" />
-						</TouchableOpacity>
-					)
-				) : videoSource ? (
+			{!isFullscreen && <ScreenHeader />}
+
+			{isFullscreen ? (
+				<View style={StyleSheet.absoluteFill}>
 					<TouchableWithoutFeedback onPress={showControlTemporarily}>
-						<View style={styles.videoWrapper}>
+						<View style={{ flex: 1, backgroundColor: "#000", position: "relative" }}>
 							<Video
 								ref={playerRef}
 								source={videoSource}
-								style={styles.video}
+								style={StyleSheet.absoluteFill}
 								resizeMode="contain"
 								paused={paused}
 								onEnd={handleVideoEnd}
@@ -420,37 +396,137 @@ const ExerciseScreen = () => {
 							/>
 
 							{showControls && (
-								<TouchableOpacity
-									style={styles.centerButton}
-									onPress={() => {
-										setPaused((prev) => !prev)
-										showControlTemporarily()
-									}}
-								>
-									<Ionicons
-										name={paused ? "play-circle-outline" : "pause-circle-outline"}
-										size={48}
-										color="#ffffff"
-									/>
-								</TouchableOpacity>
+								<>
+									<TouchableOpacity
+										style={[
+											styles.centerButton,
+											isFullscreen && {
+												top: "50%",
+												left: "50%",
+												transform: [{ translateX: -24 }, { translateY: -24 }],
+											},
+										]}
+										onPress={() => {
+											setPaused((prev) => !prev)
+											showControlTemporarily()
+										}}
+									>
+										<Ionicons
+											name={paused ? "play-circle-outline" : "pause-circle-outline"}
+											size={48}
+											color="#ffffff"
+										/>
+									</TouchableOpacity>
+
+									<TouchableOpacity
+										style={[styles.centerButton, { bottom: 30, right: 30, position: "absolute" }]}
+										onPress={toggleFullscreen}
+									>
+										<Ionicons
+											name={isFullscreen ? "contract-outline" : "expand-outline"}
+											size={32}
+											color="#ffffff"
+										/>
+									</TouchableOpacity>
+								</>
 							)}
 						</View>
 					</TouchableWithoutFeedback>
-				) : (
-					<Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
-				)}
-			</View>
+				</View>
+			) : (
+				<View style={styles.videoContainer}>
+					{isAerobicExercise(currentExercise.exerciseName) ? (
+						isAerobicActive ? (
+							<View style={styles.videoContainer}>
+								<Text style={styles.timerText}>
+									남은 시간 {String(Math.floor(aerobicSecondsLeft / 60)).padStart(2, "0")}:
+									{String(aerobicSecondsLeft % 60).padStart(2, "0")}
+								</Text>
+								<TouchableOpacity onPress={() => setPaused((prev) => !prev)}>
+									<Ionicons
+										name={paused ? "play-circle-outline" : "pause-circle-outline"}
+										size={56}
+										color="#76DABF"
+									/>
+								</TouchableOpacity>
+							</View>
+						) : (
+							<TouchableOpacity
+								onPress={async () => {
+									setPaused(false)
+									setIsAerobicActive(true)
+									const seconds = currentExercise.duration
+									const now = Date.now()
+									await AsyncStorage.setItem(`${storagePrefix}-aerobicStartTime`, String(now))
+									setAerobicSecondsLeft(seconds)
+								}}
+							>
+								<Ionicons name="play-circle-outline" size={56} color="#76DABF" />
+							</TouchableOpacity>
+						)
+					) : videoSource ? (
+						<TouchableWithoutFeedback onPress={showControlTemporarily}>
+							<View style={styles.videoWrapper}>
+								<Video
+									ref={playerRef}
+									source={videoSource}
+									style={styles.video}
+									resizeMode="contain"
+									paused={paused}
+									onEnd={handleVideoEnd}
+									onProgress={handleVideoProgress}
+								/>
 
-			<View style={styles.exerciseInfo}>
-				<Text style={styles.exerciseText}>{currentExercise.exerciseName}</Text>
-				<Text style={styles.progressText}>
-					진행 중: {videoProgress[goalToHistoryMap[currentExercise.goalId]] || 0}/
-					{currentExercise.setCount} 세트
-				</Text>
-			</View>
-			<TouchableOpacity style={styles.stopButton} onPress={handleStopWatching}>
-				<Text style={styles.stopButtonText}>그만 보기</Text>
-			</TouchableOpacity>
+								{showControls && (
+									<>
+										<TouchableOpacity
+											style={styles.centerButton}
+											onPress={() => {
+												setPaused((prev) => !prev)
+												showControlTemporarily()
+											}}
+										>
+											<Ionicons
+												name={paused ? "play-circle-outline" : "pause-circle-outline"}
+												size={48}
+												color="#ffffff"
+											/>
+										</TouchableOpacity>
+
+										<TouchableOpacity
+											style={[styles.centerButton, { bottom: 10, right: 30, position: "absolute" }]}
+											onPress={toggleFullscreen}
+										>
+											<Ionicons
+												name={isFullscreen ? "contract-outline" : "expand-outline"}
+												size={32}
+												color="#ffffff"
+											/>
+										</TouchableOpacity>
+									</>
+								)}
+							</View>
+						</TouchableWithoutFeedback>
+					) : (
+						<Text style={styles.errorText}>🚨 해당 운동의 비디오가 없습니다.</Text>
+					)}
+				</View>
+			)}
+
+			{!isFullscreen && (
+				<>
+					<View style={styles.exerciseInfo}>
+						<Text style={styles.exerciseText}>{currentExercise.exerciseName}</Text>
+						<Text style={styles.progressText}>
+							진행 중: {videoProgress[goalToHistoryMap[currentExercise.goalId]] || 0}/
+							{currentExercise.setCount} 세트
+						</Text>
+					</View>
+					<TouchableOpacity style={styles.stopButton} onPress={handleStopWatching}>
+						<Text style={styles.stopButtonText}>그만 보기</Text>
+					</TouchableOpacity>
+				</>
+			)}
 		</View>
 	)
 }
@@ -468,7 +544,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
+		position: "relative",
+		width: "100%",
+		height: "100%",
 	},
+
 	video: {
 		width: "90%",
 		height: 220,
@@ -523,7 +603,6 @@ const styles = StyleSheet.create({
 	},
 	centerButton: {
 		position: "absolute",
-		alignSelf: "center",
 		justifyContent: "center",
 		alignItems: "center",
 		zIndex: 1,
