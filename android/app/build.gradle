@@ -12,16 +12,16 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.idealab.pddiary"
     defaultConfig {
         applicationId "com.idealab.pddiary"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.0.3"
-        resConfigs "ko"
+        versionCode 4
+        versionName "1.0.4"
+        resConfigs "en", "ko"
     }
 
     signingConfigs {
