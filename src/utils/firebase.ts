@@ -140,7 +140,13 @@ export const setupNotificationListeners = async () => {
 
 				// 알림 표시
 				if (Platform.OS === "android") {
-					// Android에서는 자동으로 알림이 표시됨
+					// Android에서도 Alert로 표시
+					const { title, body } = remoteMessage.notification || {}
+					if (title || body) {
+						Alert.alert(title || "알림", body || "", [
+							{ text: "확인", onPress: () => console.log("알림 확인됨") },
+						])
+					}
 					return
 				}
 
