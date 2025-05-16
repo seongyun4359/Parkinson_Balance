@@ -42,8 +42,7 @@ const App: React.FC = () => {
 
 				// 🔹 기존 예약된 알람 및 기기 알림창의 모든 알림 삭제
 				console.log("🔹 기존 예약된 알람 제거 시작...")
-				PushNotification.cancelAllLocalNotifications()
-				PushNotification.removeAllDeliveredNotifications()
+				
 				console.log("✅ 모든 기존 알람이 취소되었습니다.")
 
 				// 🔹 FCM 토큰 요청
