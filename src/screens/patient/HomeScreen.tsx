@@ -86,11 +86,8 @@ const HomeScreen = () => {
 
 		const scheduleAlarm = async () => {
 			try {
-				const alreadyScheduled = await AsyncStorage.getItem("alarmScheduled")
-				if (alreadyScheduled === "true") {
-					console.log("✅ 이미 알람이 예약되어 있음. 재등록 생략")
-					return
-				}
+				PushNotification.cancelAllLocalNotifications()
+				PushNotification.removeAllDeliveredNotifications()
 
 				const userInfo = await getUserInfo()
 				if (!userInfo) return
