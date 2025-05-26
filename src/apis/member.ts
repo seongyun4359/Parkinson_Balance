@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { fetchWithToken } from "../utils/fetchWithToken"
 
-const API_BASE_URL = "https://kwhcclab.com:20955/api"
+const API_BASE_URL = "https://pddiary.kwidea.com/api"
 
 const refreshTokenAndRetry = async () => {
 	try {

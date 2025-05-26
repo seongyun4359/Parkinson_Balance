@@ -1,6 +1,6 @@
 export const API_CONFIG = {
 	PRODUCTION: "https://pddiary.kwidea.com",
-	STAGING: "https://kwhcclab.com:20955",
+	STAGING: "https://pddiary.kwidea.com",
 }
 
 // 현재 사용할 환경 설정

@@ -12,8 +12,8 @@ import messaging from "@react-native-firebase/messaging"
 import { updateFcmToken } from "../../apis/notification"
 import { checkLoginStatus } from "../../apis/auth"
 
-const API_URL = "https://kwhcclab.com:20955/api/members"
-const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh"
+const API_URL = "https://pddiary.kwidea.com/api/members"
+const REFRESH_URL = "https://pddiary.kwidea.com/api/auth/refresh"
 let AUTH_TOKEN = ""
 
 // API 요청 (토큰 만료 시 자동 갱신 후 재요청)
@@ -455,11 +455,11 @@ export const InfoTableScreen = () => {
 	const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
 		try {
 			console.log("전송할 전화번호:", phoneNumbers)
-			console.log("요청 URL:", "https://kwhcclab.com:20955/api/notifications/exercises/cheers")
+			console.log("요청 URL:", "https://pddiary.kwidea.com/api/notifications/exercises/cheers")
 			console.log("요청 본문:", JSON.stringify({ phoneNumbers: phoneNumbers }, null, 2))
 
 			const response = await fetchWithToken(
-				"https://kwhcclab.com:20955/api/notifications/exercises/cheers",
+				"https://pddiary.kwidea.com/api/notifications/exercises/cheers",
 				{
 					method: "POST",
 					headers: {
@@ -486,7 +486,7 @@ export const InfoTableScreen = () => {
 					statusText: response.statusText,
 					responseText: responseText,
 					headers: Object.fromEntries([...response.headers.entries()]),
-					requestUrl: "https://kwhcclab.com:20955/api/notifications/exercises/cheers",
+					requestUrl: "https://pddiary.kwidea.com/api/notifications/exercises/cheers",
 					requestBody: { phoneNumbers: phoneNumbers },
 				}
 				console.error("알림 전송 실패 - 상세 정보:", errorInfo)
@@ -505,7 +505,7 @@ export const InfoTableScreen = () => {
 				statusText: error.response?.statusText,
 				responseText: error.response?.text,
 				stack: error.stack,
-				requestUrl: "https://kwhcclab.com:20955/api/notifications/exercises/cheers",
+				requestUrl: "https://pddiary.kwidea.com/api/notifications/exercises/cheers",
 				requestBody: { phoneNumbers: phoneNumbers },
 			})
 			throw error
