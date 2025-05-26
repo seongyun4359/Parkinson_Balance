@@ -1,1 +1,1 @@
-export const API_BASE_URL = "https://kwhcclab.com:20955"
+export const API_BASE_URL = "https://pddiary.kwidea.com"

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-const API_URL = "https://kwhcclab.com:20955/api"
+const API_URL = "https://pddiary.kwidea.com/api"
 
 export const addBookmark = async (memberId: string) => {
 	try {

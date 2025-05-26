@@ -1,5 +1,5 @@
-const API_URL = "https://kwhcclab.com:20955/api/members"
-const REFRESH_URL = "https://kwhcclab.com:20955/api/auth/refresh" // 토큰 갱신 API
+const API_URL = "https://pddiary.kwidea.com/api/members"
+const REFRESH_URL = "https://pddiary.kwidea.com/api/auth/refresh" // 토큰 갱신 API
 let AUTH_TOKEN =
 	"eyJhbGciOiJIUzI1NiJ9.eyJwaG9uZU51bWJlciI6IjAxMC0xMjM0LTU2NzgiLCJyb2xlIjoiUEFUSUVOVCIsInN1YiI6IlkxOVN5RnRKZXQzZjNUdGVnMjJldSIsImV4cCI6MTczODgwMzg4M30._kDif0fZ25olnuQQG7nqeV3IGsuqzP9JVVSwu-NcqUU" // 여기에 최신 토큰 입력
 

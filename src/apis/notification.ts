@@ -207,7 +207,7 @@ export const sendExerciseCheerNotification = async (phoneNumbers: string[]) => {
 
 export const updateFcmToken = async (fcmToken: string) => {
 	try {
-		const response = await fetchWithToken("https://kwhcclab.com:20955/api/fcm-token", {
+		const response = await fetchWithToken("https://pddiary.kwidea.com/api/fcm-token", {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
