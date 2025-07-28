@@ -1,1 +1,0 @@
-../../../../../node_modules/@microsoft/react-native-clarity/ios/ClarityEmitter.h

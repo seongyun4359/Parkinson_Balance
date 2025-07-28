@@ -1,1 +1,0 @@
-../../../Target Support Files/react-native-clarity/react-native-clarity-umbrella.h

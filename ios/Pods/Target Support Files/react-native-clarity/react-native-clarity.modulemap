@@ -1,6 +1,0 @@
-module react_native_clarity {
-  umbrella header "react-native-clarity-umbrella.h"
-
-  export *
-  module * { export * }
-}
