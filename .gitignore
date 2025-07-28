@@ -40,6 +40,40 @@ android/build/
 android/app/build/
 android/local.properties
 android/*.hprof
+android/app/src/main/assets/
+android/app/src/debug/
+android/app/src/release/
+android/app/src/prod/
+android/.cxx/
+android/cxx/
+android/app/build/intermediates/
+android/app/build/cxx/
+android/app/build/generated/
+android/app/build/outputs/
+android/app/build.gradle
+android/gradle.properties
+android/local.properties
+android/*.keystore
+android/*.jks
+android/app/release.keystore
+
+# iOS build files
+ios/build/
+ios/DerivedData/
+ios/Pods/
+ios/Podfile.lock
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/fastlane/
+ios/main.jsbundle
+
+# React Native specific
+.expo/
+.expo-shared/
+*.keystore
+*.jks
+__precompiled__/
 
 # React Native specific
 /android/app/build/
@@ -53,12 +87,6 @@ android/*.hprof
 .expo/
 *.keystore
 android/local.properties
-
-# C++ intermediate and build files
-/android/app/build/intermediates/
-/android/app/build/cxx/
-/android/app/build/generated/
-/android/app/build/outputs/
 
 # macOS specific files
 .DS_Store
@@ -123,11 +151,6 @@ coverage/
 .env.production.local
 
 # Miscellaneous
-/ios/fastlane/
-/android/app/src/debug/
-/android/app/src/release/
-/android/app/src/prod/
-/android/app/src/main/assets/
 *.gradle
 *.iml
 *.xml
@@ -138,17 +161,5 @@ coverage/
 # React Native CodePush generated
 __precompiled__/
 
-# Expo specific
-.expo/
-.expo-shared/
-
 # Bundling output
 metro.config.js
-android/app/build.gradle
-ios/Podfile.lock
-
-android/gradle.properties
-
-*.keystore
-*.jks
-android/app/release.keystore
